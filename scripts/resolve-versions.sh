@@ -2,6 +2,8 @@
 # Fills in any gradle.properties value set to "latest" with the newest Fabric release
 # that matches minecraft_version. Needs curl + internet access to meta/maven.fabricmc.net.
 set -euo pipefail
+trap 'echo "resolve-versions.sh failed at line $LINENO (exit $?)"' ERR
+set -x
 cd "$(dirname "$0")/.."
 
 prop() { grep -E "^$1=" gradle.properties | cut -d= -f2- | tr -d '[:space:]'; }
@@ -12,7 +14,8 @@ META=https://meta.fabricmc.net/v2
 MAVEN=https://maven.fabricmc.net
 
 echo "Minecraft version: $MC"
-GAMES=$(curl -fsS "$META/versions/game")
+GAMES=$(curl -fsSL "$META/versions/game")
+echo "Fabric knows ${#GAMES} bytes of game versions; newest: $(grep -oE '"version": *"[^"]+"' <<<"$GAMES" | sed -n 1,3p | tr "\n" " ")"
 if ! grep -qE "\"version\": *\"${MC//./\\.}\"" <<<"$GAMES"; then
 	echo "Fabric does not list Minecraft '$MC'. Newest versions Fabric knows about:"
 	grep -oE '"version": *"[^"]+"' <<<"$GAMES" | sed -n 1,15p
