@@ -3,7 +3,7 @@
 # so compile errors after a Minecraft update are quick to fix.
 set -uo pipefail
 JAR=$(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i minecraft | grep -viE 'sources|loader|fabric-api|mixin' \
-	| while read -r j; do unzip -l "$j" 2>/dev/null | grep -q 'net/minecraft/server/MinecraftServer.class' && echo "$j"; done | head -1)
+	| while read -r j; do unzip -l "$j" 2>/dev/null | grep -q 'net/minecraft/server/MinecraftServer.class' && echo "$j"; done | sed -n 1p)
 echo "Minecraft jar: ${JAR:-not found}"
 [ -z "${JAR:-}" ] && exit 0
 CP="$JAR"
@@ -25,3 +25,21 @@ dump net.minecraft.sounds.SoundEvents 'UI_BUTTON_CLICK|EXPERIENCE_ORB_PICKUP|VIL
 dump net.minecraft.server.MinecraftServer 'getWorldPath|createCommandSourceStack|getCommands|halt|overworld'
 dump net.minecraft.world.inventory.ClickType
 dump net.minecraft.tags.TagKey 'location|public'
+dump net.minecraft.world.inventory.ContainerInput
+dump net.minecraft.util.Prediction
+dump net.minecraft.server.permissions.PermissionSet
+dump net.minecraft.commands.Commands 'ermission|LEVEL_'
+echo "===== permissions package"; unzip -l "$JAR" | grep -oE 'net/minecraft/server/permissions/[A-Za-z$]+\.class' | sort -u
+dump net.minecraft.server.permissions.Permissions 'static final'
+dump net.minecraft.server.permissions.PermissionLevel
+dump net.minecraft.world.item.Items 'GLASS_PANE'
+dump net.minecraft.core.Holder 'tags|is\('
+dump net.minecraft.world.item.Item 'builtInRegistryHolder|Holder'
+dump net.minecraft.world.item.ItemStack 'Holder|is\(net.minecraft.tags|tags'
+dump net.minecraft.world.entity.player.Player 'ound'
+dump net.minecraft.server.level.ServerPlayer 'ound'
+dump net.minecraft.world.entity.Entity 'playSound'
+dump net.minecraft.world.inventory.AbstractContainerMenu 'slotsChanged|broadcastChanges'
+dump net.minecraft.world.SimpleContainer
+dump net.minecraft.sounds.SoundEvents 'VILLAGER_NO'
+dump net.minecraft.world.inventory.Slot 'container|getContainerSlot|set\(|setByPlayer'

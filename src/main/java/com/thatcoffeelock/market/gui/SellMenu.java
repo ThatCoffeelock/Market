@@ -25,10 +25,10 @@ public final class SellMenu extends MarketMenu {
 	private static final int GRID = 45;
 	private static final int CONFIRM = 49;
 	private boolean updating;
+	private long lastSnapshot = Long.MIN_VALUE;
 
 	public SellMenu(int syncId, ServerPlayer viewer, @Nullable BlockPos origin) {
 		super(syncId, viewer, origin);
-		box.addListener(container -> updateTotal());
 		render();
 	}
 
@@ -56,6 +56,21 @@ public final class SellMenu extends MarketMenu {
 			Gui.text("Unsellable items are handed back.", ChatFormatting.GRAY)), null);
 		fillEmptyButtons();
 		updateTotal();
+	}
+
+	/** Refresh the confirm button whenever the grid (or balance) changes. Runs every tick while open. */
+	@Override
+	public void broadcastChanges() {
+		long snapshot = MarketData.balance(viewer);
+		for (int i = 0; i < GRID; i++) {
+			ItemStack stack = box.getItem(i);
+			snapshot = snapshot * 31 + (stack.isEmpty() ? 0 : stack.getItem().hashCode() * 64L + stack.getCount() + 7L * stack.getDamageValue());
+		}
+		if (snapshot != lastSnapshot) {
+			lastSnapshot = snapshot;
+			updateTotal();
+		}
+		super.broadcastChanges();
 	}
 
 	private void updateTotal() {

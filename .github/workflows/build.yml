@@ -23,7 +23,9 @@ jobs:
         run: bash scripts/resolve-versions.sh
 
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew build 2>&1 | tee build.log
 
       - name: Smoke test (boot a dedicated server with the mod)
         run: |
@@ -41,6 +43,10 @@ jobs:
       - name: API dump (diagnostics)
         if: always()
         run: bash scripts/api-dump.sh || true
+
+      - name: Compile errors (summary)
+        if: failure()
+        run: grep -A4 -E "error:|warning: \[removal\]" build.log | head -250 || true
 
       - uses: actions/upload-artifact@v4
         if: success()
