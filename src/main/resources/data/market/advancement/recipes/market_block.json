@@ -1,0 +1,15 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_obsidian": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:obsidian"}]}
+		},
+		"has_the_recipe": {
+			"trigger": "minecraft:recipe_unlocked",
+			"conditions": {"recipe": "market:market_block"}
+		}
+	},
+	"requirements": [["has_obsidian", "has_the_recipe"]],
+	"rewards": {"recipes": ["market:market_block"]}
+}

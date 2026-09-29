@@ -1,0 +1,24 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"GOG",
+		"OEO",
+		"GOG"
+	],
+	"key": {
+		"G": "minecraft:gold_ingot",
+		"O": "minecraft:obsidian",
+		"E": "minecraft:emerald"
+	},
+	"result": {
+		"id": "minecraft:lectern",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"market_block": true},
+			"minecraft:item_name": {"text": "Market", "color": "gold"},
+			"minecraft:lore": [{"text": "Place it, then right-click to trade.", "color": "gray", "italic": false}],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "market",
+	"version": "${version}",
+	"name": "Market",
+	"description": "Sell anything to the market for cash, buy items at a markup, and flex with pallets of money and gold bars. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.market.MarketMod"]
+	},
+	"mixins": ["market.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
