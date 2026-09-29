@@ -32,24 +32,28 @@ public final class Vanity {
 	}
 
 	public enum Type {
-		CASH_STACK("cash_stack", "Stack of Cash", "A couple of fat bundles of bills. Starter wealth.", Items.PAPER, 5_000),
-		GOLD_STACK("gold_stack", "Gold Bar Stack", "A neat little pyramid of solid gold bars.", Items.GOLD_INGOT, 25_000),
-		CASH_PALLET("cash_pallet", "Pallet of Cash", "A shrink-wrapped pallet of bills. Very subtle.", Items.GREEN_DYE, 50_000),
-		GOLD_PALLET("gold_pallet", "Pallet of Gold", "Forty gold bars on a pallet. Fort Knox who?", Items.GOLD_BLOCK, 150_000),
-		TROPHY("trophy", "Tycoon Trophy", "A golden trophy with your name floating above it.", Items.BELL, 250_000);
+		CASH_STACK("cash_stack", "Stack of Cash", "A couple of fat bundles of bills. Starter wealth.", "minecraft:paper", 5_000),
+		GOLD_STACK("gold_stack", "Gold Bar Stack", "A neat little pyramid of solid gold bars.", "minecraft:gold_ingot", 25_000),
+		CASH_PALLET("cash_pallet", "Pallet of Cash", "A shrink-wrapped pallet of bills. Very subtle.", "minecraft:green_dye", 50_000),
+		GOLD_PALLET("gold_pallet", "Pallet of Gold", "Forty gold bars on a pallet. Fort Knox who?", "minecraft:gold_block", 150_000),
+		TROPHY("trophy", "Tycoon Trophy", "A golden trophy with your name floating above it.", "minecraft:bell", 250_000);
 
 		public final String id;
 		public final String displayName;
 		public final String description;
-		public final Item icon;
+		private final String iconId;
 		public final double defaultPrice;
 
-		Type(String id, String displayName, String description, Item icon, double defaultPrice) {
+		Type(String id, String displayName, String description, String iconId, double defaultPrice) {
 			this.id = id;
 			this.displayName = displayName;
 			this.description = description;
-			this.icon = icon;
+			this.iconId = iconId;
 			this.defaultPrice = defaultPrice;
+		}
+
+		public Item icon() {
+			return PriceBook.item(iconId, Items.PAPER);
 		}
 
 		/** Price in cents (configurable in market.json -> vanityPrices). */
@@ -117,7 +121,7 @@ public final class Vanity {
 			}
 			remove(level, pos, record);
 			if (type != null) {
-				player.getInventory().placeItemBackInInventory(MarketItems.vanity(type));
+				MarketItems.give(player, MarketItems.vanity(type));
 			}
 			player.sendSystemMessage(Component.literal("Packed up your " + name + ".").withStyle(ChatFormatting.GOLD));
 			return;

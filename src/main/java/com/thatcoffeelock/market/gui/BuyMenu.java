@@ -14,7 +14,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -104,7 +104,7 @@ public final class BuyMenu extends MarketMenu {
 			}
 			Item item = items.get(index);
 			button(i, shopIcon(item), (b, t) -> {
-				int amount = t == ClickType.QUICK_MOVE ? item.getDefaultMaxStackSize() : b == 1 ? Math.min(8, item.getDefaultMaxStackSize()) : 1;
+				int amount = t == ContainerInput.QUICK_MOVE ? item.getDefaultMaxStackSize() : b == 1 ? Math.min(8, item.getDefaultMaxStackSize()) : 1;
 				buy(item, amount);
 			});
 		}
@@ -161,7 +161,7 @@ public final class BuyMenu extends MarketMenu {
 				.append(Money.text(MarketData.balance(viewer))));
 			return;
 		}
-		viewer.getInventory().placeItemBackInInventory(new ItemStack(item, amount));
+		MarketItems.give(viewer, new ItemStack(item, amount));
 		kaching();
 		render();
 	}
@@ -177,7 +177,7 @@ public final class BuyMenu extends MarketMenu {
 			lore.add(Component.empty());
 			lore.add(Gui.text("Price: ", ChatFormatting.GRAY).append(Money.text(type.price())));
 			lore.add(Gui.text("Click to buy.", ChatFormatting.YELLOW));
-			button(VANITY_SLOTS[i], Gui.glow(Gui.icon(type.icon, Gui.text(type.displayName, ChatFormatting.GOLD, ChatFormatting.BOLD), lore)),
+			button(VANITY_SLOTS[i], Gui.glow(Gui.icon(type.icon(), Gui.text(type.displayName, ChatFormatting.GOLD, ChatFormatting.BOLD), lore)),
 				(b, t) -> buyVanity(type));
 		}
 		bottomBar(this::toHub);
@@ -192,7 +192,7 @@ public final class BuyMenu extends MarketMenu {
 				.append(Component.literal(". Keep grinding.").withStyle(ChatFormatting.RED)));
 			return;
 		}
-		viewer.getInventory().placeItemBackInInventory(MarketItems.vanity(type));
+		MarketItems.give(viewer, MarketItems.vanity(type));
 		kaching();
 		viewer.sendSystemMessage(Component.literal("You bought a " + type.displayName + ". Flex responsibly.").withStyle(ChatFormatting.GOLD));
 		render();

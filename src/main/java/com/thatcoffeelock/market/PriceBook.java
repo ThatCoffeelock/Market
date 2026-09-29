@@ -46,12 +46,28 @@ public final class PriceBook {
 		return BuiltInRegistries.ITEM.getKey(item).toString();
 	}
 
+	private static Map<String, Item> byId;
+
+	private static Map<String, Item> byId() {
+		if (byId == null) {
+			Map<String, Item> map = new HashMap<>();
+			for (Item item : BuiltInRegistries.ITEM) {
+				map.put(id(item), item);
+			}
+			byId = map;
+		}
+		return byId;
+	}
+
+	/** Item by id like "minecraft:black_stained_glass_pane", or the fallback if it doesn't exist. */
+	public static Item item(String id, Item fallback) {
+		Item item = byId().get(id);
+		return item == null || item == Items.AIR ? fallback : item;
+	}
+
 	public static void reload() {
 		MarketConfig cfg = MarketConfig.get();
-		Map<String, Item> byId = new HashMap<>();
-		for (Item item : BuiltInRegistries.ITEM) {
-			byId.put(id(item), item);
-		}
+		Map<String, Item> byId = byId();
 		unknownIds = 0;
 
 		JsonObject root = MarketConfig.loadPrices();
@@ -123,7 +139,7 @@ public final class PriceBook {
 		}
 		if (price == null && !tagPrices.isEmpty()) {
 			long best = -1;
-			for (var tag : new ItemStack(item).getTags().toList()) {
+			for (var tag : item.builtInRegistryHolder().tags().toList()) {
 				Long tagPrice = tagPrices.get(tag.location().toString());
 				if (tagPrice != null && tagPrice > best) {
 					best = tagPrice;

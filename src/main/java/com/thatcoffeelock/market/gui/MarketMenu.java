@@ -7,12 +7,13 @@ import com.thatcoffeelock.market.Gui;
 import com.thatcoffeelock.market.MarketData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -27,7 +28,7 @@ public abstract class MarketMenu extends ChestMenu {
 
 	@FunctionalInterface
 	public interface Action {
-		void run(int button, ClickType type);
+		void run(int button, ContainerInput type);
 	}
 
 	protected final ServerPlayer viewer;
@@ -78,22 +79,26 @@ public abstract class MarketMenu extends ChestMenu {
 	}
 
 	protected void click() {
-		viewer.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.MASTER, 0.4f, 1.0f);
+		sound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, 1.0f);
 	}
 
 	protected void kaching() {
-		viewer.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.MASTER, 0.6f, 1.3f);
+		sound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.6f, 1.3f);
 	}
 
 	protected void nope() {
-		viewer.playNotifySound(SoundEvents.VILLAGER_NO, SoundSource.MASTER, 0.6f, 1.0f);
+		sound(SoundEvents.VILLAGER_NO, 0.6f, 1.0f);
+	}
+
+	private void sound(SoundEvent sound, float volume, float pitch) {
+		viewer.level().playSound(null, viewer.getX(), viewer.getY(), viewer.getZ(), sound, SoundSource.PLAYERS, volume, pitch);
 	}
 
 	@Override
-	public void clicked(int slotId, int button, ClickType clickType, Player player) {
+	public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
 		if (isButton(slotId)) {
 			Action action = actions.get(slotId);
-			if (action != null && (clickType == ClickType.PICKUP || clickType == ClickType.QUICK_MOVE)) {
+			if (action != null && (clickType == ContainerInput.PICKUP || clickType == ContainerInput.QUICK_MOVE)) {
 				action.run(button, clickType);
 			}
 			sendAllDataToRemote();

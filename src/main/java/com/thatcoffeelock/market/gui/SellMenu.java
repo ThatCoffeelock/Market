@@ -95,7 +95,7 @@ public final class SellMenu extends MarketMenu {
 					rejected++;
 				}
 			}
-			ItemStack icon = Gui.icon(total > 0 ? Items.LIME_CONCRETE : Items.GRAY_CONCRETE,
+			ItemStack icon = Gui.icon(total > 0 ? Items.EMERALD_BLOCK : Items.COAL_BLOCK,
 				Gui.text("Confirm Sale", ChatFormatting.GREEN, ChatFormatting.BOLD),
 				Gui.text(items + " item(s) for ", ChatFormatting.GRAY).append(Money.text(total)),
 				rejected > 0 ? Gui.text(rejected + " stack(s) the market won't take", ChatFormatting.RED) : Component.empty(),

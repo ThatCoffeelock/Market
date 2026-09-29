@@ -45,6 +45,6 @@ public final class Gui {
 	}
 
 	public static ItemStack filler() {
-		return icon(Items.BLACK_STAINED_GLASS_PANE, Component.literal(" "));
+		return icon(PriceBook.item("minecraft:black_stained_glass_pane", Items.GLASS_PANE), Component.literal(" "));
 	}
 }

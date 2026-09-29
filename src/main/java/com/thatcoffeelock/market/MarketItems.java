@@ -7,10 +7,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.util.Prediction;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -22,6 +24,11 @@ public final class MarketItems {
 	public static final String VANITY = "market_vanity";
 
 	private MarketItems() {
+	}
+
+	/** Puts the item in the player's inventory, or drops it at their feet if it's full. */
+	public static void give(Player player, ItemStack stack) {
+		player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
 	}
 
 	public static CompoundTag data(ItemStack stack) {
@@ -73,7 +80,7 @@ public final class MarketItems {
 	// ---------------------------------------------------------------- vanity
 
 	public static ItemStack vanity(Vanity.Type type) {
-		ItemStack stack = new ItemStack(type.icon);
+		ItemStack stack = new ItemStack(type.icon());
 		CompoundTag tag = new CompoundTag();
 		tag.putString(VANITY, type.id);
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));

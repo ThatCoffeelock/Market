@@ -56,7 +56,7 @@ public final class MarketCommands {
 				return 1;
 			})
 			.then(literal("admin")
-				.requires(source -> source.hasPermission(2))
+				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 				.then(literal("reload").executes(ctx -> {
 					MarketConfig.load();
 					PriceBook.reload();
@@ -71,7 +71,7 @@ public final class MarketCommands {
 					.executes(ctx -> adjust(ctx, 0)))))
 				.then(literal("block").executes(ctx -> {
 					ServerPlayer player = ctx.getSource().getPlayerOrException();
-					player.getInventory().placeItemBackInInventory(MarketItems.marketBlock());
+					MarketItems.give(player, MarketItems.marketBlock());
 					return 1;
 				}))));
 	}
@@ -108,7 +108,7 @@ public final class MarketCommands {
 			ctx.getSource().sendFailure(Component.literal("You don't have that much."));
 			return 0;
 		}
-		player.getInventory().placeItemBackInInventory(MarketItems.banknote(cents));
+		MarketItems.give(player, MarketItems.banknote(cents));
 		ctx.getSource().sendSuccess(() -> Component.literal("Printed a banknote worth ").withStyle(ChatFormatting.GREEN).append(Money.text(cents)), false);
 		return 1;
 	}

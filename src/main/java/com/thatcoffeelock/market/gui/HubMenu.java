@@ -12,7 +12,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,9 +66,9 @@ public final class HubMenu extends MarketMenu {
 				Gui.text("Left-click: 100", ChatFormatting.YELLOW),
 				Gui.text("Right-click: 1,000", ChatFormatting.YELLOW),
 				Gui.text("Shift-click: 10,000", ChatFormatting.YELLOW))), (b, t) -> {
-			long amount = Money.fromDecimal(t == ClickType.QUICK_MOVE ? 10_000 : b == 1 ? 1_000 : 100);
+			long amount = Money.fromDecimal(t == ContainerInput.QUICK_MOVE ? 10_000 : b == 1 ? 1_000 : 100);
 			if (MarketData.withdraw(viewer, amount)) {
-				viewer.getInventory().placeItemBackInInventory(MarketItems.banknote(amount));
+				MarketItems.give(viewer, MarketItems.banknote(amount));
 				kaching();
 				render();
 			} else {
