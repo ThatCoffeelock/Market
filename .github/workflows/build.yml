@@ -32,6 +32,11 @@ jobs:
           mkdir -p run/smoke
           echo "eula=true" > run/smoke/eula.txt
           timeout 900 ./gradlew runSmoke --stacktrace 2>&1 | tee smoke.log || true
+          if grep -q "Serialization errors" smoke.log; then
+            echo "::error::Vanilla rejected some entity data"
+            grep -A1 "Serialization errors" smoke.log | head -20
+            exit 1
+          fi
           if grep -q "MARKET SMOKE TEST PASSED" smoke.log; then
             echo "Smoke test passed"
           else
@@ -40,8 +45,8 @@ jobs:
             exit 1
           fi
 
-      - name: API dump (diagnostics)
-        if: always()
+      - name: API dump (diagnostics on failure)
+        if: failure()
         run: bash scripts/api-dump.sh || true
 
       - name: Compile errors (summary)

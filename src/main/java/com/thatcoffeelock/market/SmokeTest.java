@@ -30,14 +30,19 @@ final class SmokeTest {
 			check(MarketItems.vanityType(MarketItems.vanity(Vanity.Type.GOLD_PALLET)) == Vanity.Type.GOLD_PALLET, "vanity item round-trips");
 
 			// every buyable item must cost more than the market pays for it
+			int buyable = 0;
 			for (PriceBook.Category category : PriceBook.categories()) {
 				for (var item : category.items()) {
 					long buy = PriceBook.unitBuy(item);
 					if (buy > 0) {
-						check(buy > PriceBook.unitSell(item), "no buy/sell loop for " + PriceBook.id(item));
+						buyable++;
+						if (buy <= PriceBook.unitSell(item)) {
+							check(false, "no buy/sell loop for " + PriceBook.id(item));
+						}
 					}
 				}
 			}
+			check(buyable > 300, buyable + " buyable items, none can be flipped for profit");
 
 			ServerLevel level = server.overworld();
 			Vanity.run(level, "forceload add 0 0");

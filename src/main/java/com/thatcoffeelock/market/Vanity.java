@@ -160,7 +160,7 @@ public final class Vanity {
 		String transform = ",transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:["
 			+ f(part.x) + "f," + f(part.y) + "f," + f(part.z) + "f],scale:[" + f(part.sx) + "f," + f(part.sy) + "f," + f(part.sz) + "f]}";
 		return "summon minecraft:block_display " + f(cx) + " " + f(cy) + " " + f(cz) + " {" + common
-			+ ",block_state:{Name:\"" + part.id + "\"}" + transform + "}";
+			+ ",block_state:\"" + part.id + "\"" + transform + "}";
 	}
 
 	// ---------------------------------------------------------------- the actual art
