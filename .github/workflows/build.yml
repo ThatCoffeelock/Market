@@ -46,7 +46,8 @@ jobs:
 
       - name: Compile errors (summary)
         if: failure()
-        run: grep -A4 -E "error:|warning: \[removal\]" build.log | head -250 || true
+        run: |
+          grep -A4 -E "error:" build.log | head -300 || true
 
       - uses: actions/upload-artifact@v4
         if: success()
