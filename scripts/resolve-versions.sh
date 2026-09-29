@@ -12,14 +12,16 @@ META=https://meta.fabricmc.net/v2
 MAVEN=https://maven.fabricmc.net
 
 echo "Minecraft version: $MC"
-if ! curl -fsS "$META/versions/game" | grep -q "\"version\": *\"$MC\""; then
-	echo "::error::Fabric does not list Minecraft '$MC'. Newest versions Fabric knows about:"
-	curl -fsS "$META/versions/game" | grep -oE '"version": *"[^"]+"' | head -15
+GAMES=$(curl -fsS "$META/versions/game")
+if ! grep -qE "\"version\": *\"${MC//./\\.}\"" <<<"$GAMES"; then
+	echo "Fabric does not list Minecraft '$MC'. Newest versions Fabric knows about:"
+	grep -oE '"version": *"[^"]+"' <<<"$GAMES" | sed -n 1,15p
 	exit 1
 fi
 
 if [ "$(prop loader_version)" = "latest" ]; then
-	LOADER=$(curl -fsS "$META/versions/loader" | tr '{' '\n' | grep '"stable": *true' | grep -oE '"version": *"[^"]+"' | head -1 | cut -d'"' -f4)
+	LOADERS=$(curl -fsS "$META/versions/loader")
+	LOADER=$(tr '{' '\n' <<<"$LOADERS" | grep '"stable": *true' | grep -oE '"version": *"[^"]+"' | sed -n 1p | cut -d'"' -f4)
 	echo "Fabric Loader: $LOADER"; setprop loader_version "$LOADER"
 fi
 
@@ -29,10 +31,11 @@ if [ "$(prop loom_version)" = "latest" ]; then
 fi
 
 if [ "$(prop fabric_api_version)" = "latest" ]; then
-	API=$(curl -fsS "$MAVEN/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml" | grep -oE '<version>[^<]+</version>' | sed -E 's/<\/?version>//g' | grep -E "\+${MC//./\\.}$" | tail -1 || true)
+	APIS=$(curl -fsS "$MAVEN/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml" | grep -oE '<version>[^<]+</version>' | sed -E 's/<\/?version>//g')
+	API=$(grep -E "\+${MC//./\\.}$" <<<"$APIS" | tail -1 || true)
 	if [ -z "$API" ]; then
-		echo "::error::No Fabric API build for Minecraft $MC yet. Latest builds:"
-		curl -fsS "$MAVEN/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml" | grep -oE '<version>[^<]+</version>' | tail -10
+		echo "No Fabric API build for Minecraft $MC yet. Latest builds:"
+		tail -10 <<<"$APIS"
 		exit 1
 	fi
 	echo "Fabric API: $API"; setprop fabric_api_version "$API"
