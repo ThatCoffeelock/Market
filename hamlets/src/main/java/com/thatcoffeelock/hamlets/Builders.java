@@ -8,6 +8,7 @@ import java.util.Random;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -126,7 +127,7 @@ final class Builders {
 				c.villager(-1, 1, 1, true);
 			}
 			if (c.rng.nextFloat() < 0.5f) {
-				c.spawn(EntityType.CAT, 2, 1, 1);
+				c.spawn(EntityTypes.CAT, 2, 1, 1);
 			}
 		} else {
 			// someone was brewing something they shouldn't have
@@ -142,9 +143,9 @@ final class Builders {
 			}
 			garden(c);
 			c.set(1, 1, 4, facing(Blocks.CARVED_PUMPKIN, SOUTH));
-			c.spawn(EntityType.ZOMBIE_VILLAGER, 0, 1, 0); // a former resident. Curable, if you're kind
-			c.spawn(EntityType.ZOMBIE, 1, 1, -1);
-			c.spawn(c.rng.nextFloat() < 0.5f ? EntityType.WITCH : EntityType.SKELETON, -1, 1, 1);
+			c.spawn(EntityTypes.ZOMBIE_VILLAGER, 0, 1, 0); // a former resident. Curable, if you're kind
+			c.spawn(EntityTypes.ZOMBIE, 1, 1, -1);
+			c.spawn(c.rng.nextFloat() < 0.5f ? EntityTypes.WITCH : EntityTypes.SKELETON, -1, 1, 1);
 		}
 	}
 
@@ -292,7 +293,7 @@ final class Builders {
 			if (index == 0) {
 				c.chest(tx, 1, tz, Canvas.dir(-sx, 0), BuiltInLootTables.PILLAGER_OUTPOST);
 			}
-			c.spawn(EntityType.SKELETON, tx - sx, 1, tz - sz);
+			c.spawn(EntityTypes.SKELETON, tx - sx, 1, tz - sz);
 		}
 	}
 
@@ -366,13 +367,13 @@ final class Builders {
 			for (int z : new int[] {-6, -4, -2}) {
 				c.bed(4, 6, z, s.bed, EAST);
 			}
-			c.fill(0, 6, -7, 0, 6, -1, st(Blocks.RED_CARPET));
+			c.fill(0, 6, -7, 0, 6, -1, st(Style.block("red_carpet")));
 			c.chest(-1, 6, -8, SOUTH, BuiltInLootTables.VILLAGE_WEAPONSMITH);
 			c.chest(1, 6, -8, SOUTH, s.houseLoot);
 			c.villager(-2, 6, -1, false);
 			c.villager(2, 6, -1, true);
 		} else {
-			c.spawner(0, 1, -4, c.rng.nextBoolean() ? EntityType.SKELETON : EntityType.ZOMBIE);
+			c.spawner(0, 1, -4, c.rng.nextBoolean() ? EntityTypes.SKELETON : EntityTypes.ZOMBIE);
 			for (int i = 0; i < 12; i++) {
 				int x = -5 + c.rng.nextInt(10);
 				int z = -8 + c.rng.nextInt(9);
@@ -383,11 +384,11 @@ final class Builders {
 			c.set(1, 1, -6, slab(s.slab, true));
 			c.chest(-5, 1, -8, EAST, BuiltInLootTables.SIMPLE_DUNGEON);
 			c.chest(0, 6, -8, SOUTH, BuiltInLootTables.STRONGHOLD_CORRIDOR);
-			c.spawn(EntityType.ZOMBIE, -2, 1, -2);
-			c.spawn(EntityType.ZOMBIE, 2, 1, -2);
-			c.spawn(EntityType.SKELETON, 0, 1, -7);
-			c.spawn(EntityType.SKELETON, -3, 6, -4);
-			c.spawn(EntityType.SKELETON, 3, 6, -4);
+			c.spawn(EntityTypes.ZOMBIE, -2, 1, -2);
+			c.spawn(EntityTypes.ZOMBIE, 2, 1, -2);
+			c.spawn(EntityTypes.SKELETON, 0, 1, -7);
+			c.spawn(EntityTypes.SKELETON, -3, 6, -4);
+			c.spawn(EntityTypes.SKELETON, 3, 6, -4);
 		}
 	}
 
@@ -432,9 +433,9 @@ final class Builders {
 				c.set(p[0], 2, p[1], st(Blocks.LANTERN));
 			}
 			c.villager(-6, 1, 6, false);
-			c.spawn(EntityType.IRON_GOLEM, 4, 1, 8);
+			c.spawn(EntityTypes.IRON_GOLEM, 4, 1, 8);
 			if (c.rng.nextFloat() < 0.6f) {
-				c.spawn(EntityType.CAT, -4, 1, 8);
+				c.spawn(EntityTypes.CAT, -4, 1, 8);
 			}
 		} else {
 			// bandits moved in and made themselves at home
@@ -449,9 +450,9 @@ final class Builders {
 					c.set(x, 1, z, rubble);
 				}
 			}
-			c.spawn(EntityType.PILLAGER, 5, 1, 5);
-			c.spawn(EntityType.PILLAGER, 7, 1, 9);
-			c.spawn(EntityType.VINDICATOR, -4, 1, 7);
+			c.spawn(EntityTypes.PILLAGER, 5, 1, 5);
+			c.spawn(EntityTypes.PILLAGER, 7, 1, 9);
+			c.spawn(EntityTypes.VINDICATOR, -4, 1, 7);
 		}
 	}
 
@@ -532,7 +533,7 @@ final class Builders {
 				c.set(corner[0], f + 1, corner[1], st(Blocks.BONE_BLOCK));
 			}
 		}
-		c.spawn(EntityType.ZOMBIE, 3, f + 1, -2);
+		c.spawn(EntityTypes.ZOMBIE, 3, f + 1, -2);
 
 		List<RoomKind> kinds = new ArrayList<>(List.of(RoomKind.values()));
 		Collections.shuffle(kinds, new Random(c.rng.nextLong()));
@@ -615,14 +616,14 @@ final class Builders {
 			r.set(c, 5, f + 4, v, hanging(Blocks.SOUL_LANTERN)); // a little light, so nothing spawns in the cells
 		}
 		// the prisoners: always someone in the middle cell
-		r.spawn(c, EntityType.VILLAGER, 5, f + 1, 0);
+		r.spawn(c, EntityTypes.VILLAGER, 5, f + 1, 0);
 		if (c.rng.nextFloat() < 0.6f) {
-			r.spawn(c, EntityType.VILLAGER, 5, f + 1, -3);
+			r.spawn(c, EntityTypes.VILLAGER, 5, f + 1, -3);
 		}
-		r.spawn(c, c.rng.nextFloat() < 0.4f ? EntityType.ZOMBIE_VILLAGER : EntityType.VILLAGER, 5, f + 1, 3);
+		r.spawn(c, c.rng.nextFloat() < 0.4f ? EntityTypes.ZOMBIE_VILLAGER : EntityTypes.VILLAGER, 5, f + 1, 3);
 		// the guards
-		r.spawn(c, EntityType.ZOMBIE, 1, f + 1, -2);
-		r.spawn(c, EntityType.SKELETON, 1, f + 1, 2);
+		r.spawn(c, EntityTypes.ZOMBIE, 1, f + 1, -2);
+		r.spawn(c, EntityTypes.SKELETON, 1, f + 1, 2);
 		r.chest(c, 0, f + 1, 4, r.back(), BuiltInLootTables.SIMPLE_DUNGEON);
 	}
 
@@ -637,14 +638,14 @@ final class Builders {
 				}
 			}
 		}
-		List<EntityType<?>> mobs = List.of(EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER);
+		List<EntityType<?>> mobs = List.of(EntityTypes.ZOMBIE, EntityTypes.SKELETON, EntityTypes.SPIDER);
 		c.spawner(r.x(3, 0), f + 1, r.z(3, 0), mobs.get(c.rng.nextInt(mobs.size())));
 		r.chest(c, 6, f + 1, -3, r.back(), BuiltInLootTables.SIMPLE_DUNGEON);
 		r.chest(c, 6, f + 1, 3, r.back(), BuiltInLootTables.SIMPLE_DUNGEON);
 		r.set(c, 6, f + 4, -4, st(Blocks.COBWEB));
 		r.set(c, 6, f + 4, 4, st(Blocks.COBWEB));
-		r.spawn(c, EntityType.SKELETON, 2, f + 1, -2);
-		r.spawn(c, EntityType.SKELETON, 2, f + 1, 2);
+		r.spawn(c, EntityTypes.SKELETON, 2, f + 1, -2);
+		r.spawn(c, EntityTypes.SKELETON, 2, f + 1, 2);
 	}
 
 	private static void treasury(Canvas c, Room r, int f) {
@@ -662,9 +663,9 @@ final class Builders {
 		if (c.rng.nextFloat() < 0.5f) {
 			r.set(c, 6, f + 1, -4, st(Blocks.GOLD_BLOCK));
 		}
-		r.spawn(c, EntityType.VINDICATOR, 3, f + 1, 0); // the treasurer
-		r.spawn(c, EntityType.SKELETON, 2, f + 1, -3);
-		r.spawn(c, EntityType.ZOMBIE, 2, f + 1, 3);
+		r.spawn(c, EntityTypes.VINDICATOR, 3, f + 1, 0); // the treasurer
+		r.spawn(c, EntityTypes.SKELETON, 2, f + 1, -3);
+		r.spawn(c, EntityTypes.ZOMBIE, 2, f + 1, 3);
 	}
 
 	private static void library(Canvas c, Room r, int f) {
@@ -678,7 +679,7 @@ final class Builders {
 		r.set(c, 6, f + 1, -2, st(Blocks.BREWING_STAND));
 		r.set(c, 6, f + 1, 2, st(Blocks.CAULDRON));
 		r.chest(c, 6, f + 1, 1, r.back(), BuiltInLootTables.STRONGHOLD_LIBRARY);
-		r.spawn(c, EntityType.WITCH, 3, f + 1, 0);
-		r.spawn(c, EntityType.SKELETON, 2, f + 1, 2);
+		r.spawn(c, EntityTypes.WITCH, 3, f + 1, 0);
+		r.spawn(c, EntityTypes.SKELETON, 2, f + 1, 2);
 	}
 }

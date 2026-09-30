@@ -1,6 +1,8 @@
 package com.thatcoffeelock.hamlets;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
@@ -14,22 +16,22 @@ import net.minecraft.world.level.storage.loot.LootTable;
 enum Style {
 	OAK(Blocks.OAK_PLANKS, Blocks.OAK_LOG, Blocks.OAK_SLAB, Blocks.OAK_DOOR, Blocks.OAK_FENCE,
 		Blocks.COBBLESTONE, Blocks.STONE_BRICKS, Blocks.STONE_BRICK_STAIRS, Blocks.STONE_BRICK_SLAB,
-		Blocks.DARK_OAK_STAIRS, Blocks.DARK_OAK_SLAB, Blocks.RED_BED, Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_PLAINS_HOUSE),
+		Blocks.DARK_OAK_STAIRS, Blocks.DARK_OAK_SLAB, block("red_bed"), Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_PLAINS_HOUSE),
 	SPRUCE(Blocks.SPRUCE_PLANKS, Blocks.SPRUCE_LOG, Blocks.SPRUCE_SLAB, Blocks.SPRUCE_DOOR, Blocks.SPRUCE_FENCE,
 		Blocks.COBBLESTONE, Blocks.STONE_BRICKS, Blocks.STONE_BRICK_STAIRS, Blocks.STONE_BRICK_SLAB,
-		Blocks.SPRUCE_STAIRS, Blocks.SPRUCE_SLAB, Blocks.BLUE_BED, Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_TAIGA_HOUSE),
+		Blocks.SPRUCE_STAIRS, Blocks.SPRUCE_SLAB, block("blue_bed"), Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_TAIGA_HOUSE),
 	BIRCH(Blocks.BIRCH_PLANKS, Blocks.BIRCH_LOG, Blocks.BIRCH_SLAB, Blocks.BIRCH_DOOR, Blocks.BIRCH_FENCE,
 		Blocks.COBBLESTONE, Blocks.STONE_BRICKS, Blocks.STONE_BRICK_STAIRS, Blocks.STONE_BRICK_SLAB,
-		Blocks.SPRUCE_STAIRS, Blocks.SPRUCE_SLAB, Blocks.YELLOW_BED, Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_PLAINS_HOUSE),
+		Blocks.SPRUCE_STAIRS, Blocks.SPRUCE_SLAB, block("yellow_bed"), Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_PLAINS_HOUSE),
 	DARK(Blocks.DARK_OAK_PLANKS, Blocks.DARK_OAK_LOG, Blocks.DARK_OAK_SLAB, Blocks.DARK_OAK_DOOR, Blocks.DARK_OAK_FENCE,
 		Blocks.COBBLED_DEEPSLATE, Blocks.DEEPSLATE_BRICKS, Blocks.DEEPSLATE_BRICK_STAIRS, Blocks.DEEPSLATE_BRICK_SLAB,
-		Blocks.DEEPSLATE_TILE_STAIRS, Blocks.DEEPSLATE_TILE_SLAB, Blocks.BLACK_BED, Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_TAIGA_HOUSE),
+		Blocks.DEEPSLATE_TILE_STAIRS, Blocks.DEEPSLATE_TILE_SLAB, block("black_bed"), Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_TAIGA_HOUSE),
 	ACACIA(Blocks.ACACIA_PLANKS, Blocks.ACACIA_LOG, Blocks.ACACIA_SLAB, Blocks.ACACIA_DOOR, Blocks.ACACIA_FENCE,
 		Blocks.COBBLESTONE, Blocks.STONE_BRICKS, Blocks.STONE_BRICK_STAIRS, Blocks.STONE_BRICK_SLAB,
-		Blocks.ACACIA_STAIRS, Blocks.ACACIA_SLAB, Blocks.ORANGE_BED, Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_SAVANNA_HOUSE),
+		Blocks.ACACIA_STAIRS, Blocks.ACACIA_SLAB, block("orange_bed"), Blocks.GRASS_BLOCK, Blocks.DIRT, BuiltInLootTables.VILLAGE_SAVANNA_HOUSE),
 	SANDSTONE(Blocks.SMOOTH_SANDSTONE, Blocks.CUT_SANDSTONE, Blocks.SANDSTONE_SLAB, Blocks.BIRCH_DOOR, Blocks.BIRCH_FENCE,
 		Blocks.SANDSTONE, Blocks.CUT_SANDSTONE, Blocks.SANDSTONE_STAIRS, Blocks.CUT_SANDSTONE_SLAB,
-		Blocks.SMOOTH_SANDSTONE_STAIRS, Blocks.SMOOTH_SANDSTONE_SLAB, Blocks.GREEN_BED, Blocks.SAND, Blocks.SANDSTONE, BuiltInLootTables.VILLAGE_DESERT_HOUSE);
+		Blocks.SMOOTH_SANDSTONE_STAIRS, Blocks.SMOOTH_SANDSTONE_SLAB, block("green_bed"), Blocks.SAND, Blocks.SANDSTONE, BuiltInLootTables.VILLAGE_DESERT_HOUSE);
 
 	/** Walls of houses and floors. */
 	final Block planks;
@@ -87,6 +89,11 @@ enum Style {
 			return BIRCH;
 		}
 		return OAK;
+	}
+
+	/** Dyed blocks (beds, carpets) are colour collections in 26.3; the registry id is the stable way in. */
+	static Block block(String id) {
+		return BuiltInRegistries.BLOCK.getValue(Identifier.withDefaultNamespace(id));
 	}
 
 	static Style byOrdinal(int i) {

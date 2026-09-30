@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -69,25 +70,25 @@ final class SmokeTest {
 
 		Survey haunted = site(level, 1, Plan.COTTAGE, Folk.MONSTERS);
 		check(haunted.monsters >= 3, "haunted cottage has monsters (" + haunted.monsters + ")");
-		check(haunted.count(EntityType.ZOMBIE_VILLAGER) == 1, "haunted cottage has a zombie villager to cure");
+		check(haunted.count(EntityTypes.ZOMBIE_VILLAGER) == 1, "haunted cottage has a zombie villager to cure");
 		check(haunted.villagers == 0, "no villagers in the haunted cottage");
 
 		Survey castle = site(level, 2, Plan.CASTLE, Folk.VILLAGERS);
 		check(castle.villagers >= 6, "castle has villagers (" + castle.villagers + ")");
-		check(castle.count(EntityType.IRON_GOLEM) == 1, "castle has an iron golem");
+		check(castle.count(EntityTypes.IRON_GOLEM) == 1, "castle has an iron golem");
 		check(castle.beds >= 6, "castle has beds (" + castle.beds + ")");
 		check(castle.has(Blocks.BELL), "castle has a bell");
 
 		Survey ruin = site(level, 3, Plan.CASTLE, Folk.MONSTERS);
 		check(ruin.monsters >= 8, "ruined castle has monsters (" + ruin.monsters + ")");
-		check(ruin.count(EntityType.PILLAGER) == 2, "bandits camp in the ruined castle");
+		check(ruin.count(EntityTypes.PILLAGER) == 2, "bandits camp in the ruined castle");
 		check(ruin.has(Blocks.SPAWNER), "ruined castle has a spawner");
 		check(ruin.villagers == 0, "no villagers in the ruined castle");
 
 		Survey dungeon = site(level, 4, Plan.DUNGEON, Folk.MONSTERS);
 		check(dungeon.has(Blocks.SPAWNER), "dungeon has a spawner");
 		check(dungeon.has(Blocks.IRON_DOOR), "dungeon has prison cells");
-		check(dungeon.villagers + dungeon.count(EntityType.ZOMBIE_VILLAGER) >= 2, "dungeon has prisoners (" + dungeon.villagers + " villagers)");
+		check(dungeon.villagers + dungeon.count(EntityTypes.ZOMBIE_VILLAGER) >= 2, "dungeon has prisoners (" + dungeon.villagers + " villagers)");
 		check(dungeon.monsters >= 8, "dungeon has monsters (" + dungeon.monsters + ")");
 		check(dungeon.loot >= 4, "dungeon has loot (" + dungeon.loot + " chests)");
 		check(!level.getBlockState(new BlockPos(4 * 72 + 2, Y + Builders.DUNGEON_FLOOR, 2)).isAir(), "dungeon hub has a floor");
@@ -145,7 +146,7 @@ final class SmokeTest {
 			this.box = box;
 			this.entities = level.getEntities((Entity) null, AABB.of(box).inflate(1), e -> e.isAlive());
 			for (Entity e : entities) {
-				if (e.getType() == EntityType.VILLAGER) {
+				if (e.getType() == EntityTypes.VILLAGER) {
 					villagers++;
 				} else if (e.getType().getCategory() == MobCategory.MONSTER) {
 					monsters++;

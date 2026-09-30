@@ -14,6 +14,7 @@ import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
@@ -124,7 +125,7 @@ final class Canvas {
 			if (live) {
 				reshape.add(pos);
 			} else {
-				level.getChunk(pos).markPosForPostprocessing(pos);
+				level.getChunk(pos).markPosForPostProcessing(pos);
 			}
 		}
 	}
@@ -246,7 +247,7 @@ final class Canvas {
 	}
 
 	void villager(int x, int y, int z, boolean baby) {
-		Entity e = spawn(EntityType.VILLAGER, x, y, z);
+		Entity e = spawn(EntityTypes.VILLAGER, x, y, z);
 		if (baby && e instanceof AgeableMob mob) {
 			mob.setAge(-24000);
 		}

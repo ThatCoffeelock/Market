@@ -70,7 +70,8 @@ public final class HamletStructure extends Structure {
 		}
 
 		BlockPos origin = new BlockPos(x, y, z);
-		Holder<Biome> biome = ctx.biomeSource().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z), rs.sampler());
+		Holder<Biome> biome = ctx.biomeSource().createUncachedResolver(rs)
+			.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z));
 		Style style = Style.forBiome(biome);
 		Rotation turn = Rotation.getRandom(ctx.random());
 		long seed = ctx.random().nextLong();
