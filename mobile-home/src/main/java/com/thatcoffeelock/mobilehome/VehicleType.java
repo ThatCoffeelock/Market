@@ -14,7 +14,7 @@ import net.minecraft.world.item.Items;
  */
 public enum VehicleType {
 	VAN("van", "Camper Van", 1.2, 2.5, 2.45, 3.2f, 2.6f,
-		0.5, 0.02, 4.5, false, new double[] {0.6, 1.1}, 1, 5.0,
+		0.5, 0.02, 4.5f, false, new double[] {0.6, 1.1}, 1, 5.0,
 		"minecraft:block.note_block.didgeridoo", 1.4f,
 		new Seat[] {
 			new Seat("Driver", 0.55, 0.85, 1.25),
@@ -22,7 +22,7 @@ public enum VehicleType {
 			new Seat("Back seat (left)", 0.55, 0.85, -0.3),
 			new Seat("Back seat (right)", -0.55, 0.85, -0.3)}),
 	TANK("tank", "Tank", 1.55, 2.6, 2.7, 3.4f, 2.8f,
-		0.3, 0.012, 3.0, true, new double[] {0.6, 1.1, 1.6, 2.1}, 2, 7.0,
+		0.3, 0.012, 3.0f, true, new double[] {0.6, 1.1, 1.6, 2.1}, 2, 7.0,
 		"minecraft:event.raid.horn", 1.6f,
 		new Seat[] {
 			new Seat("Driver", 0.45, 1.45, 0.1),

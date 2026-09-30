@@ -13,7 +13,8 @@ dump net.minecraft.server.level.ServerPlayer 'Input|connection|isCreative'
 dump net.minecraft.world.entity.player.Input
 dump net.minecraft.world.level.Level 'fuelValues|noCollision|getFluidState|registryAccess'
 dump net.minecraft.world.level.CollisionGetter 'noCollision'
-dump net.minecraft.server.MinecraftServer "uel"
+dump net.minecraft.world.item.component.CookingFuel
+dump net.minecraft.core.component.DataComponents FUEL
 echo "===== fuel classes"; unzip -l "$MC" | grep -i fuel
 dump net.minecraft.world.entity.Entity 'getTags|setPos\(|setYRot|getPassengers|getFirstPassenger|ejectPassengers|stopRiding|discard|clearFire|AirSupply|blockPosition|getVehicle'
 dump net.minecraft.world.entity.LivingEntity 'knockback|isDeadOrDying'
