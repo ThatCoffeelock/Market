@@ -153,6 +153,12 @@ public final class Cannons {
 			CannonMod.LOG.error("Could not summon a cannon at {} {} {}", x, y, z);
 			return null;
 		}
+		// passengers come out in the order they were summoned: hitbox, frame, then barrel
+		List<Entity> parts = root.getPassengers();
+		int first = 1 + Cannon.FRAME.size();
+		for (int i = 0; i < Cannon.BARREL.size() && first + i < parts.size(); i++) {
+			parts.get(first + i).setAttached(CannonMod.BARREL_PART, i);
+		}
 		root.setAttached(CannonMod.DATA, data);
 		PENDING.remove(root);
 		return register(level, root);

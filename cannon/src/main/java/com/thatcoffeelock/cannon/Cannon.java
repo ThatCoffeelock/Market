@@ -99,17 +99,9 @@ public final class Cannon {
 		this.root = root;
 		this.data = data;
 		for (Entity part : root.getPassengers()) {
-			for (String tag : part.getTags()) {
-				if (tag.startsWith(BARREL_TAG)) {
-					try {
-						int i = Integer.parseInt(tag.substring(BARREL_TAG.length()));
-						if (i >= 0 && i < barrel.length) {
-							barrel[i] = part;
-						}
-					} catch (NumberFormatException ignored) {
-						// not one of ours
-					}
-				}
+			Integer i = part.getAttached(CannonMod.BARREL_PART);
+			if (i != null && i >= 0 && i < barrel.length) {
+				barrel[i] = part;
 			}
 		}
 	}

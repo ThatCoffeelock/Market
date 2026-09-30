@@ -74,7 +74,7 @@ final class SmokeTest {
 		check(cannon.root.getPassengers().size() == parts, "cannon has all " + parts + " model parts + hitbox");
 		check(cannon.root.getPassengers().stream().anyMatch(e -> e instanceof Interaction), "cannon has a hitbox");
 		for (int i = 0; i < cannon.barrel.length; i++) {
-			check(cannon.barrel[i] != null, "barrel part " + i + " found by its tag");
+			check(cannon.barrel[i] instanceof Display.BlockDisplay, "barrel part " + i + " found and marked");
 		}
 		check(cannon.root.getAttached(CannonMod.DATA) == data, "cannon data attached");
 

@@ -37,6 +37,10 @@ public final class CannonMod implements ModInitializer {
 	public static final AttachmentType<Boolean> BALL = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "ball"), builder -> builder.persistent(Codec.BOOL));
 
+	/** Which barrel part (index into {@link Cannon#BARREL}) a display is, so the barrel can be found again after a reload. */
+	public static final AttachmentType<Integer> BARREL_PART = AttachmentRegistry.create(
+		Identifier.fromNamespaceAndPath(MOD_ID, "barrel_part"), builder -> builder.persistent(Codec.INT));
+
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();
 	private static int ticks;
