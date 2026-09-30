@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "cannon",
+	"version": "${version}",
+	"name": "Cannon",
+	"description": "An aimable cannon you can build, place and man. Look to aim, jump to fire. Cannonballs are crafted from iron and gunpowder. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.cannon.CannonMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
