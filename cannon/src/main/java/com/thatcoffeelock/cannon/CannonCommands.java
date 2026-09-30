@@ -52,7 +52,7 @@ final class CannonCommands {
 			"§7Right-click the cannon to man it: §flook§7 to aim, §fSpace§7 to fire, §fShift§7 to get off.",
 			"§7Each shot uses one cannonball from your inventory. Reloading takes 2 seconds.",
 			"§7Sneak + right-click the cannon to pick it back up (owner only).",
-			"§cThe balls explode like a creeper. Don't shoot the wall you're leaning on."
+			"§cThe balls explode like a creeper: they hurt mobs and players but never break blocks."
 		};
 		for (String line : lines) {
 			source.sendSystemMessage(Component.literal(line));

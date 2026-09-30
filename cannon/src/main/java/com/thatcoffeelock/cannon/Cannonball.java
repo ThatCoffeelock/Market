@@ -19,13 +19,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A ball in flight. It's an item display we move ourselves every tick (the client interpolates between
  * positions), with our own gravity and a swept collision check, so it can't tunnel through walls at speed.
- * It blows up on the first block or mob it touches, fizzles in water, and quietly vanishes if it flies
+ * It blows up (without breaking any blocks) on the first block or mob it touches, fizzles in water, and quietly vanishes if it flies
  * into chunks nobody has loaded.
  */
 final class Cannonball {
 	static final double GRAVITY = 0.05;
 	static final double DRAG = 0.99;
-	/** A creeper is 3, TNT is 4. */
+	/** A creeper is 3, TNT is 4. Hurts mobs and players, never breaks blocks. */
 	static final float POWER = 3.0f;
 	static final int MAX_AGE = 400;
 	static final String TAG = "cannon_ball";
@@ -192,7 +192,7 @@ final class Cannonball {
 
 	private void explode(Vec3 at) {
 		remove();
-		level.explode(null, at.x, at.y, at.z, POWER, Level.ExplosionInteraction.TNT);
+		level.explode(null, at.x, at.y, at.z, POWER, Level.ExplosionInteraction.NONE);
 	}
 
 	private void splash(Vec3 at) {

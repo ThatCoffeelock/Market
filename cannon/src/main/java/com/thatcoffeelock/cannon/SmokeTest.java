@@ -1,18 +1,22 @@
 package com.thatcoffeelock.cannon;
 
+import java.util.UUID;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Interaction;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
 /**
  * Only runs with -Dcannon.smokeTest=true (CI). Boots a real server, places a cannon on a test pad, swings it
- * around with a fake gunner, shoots a dirt wall, checks the wall got a hole in it, packs up and shuts down.
+ * around with a fake gunner, shoots a villager standing in front of a dirt wall, checks the villager got hurt and the wall
+ * didn't (cannonballs never break blocks), packs up and shuts down.
  */
 final class SmokeTest {
 	private static final int WALL_Z = 18;
@@ -20,6 +24,7 @@ final class SmokeTest {
 	private static Cannon cannon;
 	private static int displaysBefore;
 	private static int wallBefore;
+	private static final UUID TARGET = UUID.randomUUID();
 
 	private SmokeTest() {
 	}
@@ -97,10 +102,12 @@ final class SmokeTest {
 		check(cannon.data.elevation == Cannon.MAX_ELEVATION, "elevation is capped at " + Cannon.MAX_ELEVATION + "°");
 		check(Math.abs(cannon.root.getYRot()) < 0.01, "cannon turned back to 0°");
 
-		// a dirt wall straight ahead, then fire at it nearly flat
+		// a dirt wall straight ahead with a villager in front of it, then fire at them nearly flat
 		Cmd.run(level, "fill -4 100 " + WALL_Z + " 4 106 " + (WALL_Z + 1) + " minecraft:dirt");
 		wallBefore = countWall(level);
 		check(wallBefore == 9 * 7 * 2, "target wall built");
+		Cmd.run(level, "summon minecraft:villager 0.5 100 " + (WALL_Z - 1) + ".5 {" + Cmd.uuidNbt(TARGET) + ",NoAI:1b,PersistenceRequired:1b}");
+		check(level.getEntity(TARGET) instanceof LivingEntity, "target villager summoned");
 		cannon.testAim = new Cannon.Aim(0f, 5f);
 		CannonMod.later(30, () -> step(server, () -> fire(level))); // 55° at 3° a tick
 	}
@@ -121,8 +128,10 @@ final class SmokeTest {
 	private static void impact(ServerLevel level) {
 		MinecraftServer server = level.getServer();
 		check(Cannonball.flying().isEmpty(), "ball landed");
+		check(!(level.getEntity(TARGET) instanceof LivingEntity target) || target.isDeadOrDying() || target.getHealth() < target.getMaxHealth(),
+			"the villager got hit");
 		int wall = countWall(level);
-		check(wall < wallBefore, "the wall has a hole in it (" + (wallBefore - wall) + " blocks blown out)");
+		check(wall == wallBefore, "no terrain damage: the wall is intact (" + (wallBefore - wall) + " blocks missing)");
 		check(cannon.reload == 0, "reloaded after " + Cannon.RELOAD_TICKS + " ticks");
 		cannon.testAim = null;
 

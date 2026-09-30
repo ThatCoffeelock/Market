@@ -35,7 +35,7 @@ Ops can also use `/cannon give cannon` and `/cannon give cannonballs [count]`.
 
 While you're manning it, the action bar shows the elevation, the estimated range over flat ground, how many cannonballs you have left, and the reload bar. Reloading takes 2 seconds.
 
-**Ballistics**: the ball leaves the barrel at 48 blocks per second and drops under gravity. At 45° it flies about 80 blocks. It explodes on the first block or mob it touches, with the power of a creeper (3), and breaks blocks like TNT. If it lands in water it splashes and sinks. If it flies into unloaded chunks it vanishes quietly instead of loading them.
+**Ballistics**: the ball leaves the barrel at 48 blocks per second and drops under gravity. At 45° it flies about 80 blocks. It explodes on the first block or mob it touches, with the power of a creeper (3). The blast hurts and knocks back mobs and players, but **never breaks blocks**, so no craters in your base. If it lands in water it splashes and sinks. If it flies into unloaded chunks it vanishes quietly instead of loading them.
 
 **Friendly fire is on.** If you fire at the wall right in front of you, you'll be standing in the explosion. That's between you and your respawn point.
 
@@ -49,4 +49,4 @@ While you're manning it, the action bar shows the elevation, the estimated range
 
 - The cannon item is a glowing dispenser and the cannonball is a grey firework star, so vanilla clients can show them. Custom data keeps them apart from the real thing.
 - The hitbox is a box around the carriage. Click near the middle.
-- CI (`.github/workflows/cannon.yml`) builds the mod, then boots a real dedicated server. It places a cannon, swings and elevates it with a fake gunner, checks the elevation limit, fires at a dirt wall and checks there's a hole in it, then packs the cannon up and checks every entity is gone.
+- CI (`.github/workflows/cannon.yml`) builds the mod, then boots a real dedicated server. It places a cannon, swings and elevates it with a fake gunner, checks the elevation limit, fires at a villager standing against a dirt wall, checks the villager got hit and the wall didn't lose a single block, then packs the cannon up and checks every entity is gone.
