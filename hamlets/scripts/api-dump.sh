@@ -39,7 +39,3 @@ dump net.minecraft.world.level.chunk.ChunkAccess 'ost[Pp]rocess'
 dump net.minecraft.world.level.chunk.ProtoChunk 'ost[Pp]rocess'
 dump net.minecraft.world.level.biome.BiomeSource 'public'
 dump net.minecraft.world.level.biome.BiomeResolver
-echo "===== any class with a public static final EntityType<...> VILLAGER field"
-for c in $(unzip -l "$MC" | awk '{print $4}' | grep -E '^net/minecraft/world/entity/[A-Za-z]+\.class$' | sed 's/\.class$//; s#/#.#g'); do javap -cp "$MC" "$c" 2>/dev/null | grep -q "EntityType<.*> VILLAGER;" && echo "$c"; done
-echo "===== blocks holding a bed per colour"
-for c in $(unzip -l "$MC" | awk '{print $4}' | grep -E '^net/minecraft/world/level/block/[A-Za-z]+\.class$' | sed 's/\.class$//; s#/#.#g'); do javap -cp "$MC" "$c" 2>/dev/null | grep -E "static final .*(RED_BED|BEDS|CARPETS)" | sed "s#^#$c: #"; done | head

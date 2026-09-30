@@ -145,7 +145,8 @@ final class Builders {
 			c.set(1, 1, 4, facing(Blocks.CARVED_PUMPKIN, SOUTH));
 			c.spawn(EntityTypes.ZOMBIE_VILLAGER, 0, 1, 0); // a former resident. Curable, if you're kind
 			c.spawn(EntityTypes.ZOMBIE, 1, 1, -1);
-			c.spawn(c.rng.nextFloat() < 0.5f ? EntityTypes.WITCH : EntityTypes.SKELETON, -1, 1, 1);
+			EntityType<?> squatter = c.rng.nextFloat() < 0.5f ? EntityTypes.WITCH : EntityTypes.SKELETON;
+			c.spawn(squatter, -1, 1, 1);
 		}
 	}
 
