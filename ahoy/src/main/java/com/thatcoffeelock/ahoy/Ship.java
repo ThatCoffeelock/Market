@@ -384,14 +384,14 @@ public final class Ship {
 		return cmd.append("]}").toString();
 	}
 
-	/** Display block_state: a bare id, or {Name:..., Properties:{...}} when the block has properties. */
+	/** Display block_state: a bare id, or {id:..., properties:{...}} when the block has properties. */
 	static String blockStateNbt(BlockState state) {
 		String text = BlockStateParser.serialize(state).replace("\"", "");
 		int open = text.indexOf('[');
 		if (open < 0 || !text.endsWith("]")) {
 			return "\"" + text + "\"";
 		}
-		StringBuilder nbt = new StringBuilder("{Name:\"").append(text, 0, open).append("\",Properties:{");
+		StringBuilder nbt = new StringBuilder("{id:\"").append(text, 0, open).append("\",properties:{");
 		String[] pairs = text.substring(open + 1, text.length() - 1).split(",");
 		for (int i = 0; i < pairs.length; i++) {
 			String[] kv = pairs[i].split("=", 2);
