@@ -29,3 +29,17 @@ dump net.minecraft.nbt.CompoundTag 'getIntOr|getLongOr|getStringOr'
 dump net.minecraft.core.Registry ' get\(|getValue'
 dump net.minecraft.world.level.biome.BiomeSource 'getNoiseBiome'
 dump net.minecraft.commands.CommandSourceStack 'getRotation|getPosition'
+echo "===== classes named like EntityType / DyeColor block helpers"
+unzip -l "$MC" | grep -E "net/minecraft/world/entity/EntityTypes?\.class|world/entity/EntityType[A-Za-z]*\.class|level/block/[A-Za-z]*Blocks?\.class|ColoredBlock|DyedBlock|BlockFamil" | awk '{print $4}' | head -30
+dump net.minecraft.world.entity.EntityType 'static final.*(VILLAGER|ZOMBIE|SKELETON|IRON_GOLEM|CAT|PILLAGER)'
+dump net.minecraft.world.entity.EntityTypes 'VILLAGER|ZOMBIE|SKELETON|IRON_GOLEM|CAT\b|PILLAGER'
+dump net.minecraft.world.level.block.Blocks '_BED|BED\b|CARPET|WOOL|DyeColor|static .*(Map|Function|Family)'
+dump net.minecraft.world.level.levelgen.RandomState 'public'
+dump net.minecraft.world.level.chunk.ChunkAccess 'ost[Pp]rocess'
+dump net.minecraft.world.level.chunk.ProtoChunk 'ost[Pp]rocess'
+dump net.minecraft.world.level.biome.BiomeSource 'public'
+dump net.minecraft.world.level.biome.BiomeResolver
+echo "===== any class with a public static final EntityType<...> VILLAGER field"
+for c in $(unzip -l "$MC" | awk '{print $4}' | grep -E '^net/minecraft/world/entity/[A-Za-z]+\.class$' | sed 's/\.class$//; s#/#.#g'); do javap -cp "$MC" "$c" 2>/dev/null | grep -q "EntityType<.*> VILLAGER;" && echo "$c"; done
+echo "===== blocks holding a bed per colour"
+for c in $(unzip -l "$MC" | awk '{print $4}' | grep -E '^net/minecraft/world/level/block/[A-Za-z]+\.class$' | sed 's/\.class$//; s#/#.#g'); do javap -cp "$MC" "$c" 2>/dev/null | grep -E "static final .*(RED_BED|BEDS|CARPETS)" | sed "s#^#$c: #"; done | head
