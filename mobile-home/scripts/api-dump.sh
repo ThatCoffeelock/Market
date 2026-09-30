@@ -36,3 +36,6 @@ dump net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
 dump net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry\$Builder
 dump net.minecraft.server.MinecraftServer reloadableRegistries
 dump net.minecraft.server.ReloadableServerRegistries\$Holder public
+dump net.minecraft.world.level.storage.loot.LootContext\$Builder public
+dump net.minecraft.world.level.storage.loot.LootParams\$Builder public
+dump net.minecraft.world.level.storage.loot.parameters.LootContextParamSets EMPTY
