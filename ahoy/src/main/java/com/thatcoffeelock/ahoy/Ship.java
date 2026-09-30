@@ -375,13 +375,35 @@ public final class Ship {
 				}
 				state = Blocks.BARREL.defaultBlockState();
 			}
-			cmd.append(",{id:\"minecraft:block_display\",block_state:\"").append(BlockStateParser.serialize(state).replace("\"", ""))
-				.append("\",Tags:[\"ahoy_part\"],").append(rot)
+			cmd.append(",{id:\"minecraft:block_display\",block_state:").append(blockStateNbt(state))
+				.append(",Tags:[\"ahoy_part\"],").append(rot)
 				.append(",teleport_duration:2,transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[")
 				.append(Cmd.f(b.x() - 0.5)).append("f,").append(Cmd.f(b.y())).append("f,").append(Cmd.f(b.z() - 0.5))
 				.append("f],scale:[1f,1f,1f]}}");
 		}
 		return cmd.append("]}").toString();
+	}
+
+	/** Display block_state: a bare id, or {Name:..., Properties:{...}} when the block has properties. */
+	static String blockStateNbt(BlockState state) {
+		String text = BlockStateParser.serialize(state).replace("\"", "");
+		int open = text.indexOf('[');
+		if (open < 0 || !text.endsWith("]")) {
+			return "\"" + text + "\"";
+		}
+		StringBuilder nbt = new StringBuilder("{Name:\"").append(text, 0, open).append("\",Properties:{");
+		String[] pairs = text.substring(open + 1, text.length() - 1).split(",");
+		for (int i = 0; i < pairs.length; i++) {
+			String[] kv = pairs[i].split("=", 2);
+			if (kv.length != 2) {
+				continue;
+			}
+			if (i > 0) {
+				nbt.append(',');
+			}
+			nbt.append(kv[0]).append(":\"").append(kv[1]).append('"');
+		}
+		return nbt.append("}}").toString();
 	}
 
 	/** A block completely buried in the ship doesn't need a display (saves a lot of entities). */
