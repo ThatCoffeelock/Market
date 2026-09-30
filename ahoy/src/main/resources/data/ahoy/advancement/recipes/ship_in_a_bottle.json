@@ -1,0 +1,11 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_boat": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "#minecraft:boats"}]}
+		}
+	},
+	"requirements": [["has_boat"]],
+	"rewards": {"recipes": ["ahoy:ship_in_a_bottle"]}
+}

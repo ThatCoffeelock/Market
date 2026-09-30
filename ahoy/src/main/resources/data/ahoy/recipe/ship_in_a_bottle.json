@@ -1,0 +1,31 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"WGW",
+		"CBC",
+		"PPP"
+	],
+	"key": {
+		"W": "#minecraft:wool",
+		"G": "minecraft:glass_bottle",
+		"C": "minecraft:chest",
+		"B": "#minecraft:boats",
+		"P": "#minecraft:planks"
+	},
+	"result": {
+		"id": "minecraft:glass_bottle",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"ahoy_ship": true},
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {"text": "Ship in a Bottle", "color": "aqua"},
+			"minecraft:lore": [
+				{"text": "Right-click open water to launch a ship.", "color": "gray", "italic": false},
+				{"text": "Needs about 7 × 20 blocks of water, 4 deep.", "color": "dark_gray", "italic": false},
+				{"text": "Rename it in an anvil to name your ship.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}
