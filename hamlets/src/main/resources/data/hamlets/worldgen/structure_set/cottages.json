@@ -1,0 +1,22 @@
+{
+  "structures": [
+    {
+      "structure": "hamlets:cottage",
+      "weight": 3
+    },
+    {
+      "structure": "hamlets:haunted_cottage",
+      "weight": 2
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 20,
+    "separation": 6,
+    "salt": 1868051741,
+    "exclusion_zone": {
+      "other_set": "minecraft:villages",
+      "chunk_count": 3
+    }
+  }
+}
