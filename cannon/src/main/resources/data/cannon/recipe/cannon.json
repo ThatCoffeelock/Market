@@ -1,0 +1,29 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "equipment",
+	"pattern": [
+		"III",
+		"LDL",
+		"L L"
+	],
+	"key": {
+		"I": "minecraft:iron_block",
+		"D": "minecraft:dispenser",
+		"L": "#minecraft:logs"
+	},
+	"result": {
+		"id": "minecraft:dispenser",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"cannon": "cannon"},
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {"text": "Cannon", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Right-click the ground to place it.", "color": "gray", "italic": false},
+				{"text": "Right-click it to man it. Look to aim, Space to fire.", "color": "dark_gray", "italic": false},
+				{"text": "Sneak + right-click to pick it back up.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

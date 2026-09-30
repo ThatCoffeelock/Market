@@ -1,0 +1,11 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_gunpowder": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:gunpowder"}]}
+		}
+	},
+	"requirements": [["has_gunpowder"]],
+	"rewards": {"recipes": ["cannon:cannonball"]}
+}

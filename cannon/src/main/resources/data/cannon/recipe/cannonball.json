@@ -1,0 +1,20 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "equipment",
+	"ingredients": [
+		"minecraft:iron_ingot",
+		"minecraft:gunpowder"
+	],
+	"result": {
+		"id": "minecraft:firework_star",
+		"count": 2,
+		"components": {
+			"minecraft:custom_data": {"cannon": "cannonball"},
+			"minecraft:item_name": {"text": "Cannonball", "color": "dark_gray"},
+			"minecraft:lore": [
+				{"text": "Ammunition for a cannon.", "color": "gray", "italic": false},
+				{"text": "Keep it in your inventory while you man one.", "color": "dark_gray", "italic": false}
+			]
+		}
+	}
+}
