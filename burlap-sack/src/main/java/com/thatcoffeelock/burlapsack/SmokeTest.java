@@ -7,7 +7,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
@@ -68,7 +67,7 @@ final class SmokeTest {
 		Cmd.run(level, "summon minecraft:villager 0.5 100 0.5 {" + Cmd.uuidNbt(FARMER) + ",NoAI:1b,PersistenceRequired:1b,CustomName:\"Bob\","
 			+ "VillagerData:{profession:\"minecraft:farmer\",level:3,type:\"minecraft:plains\"},Xp:50}");
 		Entity farmer = level.getEntity(FARMER);
-		check(farmer != null && farmer.getType() == EntityType.VILLAGER, "farmer summoned");
+		check(farmer != null && Sacks.typeId(farmer).equals(Sacks.VILLAGER), "farmer summoned");
 		check(Sacks.fits(farmer), "a villager fits in the sack");
 		check(Sacks.method(farmer, Sacks.RELEASE_POIS) != null, "villagers still have " + Sacks.RELEASE_POIS + "()");
 		check(Sacks.method(farmer, Sacks.IS_TRADING) != null, "villagers still have " + Sacks.IS_TRADING + "()");
@@ -114,7 +113,7 @@ final class SmokeTest {
 		check(level.getEntity(FARMER) == null && level.getEntity(TRADER) == null, "bagged entities stay gone");
 
 		Entity bob = Sacks.release(level, farmerSack, 0.5, 100, 8.5, 90f);
-		check(bob != null && bob.getType() == EntityType.VILLAGER, "farmer let out of the sack");
+		check(bob != null && Sacks.typeId(bob).equals(Sacks.VILLAGER), "farmer let out of the sack");
 		check(!FARMER.equals(bob.getUUID()), "the freed farmer gets a new UUID");
 		check("Bob".equals(bob.getName().getString()), "the freed farmer is still called Bob (" + bob.getName().getString() + ")");
 		CompoundTag after = Sacks.save(bob);
@@ -125,7 +124,7 @@ final class SmokeTest {
 		check(after.getListOrEmpty("Gossips").toString().contains("minor_negative"), "the freed farmer holds a grudge (" + after.getListOrEmpty("Gossips") + ")");
 
 		Entity trader = Sacks.release(level, traderSack, -3.5, 100, 8.5, 0f);
-		check(trader != null && trader.getType() == EntityType.WANDERING_TRADER, "wandering trader let out of the sack");
+		check(trader != null && Sacks.typeId(trader).equals(Sacks.WANDERING_TRADER), "wandering trader let out of the sack");
 		check(Sacks.save(trader).getIntOr("DespawnDelay", -1) == 0, "the freed trader stays for good");
 
 		check(Sacks.release(level, SackItems.empty(), 0.5, 100, 0.5, 0f) == null, "an empty sack releases nobody");

@@ -62,8 +62,18 @@ public final class Sacks {
 	private Sacks() {
 	}
 
+	static final String VILLAGER = "minecraft:villager";
+	static final String WANDERING_TRADER = "minecraft:wandering_trader";
+	static final String IRON_GOLEM = "minecraft:iron_golem";
+
+	/** The entity's type id, e.g. minecraft:villager. */
+	static String typeId(Entity entity) {
+		return EntityType.getKey(entity.getType()).toString();
+	}
+
 	static boolean fits(Entity entity) {
-		return entity.getType() == EntityType.VILLAGER || entity.getType() == EntityType.WANDERING_TRADER;
+		String type = typeId(entity);
+		return type.equals(VILLAGER) || type.equals(WANDERING_TRADER);
 	}
 
 	/** Right-click on an entity. */
@@ -98,7 +108,7 @@ public final class Sacks {
 			return InteractionResult.SUCCESS;
 		}
 
-		String type = EntityType.getKey(entity.getType()).toString();
+		String type = typeId(entity);
 		String name = entity.getName().getString();
 		grudge(captive, player.getUUID());
 		double x = entity.getX();
@@ -156,7 +166,7 @@ public final class Sacks {
 		for (String key : STRIP) {
 			tag.remove(key);
 		}
-		if (entity.getType() == EntityType.WANDERING_TRADER) {
+		if (typeId(entity).equals(WANDERING_TRADER)) {
 			tag.putInt("DespawnDelay", 0); // 0 = never leaves: they live here now
 		}
 		tag.putBoolean("PersistenceRequired", true);
@@ -215,7 +225,7 @@ public final class Sacks {
 	static int alertGolems(ServerLevel level, LivingEntity culprit, double x, double y, double z) {
 		AABB near = new AABB(x - WITNESS_RANGE, y - WITNESS_RANGE / 2, z - WITNESS_RANGE, x + WITNESS_RANGE, y + WITNESS_RANGE / 2, z + WITNESS_RANGE);
 		int n = 0;
-		for (Mob golem : level.getEntitiesOfClass(Mob.class, near, m -> m.getType() == EntityType.IRON_GOLEM && m.isAlive())) {
+		for (Mob golem : level.getEntitiesOfClass(Mob.class, near, m -> typeId(m).equals(IRON_GOLEM) && m.isAlive())) {
 			golem.setLastHurtByMob(culprit);
 			golem.setTarget(culprit);
 			n++;
