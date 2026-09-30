@@ -1,0 +1,27 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "equipment",
+	"pattern": [
+		" S ",
+		"L L",
+		"LLL"
+	],
+	"key": {
+		"S": "minecraft:string",
+		"L": "minecraft:leather"
+	},
+	"result": {
+		"id": "minecraft:bundle",
+		"components": {
+			"!minecraft:bundle_contents": {},
+			"minecraft:max_stack_size": 1,
+			"minecraft:custom_data": {"burlapsack": "empty"},
+			"minecraft:item_name": {"text": "Burlap Sack", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Right-click a villager or wandering trader", "color": "gray", "italic": false},
+				{"text": "to stuff them in the sack.", "color": "gray", "italic": false},
+				{"text": "Iron golems will not approve.", "color": "dark_gray", "italic": false}
+			]
+		}
+	}
+}

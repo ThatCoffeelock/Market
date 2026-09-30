@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "burlapsack",
+	"version": "${version}",
+	"name": "Burlap Sack",
+	"description": "A sack for relocating villagers and wandering traders, with or without their consent. Trades and levels come along; iron golems object. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.burlapsack.BurlapSackMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

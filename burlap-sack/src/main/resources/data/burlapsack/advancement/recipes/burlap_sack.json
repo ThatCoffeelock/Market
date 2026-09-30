@@ -1,0 +1,11 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_leather": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:leather"}]}
+		}
+	},
+	"requirements": [["has_leather"]],
+	"rewards": {"recipes": ["burlapsack:burlap_sack"]}
+}
