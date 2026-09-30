@@ -16,6 +16,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
@@ -46,8 +47,7 @@ public final class Vehicles {
 		}
 		VehicleData data = root.getAttached(MobileHomeMod.DATA);
 		if (data == null) {
-			VehicleType type = root.getTags().contains("mh_type_" + VehicleType.TANK.id) ? VehicleType.TANK : VehicleType.VAN;
-			data = new VehicleData(type);
+			data = new VehicleData(VehicleType.VAN);
 			root.setAttached(MobileHomeMod.DATA, data);
 		}
 		Vehicle vehicle = new Vehicle(level, root, data);
@@ -93,15 +93,15 @@ public final class Vehicles {
 	// ---------------------------------------------------------------- lifecycle
 
 	static void onLoad(Entity entity, ServerLevel level) {
-		if (entity.getTags().contains(ROOT_TAG)) {
+		if (entity.hasAttached(MobileHomeMod.DATA)) {
 			PENDING.add(entity);
-		} else if (entity.getTags().contains(SEAT_TAG) && !BY_SEAT.containsKey(entity.getUUID())) {
+		} else if (entity.hasAttached(MobileHomeMod.SEAT) && !BY_SEAT.containsKey(entity.getUUID())) {
 			ORPHAN_SEATS.add(entity);
 		}
 	}
 
 	static void onUnload(Entity entity, ServerLevel level) {
-		if (entity.getTags().contains(ROOT_TAG)) {
+		if (entity.hasAttached(MobileHomeMod.DATA)) {
 			Vehicle vehicle = BY_ROOT.get(entity.getUUID());
 			if (vehicle != null) {
 				// not while the chunk is busy unloading: tidy the seats up at the end of the tick
@@ -254,7 +254,7 @@ public final class Vehicles {
 
 	/** Right-clicking the vehicle's hitbox. */
 	static InteractionResult useHitbox(ServerPlayer player, InteractionHand hand, Entity hitbox) {
-		if (!hitbox.getTags().contains(HITBOX_TAG) || hitbox.getVehicle() == null) {
+		if (!(hitbox instanceof Interaction) || hitbox.getVehicle() == null) {
 			return InteractionResult.PASS;
 		}
 		Vehicle vehicle = BY_ROOT.get(hitbox.getVehicle().getUUID());

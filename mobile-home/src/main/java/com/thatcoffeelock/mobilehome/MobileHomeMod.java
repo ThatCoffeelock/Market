@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -30,6 +31,9 @@ public final class MobileHomeMod implements ModInitializer {
 	/** Vehicle state, saved on the vehicle's root entity. */
 	public static final AttachmentType<VehicleData> DATA = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "vehicle"), builder -> builder.persistent(VehicleData.CODEC));
+	/** Marks seat entities, so stray ones (e.g. saved during a crash) can be cleaned up on load. */
+	public static final AttachmentType<Boolean> SEAT = AttachmentRegistry.create(
+		Identifier.fromNamespaceAndPath(MOD_ID, "seat"), builder -> builder.persistent(Codec.BOOL));
 
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();

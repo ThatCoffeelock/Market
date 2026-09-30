@@ -9,6 +9,6 @@ final class Fuel {
 	}
 
 	static int burnTicks(ServerLevel level, ItemStack stack) {
-		return stack.isEmpty() ? 0 : level.fuelValues().burnDuration(stack);
+		return stack.isEmpty() ? 0 : level.getServer().fuelValues().burnDuration(stack);
 	}
 }

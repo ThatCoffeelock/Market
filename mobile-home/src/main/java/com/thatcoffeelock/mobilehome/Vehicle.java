@@ -319,6 +319,7 @@ public final class Vehicle {
 				+ " {" + Cmd.uuidNbt(id) + ",Tags:[\"" + Vehicles.SEAT_TAG + "\"],teleport_duration:2,Rotation:[" + Cmd.f(root.getYRot()) + "f,0f]}");
 			seats[i] = level.getEntity(id);
 			if (seats[i] != null) {
+				seats[i].setAttached(MobileHomeMod.SEAT, true);
 				Vehicles.registerSeat(seats[i], this);
 			}
 		}
@@ -508,7 +509,8 @@ public final class Vehicle {
 					dx = 1;
 					dz = 0;
 				}
-				mob.knockback(1.2, -dx, -dz);
+				double push = 0.9 / Math.max(dist, 0.01);
+				mob.setDeltaMovement(mob.getDeltaMovement().add(dx * push, 0.25, dz * push));
 				Cmd.particles(level, "minecraft:electric_spark", mob.getX(), mob.getY() + mob.getBbHeight() / 2, mob.getZ(), 0.3, 0.1, 8);
 				if (age % 20 == 0) {
 					Cmd.sound(level, "minecraft:block.beacon.deactivate", mob.getX(), mob.getY(), mob.getZ(), 0.4f, 2.0f);
