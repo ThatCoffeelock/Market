@@ -4,9 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CookingFuel;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
 
 /**
@@ -32,11 +34,16 @@ final class Fuel {
 			return Math.max(0, constant.value());
 		}
 		try {
-			// context-dependent fuels (scoreboards, storage...) have nothing to read from here; most still resolve to their fallback
+			if (burn instanceof ResolvableInt.Reference reference) {
+				// vanilla fuels point at a data-driven provider, e.g. minecraft:cooking/time_coal
+				ResourceKey<ContextIntProvider> key = reference.key();
+				ContextIntProvider provider = level.registryAccess().lookupOrThrow(key.registryKey()).getOrThrow(key).value();
+				return Math.max(0, provider.getIntUnsafe(null));
+			}
 			return Math.max(0, burn.get(null, 0));
 		} catch (RuntimeException e) {
 			if (WARNED.add(burn.toString())) {
-				MobileHomeMod.LOG.warn("Can't work out how long {} burns ({}); the vehicle won't take it", stack, burn);
+				MobileHomeMod.LOG.warn("Can't work out how long {} burns ({}); the vehicle won't take it", stack, burn, e);
 			}
 			return 0;
 		}
