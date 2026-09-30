@@ -161,6 +161,36 @@ public final class MarketData {
 		changed();
 	}
 
+	// ---------------------------------------------------------------- bank, by UUID (for other mods, e.g. Colonycraft wages while you're offline)
+
+	/** Balance of any player who ever had an account, online or not. 0 if they never had one. */
+	public static long balance(UUID player) {
+		Account account = ACCOUNTS.get(player);
+		return account == null ? 0 : account.cents;
+	}
+
+	/** @return false (and takes nothing) if the player can't afford it or has no account. */
+	public static boolean withdraw(UUID player, long cents) {
+		Account account = ACCOUNTS.get(player);
+		if (account == null || cents < 0 || account.cents < cents) {
+			return false;
+		}
+		account.cents -= cents;
+		changed();
+		return true;
+	}
+
+	/** Pays into any player's account, creating it if needed. */
+	public static void deposit(UUID player, String name, long cents) {
+		Account account = ACCOUNTS.computeIfAbsent(player, id -> {
+			Account fresh = new Account();
+			fresh.name = name;
+			return fresh;
+		});
+		account.cents += cents;
+		changed();
+	}
+
 	public static List<Account> richest(int limit) {
 		return ACCOUNTS.values().stream()
 			.sorted(Comparator.comparingLong((Account a) -> a.cents).reversed())

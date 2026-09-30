@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "colonycraft",
+	"version": "${version}",
+	"name": "Colonycraft",
+	"description": "Found colonies with a Town Hall, buy prefab farms, mines, lumber camps, workshops, storehouses and residences with Marks, and let your villagers gather for you. Wages every morning, optional auto-sell to the Market. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.colonycraft.ColonycraftMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*",
+		"market": ">=1.0.0"
+	}
+}
