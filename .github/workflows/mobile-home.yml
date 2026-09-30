@@ -15,6 +15,9 @@ defaults:
   run:
     working-directory: mobile-home
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -68,4 +71,23 @@ jobs:
           name: mobile-home-mod
           path: |
             mobile-home/build/libs/*.jar
+            !mobile-home/build/libs/*-sources.jar
+
+      # A plain download link (no zip, no GitHub login needed on a public repo):
+      # the Releases page always has the jar from the latest green build.
+      - name: Publish jar to the "mobile-home-latest" release
+        if: success() && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mobile-home-latest
+          name: Mobile Home (latest build)
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          body: |
+            Latest green build of Mobile Home for Minecraft 26.3 (Fabric, server-side).
+            Download the .jar below and put it in your server's mods/ folder together with Fabric API.
+            Built from ${{ github.sha }}.
+          files: |
+            mobile-home/build/libs/mobile-home-*.jar
             !mobile-home/build/libs/*-sources.jar
