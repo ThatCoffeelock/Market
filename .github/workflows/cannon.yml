@@ -37,7 +37,7 @@ jobs:
           set -o pipefail
           ./gradlew build 2>&1 | tee build.log
 
-      - name: Smoke test (boot a dedicated server, aim a cannon and blow a hole in a wall)
+      - name: Smoke test (boot a dedicated server, aim a cannon, hit a target, leave the terrain intact)
         run: |
           mkdir -p run/smoke
           echo "eula=true" > run/smoke/eula.txt
