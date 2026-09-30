@@ -9,9 +9,8 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Everything a ship remembers. Saved on the ship's root entity (a Fabric data attachment), and inside
- * the Ship in a Bottle when it's packed up. {@link #blocks} is the ship's layout in its own frame
- * (bow towards +z), including anything players built onto it.
+ * Everything a ship remembers: name, owner, lock and cargo. Saved on the ship's root entity (a Fabric
+ * data attachment), and inside the Ship in a Bottle when it's packed up.
  */
 public final class ShipData {
 	public static final int BAY = 54;
@@ -28,9 +27,7 @@ public final class ShipData {
 		Codec.STRING.optionalFieldOf("owner", "").forGetter(d -> d.owner),
 		Codec.STRING.optionalFieldOf("owner_name", "").forGetter(d -> d.ownerName),
 		Codec.BOOL.optionalFieldOf("locked", false).forGetter(d -> d.locked),
-		Codec.BOOL.optionalFieldOf("sailing", false).forGetter(d -> d.sailing),
-		Codec.INT.optionalFieldOf("waterline", 62).forGetter(d -> d.waterline),
-		ShipTemplate.ShipBlock.CODEC.listOf().optionalFieldOf("blocks", List.of()).forGetter(d -> d.blocks),
+		Codec.DOUBLE.optionalFieldOf("surface", 63.0).forGetter(d -> d.surface),
 		Slot.CODEC.listOf().optionalFieldOf("cargo_a", List.of()).forGetter(d -> slots(d.cargoA)),
 		Slot.CODEC.listOf().optionalFieldOf("cargo_b", List.of()).forGetter(d -> slots(d.cargoB))
 	).apply(i, ShipData::new));
@@ -43,29 +40,23 @@ public final class ShipData {
 	public String owner;
 	public String ownerName;
 	public boolean locked;
-	public boolean sailing;
-	/** World y of the top water layer, i.e. local y = 0. */
-	public int waterline;
-	public List<ShipTemplate.ShipBlock> blocks;
+	/** World y of the water surface the ship floats on (local y = 0). */
+	public double surface;
 	public final SimpleContainer cargoA = new SimpleContainer(BAY);
 	public final SimpleContainer cargoB = new SimpleContainer(BAY);
 
-	public ShipData(List<ShipTemplate.ShipBlock> blocks) {
+	public ShipData() {
 		this.name = NAMES[(int) (Math.random() * NAMES.length)];
 		this.owner = "";
 		this.ownerName = "";
-		this.blocks = new ArrayList<>(blocks);
 	}
 
-	private ShipData(String name, String owner, String ownerName, boolean locked, boolean sailing, int waterline,
-					 List<ShipTemplate.ShipBlock> blocks, List<Slot> a, List<Slot> b) {
+	private ShipData(String name, String owner, String ownerName, boolean locked, double surface, List<Slot> a, List<Slot> b) {
 		this.name = name.isEmpty() ? NAMES[0] : name;
 		this.owner = owner;
 		this.ownerName = ownerName;
 		this.locked = locked;
-		this.sailing = sailing;
-		this.waterline = waterline;
-		this.blocks = new ArrayList<>(blocks);
+		this.surface = surface;
 		fill(cargoA, a);
 		fill(cargoB, b);
 	}
@@ -91,11 +82,5 @@ public final class ShipData {
 
 	public int usedSlots() {
 		return slots(cargoA).size() + slots(cargoB).size();
-	}
-
-	/** Puts an item in the hold. Returns what didn't fit. */
-	public ItemStack stow(ItemStack stack) {
-		ItemStack rest = cargoA.addItem(stack);
-		return rest.isEmpty() ? rest : cargoB.addItem(rest);
 	}
 }

@@ -22,7 +22,7 @@
 			"minecraft:item_name": {"text": "Ship in a Bottle", "color": "aqua"},
 			"minecraft:lore": [
 				{"text": "Right-click open water to launch a ship.", "color": "gray", "italic": false},
-				{"text": "Needs about 7 × 20 blocks of water, 4 deep.", "color": "dark_gray", "italic": false},
+				{"text": "Needs about 7 × 20 blocks of open water.", "color": "dark_gray", "italic": false},
 				{"text": "Rename it in an anvil to name your ship.", "color": "dark_gray", "italic": false}
 			],
 			"minecraft:enchantment_glint_override": true

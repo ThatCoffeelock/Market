@@ -34,9 +34,9 @@ final class AhoyCommands {
 			"§6§l—— Ahoy ——",
 			"§bShip in a Bottle§7: §fWool Glass-bottle Wool / Chest Boat Chest / Planks Planks Planks",
 			"§7Right-click open water with it. Rename the bottle in an anvil to name your ship.",
-			"§7Anchored, the ship is real blocks: walk around, sleep in the bunks, build on it.",
-			"§7Right-click the §fwheel§7 (grindstone at the back) to set sail. Cargo barrels are in the hold.",
-			"§7Sailing: §fW/S§7 sails up/down, §fA/D§7 rudder, §fSpace§7 bell, §fShift§7 drop anchor.",
+			"§7Right-click the ship to climb aboard (owners take the wheel). Sneak + right-click for the menu.",
+			"§7Sailing: §fW/S§7 sails up/down, §fA/D§7 rudder, §fSpace§7 bell, §fShift§7 go ashore.",
+			"§7Cargo: two holds of 54 slots, in the menu. Bottle the ship up to take it with you.",
 			"§7The wind matters: sail with it for full speed, against it for half.",
 			"§aAt sea, nobody aboard can be hurt, and sea monsters get zapped away."
 		};

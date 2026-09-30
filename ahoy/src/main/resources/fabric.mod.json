@@ -3,7 +3,7 @@
 	"id": "ahoy",
 	"version": "${version}",
 	"name": "Ahoy",
-	"description": "A big sailing ship in a bottle. Anchored it's real blocks you can walk on, sleep in and build onto; at sea it sails with the wind. Cargo hold, passengers, and a monster force field. Server-side: vanilla clients can join.",
+	"description": "A sailing ship in a bottle: captain + 8 passengers, two cargo holds, wind, and a monster force field. Built from ~50 display entities, so it is light on the server. Server-side: vanilla clients can join.",
 	"authors": ["thatcoffeelock"],
 	"contact": {
 		"sources": "https://github.com/thatcoffeelock/market"

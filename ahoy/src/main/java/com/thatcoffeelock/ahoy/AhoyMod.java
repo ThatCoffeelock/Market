@@ -14,7 +14,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
@@ -30,7 +29,7 @@ public final class AhoyMod implements ModInitializer {
 	public static final String MOD_ID = "ahoy";
 	public static final Logger LOG = LoggerFactory.getLogger("Ahoy");
 
-	/** Ship state, saved on the ship's root (anchor) entity. */
+	/** Ship state, saved on the ship's root entity. */
 	public static final AttachmentType<ShipData> DATA = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "ship"), builder -> builder.persistent(ShipData.CODEC));
 	/** Marks seats and hitboxes, so strays (e.g. saved during a crash) get cleaned up on load. */
@@ -87,10 +86,7 @@ public final class AhoyMod implements ModInitializer {
 			if (!(world instanceof ServerLevel level) || !(player instanceof ServerPlayer sp) || player.isSpectator()) {
 				return InteractionResult.PASS;
 			}
-			if (Bottle.isBottle(player.getItemInHand(hand))) {
-				return Ships.useBottle(sp, level, hand);
-			}
-			return Ships.useBlock(sp, level, hand, hit);
+			return Bottle.isBottle(player.getItemInHand(hand)) ? Ships.useBottle(sp, level, hand) : InteractionResult.PASS;
 		});
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
 			if (!(player instanceof ServerPlayer sp) || player.isSpectator()) {
@@ -98,7 +94,6 @@ public final class AhoyMod implements ModInitializer {
 			}
 			return Ships.useEntity(sp, hand, entity);
 		});
-		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> Ships.allowBreak(player, world, pos));
 
 		CommandRegistrationCallback.EVENT.register(AhoyCommands::register);
 		LOG.info("Ahoy loaded. All hands on deck.");

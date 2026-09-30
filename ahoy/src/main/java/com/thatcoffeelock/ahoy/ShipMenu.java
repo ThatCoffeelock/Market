@@ -116,52 +116,17 @@ final class ShipMenu extends ChestMenu {
 			t("Captain: " + (data.ownerName.isEmpty() ? "nobody" : data.ownerName), ChatFormatting.GRAY),
 			t("Cargo: " + data.usedSlots() + " / " + (ShipData.BAY * 2) + " slots", ChatFormatting.GRAY),
 			t("Wind: " + Wind.arrow(ship.level, ship.root.getYRot()) + " " + Wind.label(ship.level, ship.root.getYRot()), ChatFormatting.GRAY),
-			t(data.sailing ? "Under sail" : "At anchor", ChatFormatting.AQUA)), null);
+			t("W/S sails · A/D rudder · Space bell · Shift ashore", ChatFormatting.DARK_GRAY)), null);
 
-		if (data.sailing) {
-			button(10, icon(Items.ANVIL, t("Drop anchor", ChatFormatting.GREEN, ChatFormatting.BOLD),
-				t("Turns the ship back into real blocks", ChatFormatting.GRAY),
-				t("so everyone can walk around.", ChatFormatting.GRAY),
-				t("Needs a bit of open water around it.", ChatFormatting.DARK_GRAY)), () -> {
-				if (!ship.mayCommand(viewer)) {
-					nope("Only the captain gives that order.");
-					return;
-				}
-				AhoyMod.nextTick(() -> {
-					viewer.closeContainer();
-					if (!ship.dropAnchor()) {
-						viewer.sendSystemMessage(Component.literal("Can't drop anchor here: too close to land or something in the way.").withStyle(ChatFormatting.RED));
-					}
-				});
-			});
-			int mine = ship.seatOf(viewer);
-			button(19, icon(Items.SADDLE, t("Switch seat", ChatFormatting.GREEN, ChatFormatting.BOLD),
-				t(mine >= 0 ? "You're at: " + ship.seatName(mine) : "Climb aboard", ChatFormatting.GRAY),
-				t("Take the wheel if it's free and you're allowed.", ChatFormatting.DARK_GRAY)), this::switchSeat);
-		} else {
-			button(10, icon(Items.COMPASS, t("Set sail", ChatFormatting.GREEN, ChatFormatting.BOLD),
-				t("You take the wheel. Everyone on board", ChatFormatting.GRAY),
-				t("sits down where they stand.", ChatFormatting.GRAY),
-				Component.empty(),
-				t("W/S sails · A/D rudder · Space bell · Shift anchor", ChatFormatting.DARK_GRAY)), () -> {
-				if (!ship.mayCommand(viewer)) {
-					nope("The captain locked the wheel.");
-					return;
-				}
-				AhoyMod.nextTick(() -> {
-					viewer.closeContainer();
-					if (ship.setSail(viewer)) {
-						viewer.sendSystemMessage(Component.literal("Anchors aweigh! ").withStyle(ChatFormatting.GOLD)
-							.append(Component.literal("W to raise sails, A/D to steer, Shift to drop anchor.").withStyle(ChatFormatting.YELLOW)));
-					}
-				});
-			});
-		}
+		int mine = ship.seatOf(viewer);
+		button(10, icon(Items.SADDLE, t(mine >= 0 ? "Switch seat" : "Climb aboard", ChatFormatting.GREEN, ChatFormatting.BOLD),
+			t(mine >= 0 ? "You're at: " + ship.seatName(mine) : "Takes the first free spot.", ChatFormatting.GRAY),
+			t("Moving to the wheel makes you captain (if allowed).", ChatFormatting.DARK_GRAY)), this::switchSeat);
 
 		button(12, icon(Items.BARREL, t("Cargo A (port)", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			t("54 slots. Same as the port-side barrels in the hold.", ChatFormatting.GRAY)), () -> cargo(0));
+			t("54 slots below deck.", ChatFormatting.GRAY)), () -> cargo(0));
 		button(13, icon(Items.BARREL, t("Cargo B (starboard)", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			t("54 slots. Same as the starboard barrels in the hold.", ChatFormatting.GRAY)), () -> cargo(1));
+			t("54 slots below deck.", ChatFormatting.GRAY)), () -> cargo(1));
 		button(15, icon(Items.BELL, t("Ring the bell", ChatFormatting.YELLOW, ChatFormatting.BOLD),
 			t("Ding. Absolutely necessary.", ChatFormatting.GRAY)), ship::ringBell);
 
@@ -174,11 +139,11 @@ final class ShipMenu extends ChestMenu {
 				render();
 			});
 		}
-		if ((owner || viewer.isCreative()) && !data.sailing) {
+		if (owner || viewer.isCreative()) {
 			button(23, icon(Items.GLASS_BOTTLE, t(confirmBottle ? "Click again to bottle it up" : "Bottle it up", ChatFormatting.GOLD, ChatFormatting.BOLD),
 				t("Shrinks the ship back into a Ship in a Bottle.", ChatFormatting.GRAY),
-				t("Cargo and anything you built on it come along.", ChatFormatting.GRAY),
-				t("Anyone standing on deck goes for a swim.", ChatFormatting.DARK_GRAY)), () -> {
+				t("The cargo comes along inside it.", ChatFormatting.GRAY),
+				t("Everyone aboard is put ashore first.", ChatFormatting.DARK_GRAY)), () -> {
 				if (!confirmBottle) {
 					confirmBottle = true;
 					render();
@@ -187,7 +152,7 @@ final class ShipMenu extends ChestMenu {
 				AhoyMod.nextTick(() -> {
 					viewer.closeContainer();
 					String name = ship.data.name;
-					Bottle.give(viewer, ship.bottleUp(viewer));
+					Bottle.give(viewer, ship.bottleUp());
 					viewer.sendSystemMessage(Component.literal("The " + name + " is back in its bottle.").withStyle(ChatFormatting.GOLD));
 				});
 			});
@@ -204,13 +169,20 @@ final class ShipMenu extends ChestMenu {
 	}
 
 	private void switchSeat() {
-		if (!ship.data.sailing) {
+		int current = ship.seatOf(viewer);
+		if (current < 0) {
+			AhoyMod.nextTick(() -> {
+				viewer.closeContainer();
+				int seat = ship.pickSeat(viewer);
+				if (seat < 0 || !ship.seat(viewer, seat)) {
+					nope("No room aboard.");
+				}
+			});
 			return;
 		}
-		int current = ship.seatOf(viewer);
 		int n = ship.seatCount();
 		for (int k = 1; k <= n; k++) {
-			int i = ((current < 0 ? -1 : current) + k) % n;
+			int i = (current + k) % n;
 			if (i == current || (i == 0 && !ship.mayCommand(viewer)) || !ship.seatFree(i)) {
 				continue;
 			}

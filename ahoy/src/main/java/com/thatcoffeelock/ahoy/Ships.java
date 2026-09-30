@@ -27,13 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 /** Every loaded ship: routes ticks, clicks, block breaking and damage. */
 public final class Ships {
-	private record Key(ResourceKey<Level> dimension, BlockPos pos) {
-	}
-
 	private static final Map<UUID, Ship> BY_ROOT = new HashMap<>();
 	private static final Map<UUID, Ship> BY_MARKER = new HashMap<>();
 	private static final Map<UUID, Ship> RIDERS = new HashMap<>();
-	private static final Map<Key, Ship> BLOCKS = new HashMap<>();
 	private static final List<Entity> PENDING = new ArrayList<>();
 	private static final List<Entity> STRAYS = new ArrayList<>();
 
@@ -49,32 +45,13 @@ public final class Ships {
 		}
 		Ship ship = new Ship(level, root, data);
 		BY_ROOT.put(root.getUUID(), ship);
-		if (!data.sailing) {
-			index(ship);
-		}
 		return ship;
-	}
-
-	static void rekey(UUID oldRoot, Ship ship) {
-		BY_ROOT.remove(oldRoot, ship);
-		BY_ROOT.put(ship.root.getUUID(), ship);
 	}
 
 	static void unregister(Ship ship) {
 		BY_ROOT.values().removeIf(s -> s == ship);
 		BY_MARKER.values().removeIf(s -> s == ship);
 		RIDERS.values().removeIf(s -> s == ship);
-	}
-
-	static void index(Ship ship) {
-		for (BlockPos pos : ship.anchoredPositions()) {
-			BLOCKS.put(new Key(ship.level.dimension(), pos), ship);
-		}
-		ship.repairHelm();
-	}
-
-	static void unindex(Ship ship) {
-		BLOCKS.values().removeIf(s -> s == ship);
 	}
 
 	static void registerMarker(Entity marker, Ship ship) {
@@ -95,11 +72,6 @@ public final class Ships {
 			return null;
 		}
 		return ship;
-	}
-
-	static @Nullable Ship anchoredAt(Level level, BlockPos pos) {
-		Ship ship = BLOCKS.get(new Key(level.dimension(), pos));
-		return ship == null || ship.isRemoved() ? null : ship;
 	}
 
 	static List<Ship> all() {
@@ -166,7 +138,6 @@ public final class Ships {
 		BY_ROOT.clear();
 		BY_MARKER.clear();
 		RIDERS.clear();
-		BLOCKS.clear();
 		PENDING.clear();
 		STRAYS.clear();
 	}
@@ -183,16 +154,14 @@ public final class Ships {
 
 	// ---------------------------------------------------------------- launching
 
-	/** Builds a ship (anchored) and registers it. */
-	static @Nullable Ship launch(ServerLevel level, ShipData data, BlockPos origin, int quarter) {
-		Ship.place(level, data.blocks, origin, quarter);
-		data.sailing = false;
-		data.waterline = origin.getY();
+	/** Summons a ship floating at the given surface height and registers it. */
+	static @Nullable Ship launch(ServerLevel level, ShipData data, double x, double surface, double z, float yaw) {
+		data.surface = surface;
 		UUID id = UUID.randomUUID();
-		Cmd.run(level, Ship.anchorCommand(data, id, origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5, quarter * 90f));
+		Cmd.run(level, Ship.summonCommand(data, id, x, surface, z, yaw));
 		Entity root = level.getEntity(id);
 		if (root == null) {
-			AhoyMod.LOG.error("Could not summon the anchor for ship {}", data.name);
+			AhoyMod.LOG.error("Could not summon ship {}", data.name);
 			return null;
 		}
 		root.setAttached(AhoyMod.DATA, data);
@@ -212,24 +181,29 @@ public final class Ships {
 			player.sendSystemMessage(Component.literal("Point the bottle at open water.").withStyle(ChatFormatting.RED));
 			return InteractionResult.FAIL;
 		}
-		int quarter = Math.floorMod(Math.round(player.getYRot() / 90f), 4);
-		// start the stern where you clicked, so the ship sails away from you
+		// the water surface is the top of the highest water block under where you clicked
 		BlockPos at = blockHit.getBlockPos();
-		BlockPos origin = Ship.toWorld(at, quarter, 0, 0, 9);
-		ShipData saved = Bottle.savedData(held, level);
-		ShipData data = saved != null ? saved : new ShipData(ShipTemplate.blocks());
-		if (!Ship.canPlace(level, data.blocks, origin, quarter, true)) {
-			player.sendSystemMessage(Component.literal("Not enough open water there. A ship needs about 7 × 20 blocks of water, 4 deep, with nothing above it.")
+		while (level.getFluidState(at.above()).is(net.minecraft.tags.FluidTags.WATER)) {
+			at = at.above();
+		}
+		double surface = at.getY() + 0.9;
+		float yaw = player.getYRot();
+		// put the stern where you clicked, so the ship points away from you
+		double[] centre = Ship.toWorld(at.getX() + 0.5, at.getZ() + 0.5, yaw, 0, 8);
+		if (!Ship.hullFits(level, surface, centre[0], centre[1], yaw) || !Ship.afloat(level, surface, centre[0], centre[1], yaw)) {
+			player.sendSystemMessage(Component.literal("Not enough open water there. A ship needs about 7 × 20 blocks of water with nothing in the way.")
 				.withStyle(ChatFormatting.RED));
 			return InteractionResult.FAIL;
 		}
+		ShipData saved = Bottle.savedData(held, level);
+		ShipData data = saved != null ? saved : new ShipData();
 		String name = Bottle.customName(held);
 		if (name != null && !name.isBlank()) {
 			data.name = name;
 		}
 		data.owner = player.getUUID().toString();
 		data.ownerName = player.getName().getString();
-		Ship ship = launch(level, data, origin, quarter);
+		Ship ship = launch(level, data, centre[0], surface, centre[1], yaw);
 		if (ship == null) {
 			player.sendSystemMessage(Component.literal("The ship refused to come out of the bottle. Check the server log.").withStyle(ChatFormatting.RED));
 			return InteractionResult.FAIL;
@@ -238,61 +212,14 @@ public final class Ships {
 			held.shrink(1);
 		}
 		Cmd.sound(level, "minecraft:block.glass.break", player.getX(), player.getY(), player.getZ(), 1.0f, 1.2f);
-		Cmd.sound(level, "minecraft:entity.generic.splash", origin.getX(), origin.getY(), origin.getZ(), 2.0f, 0.6f);
+		Cmd.sound(level, "minecraft:entity.generic.splash", centre[0], surface, centre[1], 2.0f, 0.6f);
 		player.sendSystemMessage(Component.literal("Launched the " + data.name + "! ").withStyle(ChatFormatting.GOLD)
-			.append(Component.literal("Walk aboard, right-click the wheel (the grindstone at the back) to set sail. The barrels in the hold are your cargo.")
+			.append(Component.literal("Right-click it to climb aboard. Sneak + right-click for cargo and more.")
 				.withStyle(ChatFormatting.YELLOW)));
 		return InteractionResult.SUCCESS;
 	}
 
-	// ---------------------------------------------------------------- clicking blocks of an anchored ship
-
-	static InteractionResult useBlock(ServerPlayer player, ServerLevel level, InteractionHand hand, BlockHitResult hit) {
-		Ship ship = anchoredAt(level, hit.getBlockPos());
-		if (ship == null) {
-			return InteractionResult.PASS;
-		}
-		BlockPos pos = hit.getBlockPos();
-		if (pos.equals(ship.helmPos())) {
-			if (hand == InteractionHand.MAIN_HAND) {
-				ShipMenu.open(player, ship);
-			}
-			return InteractionResult.SUCCESS;
-		}
-		int bay = ship.cargoBayAt(pos);
-		if (bay >= 0) {
-			if (hand == InteractionHand.MAIN_HAND) {
-				if (ship.mayCommand(player)) {
-					ShipMenu.openCargo(player, ship, bay);
-				} else {
-					player.sendSystemMessage(Component.literal("The cargo is locked by the captain.").withStyle(ChatFormatting.RED));
-				}
-			}
-			return InteractionResult.SUCCESS;
-		}
-		return InteractionResult.PASS;
-	}
-
-	/** Only the owner may take the ship apart. The wheel stays put either way. */
-	static boolean allowBreak(Player player, Level level, BlockPos pos) {
-		Ship ship = anchoredAt(level, pos);
-		if (ship == null) {
-			return true;
-		}
-		if (pos.equals(ship.helmPos())) {
-			player.sendSystemMessage(Component.literal("The wheel is bolted down. To take the ship with you, use \"Bottle it up\" at the wheel.")
-				.withStyle(ChatFormatting.RED));
-			return false;
-		}
-		if (!ship.isOwner(player) && !player.isCreative()) {
-			player.sendSystemMessage(Component.literal("Hands off the " + ship.data.name + ", that's " + ship.data.ownerName + "'s ship.")
-				.withStyle(ChatFormatting.RED));
-			return false;
-		}
-		return true;
-	}
-
-	// ---------------------------------------------------------------- clicking a sailing ship
+	// ---------------------------------------------------------------- clicking a ship
 
 	static InteractionResult useEntity(ServerPlayer player, InteractionHand hand, Entity entity) {
 		Ship ship = BY_MARKER.get(entity.getUUID());
@@ -302,7 +229,7 @@ public final class Ships {
 		if (hand != InteractionHand.MAIN_HAND) {
 			return InteractionResult.SUCCESS;
 		}
-		if (shipOf(player) == ship) {
+		if (shipOf(player) == ship || player.isShiftKeyDown()) {
 			ShipMenu.open(player, ship);
 			return InteractionResult.SUCCESS;
 		}
@@ -313,10 +240,10 @@ public final class Ships {
 		}
 		player.sendSystemMessage(Component.literal("Welcome aboard the " + ship.data.name + " (" + ship.seatName(seat) + ").").withStyle(ChatFormatting.GOLD));
 		if (seat == 0) {
-			player.sendSystemMessage(Component.literal("W/S sails up/down · A/D rudder · Space ring the bell · Shift drop anchor · Right-click menu")
+			player.sendSystemMessage(Component.literal("W/S sails up/down · A/D rudder · Space ring the bell · Shift go ashore · Right-click menu")
 				.withStyle(ChatFormatting.GRAY));
 		} else {
-			player.sendSystemMessage(Component.literal("Shift jumps overboard · Right-click for the menu").withStyle(ChatFormatting.GRAY));
+			player.sendSystemMessage(Component.literal("Shift to go ashore (or overboard) · Right-click for the menu").withStyle(ChatFormatting.GRAY));
 		}
 		return InteractionResult.SUCCESS;
 	}

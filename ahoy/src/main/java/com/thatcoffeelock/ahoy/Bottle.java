@@ -42,7 +42,7 @@ public final class Bottle {
 		stack.set(DataComponents.ITEM_NAME, Component.literal("Ship in a Bottle").withStyle(ChatFormatting.AQUA));
 		stack.set(DataComponents.LORE, new ItemLore(List.of(
 			text("Right-click open water to launch a ship.", ChatFormatting.GRAY),
-			text("Needs about 7 × 20 blocks of water, 4 deep.", ChatFormatting.DARK_GRAY),
+			text("Needs about 7 × 20 blocks of open water.", ChatFormatting.DARK_GRAY),
 			text("Rename it in an anvil to name your ship.", ChatFormatting.DARK_GRAY))));
 		stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 		return stack;
@@ -59,7 +59,7 @@ public final class Bottle {
 		List<Component> lore = new ArrayList<>();
 		lore.add(text("Right-click open water to launch it.", ChatFormatting.GRAY));
 		lore.add(text("Cargo: " + data.usedSlots() + " / " + (ShipData.BAY * 2) + " slots used", ChatFormatting.YELLOW));
-		lore.add(text(data.blocks.size() + " blocks, built by " + (data.ownerName.isEmpty() ? "shipwrights" : data.ownerName), ChatFormatting.DARK_GRAY));
+		lore.add(text("Captain: " + (data.ownerName.isEmpty() ? "nobody yet" : data.ownerName), ChatFormatting.DARK_GRAY));
 		stack.set(DataComponents.LORE, new ItemLore(lore));
 		return stack;
 	}
