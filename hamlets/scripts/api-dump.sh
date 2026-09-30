@@ -39,3 +39,6 @@ dump net.minecraft.world.level.chunk.ChunkAccess 'ost[Pp]rocess'
 dump net.minecraft.world.level.chunk.ProtoChunk 'ost[Pp]rocess'
 dump net.minecraft.world.level.biome.BiomeSource 'public'
 dump net.minecraft.world.level.biome.BiomeResolver
+echo "===== vanilla spawn override format (fortress) and a biome's spawners"
+unzip -p "$MC" data/minecraft/worldgen/structure/fortress.json 2>/dev/null | head -40
+unzip -p "$MC" data/minecraft/worldgen/biome/plains.json 2>/dev/null | grep -A12 '"monster"' | head -20
