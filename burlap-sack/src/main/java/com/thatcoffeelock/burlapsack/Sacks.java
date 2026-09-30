@@ -175,7 +175,9 @@ public final class Sacks {
 
 	/** Takes the entity out of the world: frees its bed and workstation in the old village first. */
 	static void bag(Entity entity) {
-		call(entity, RELEASE_POIS);
+		if (typeId(entity).equals(VILLAGER)) {
+			call(entity, RELEASE_POIS); // wandering traders have no bed or workstation to give up
+		}
 		entity.stopRiding();
 		entity.ejectPassengers();
 		entity.discard();
