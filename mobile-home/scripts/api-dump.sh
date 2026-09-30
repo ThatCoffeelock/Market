@@ -18,7 +18,6 @@ dump net.minecraft.core.component.DataComponents FUEL
 dump net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt
 dump net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity 'uel|urn'
 echo "===== ResolvableInt usage in furnace"; javap -cp "$CP" -p -c net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity 2>&1 | grep -nE "ResolvableInt|CookingFuel|Method .*(resolve|burn|Fuel|Context)" | head -40
-for c in $(unzip -l "$MC" | grep -oE 'net/minecraft/world/level/storage/loot/providers/number/ints/[A-Za-z$]+\.class' | sed 's/\.class//; s#/#.#g' | sort -u); do dump "$c" 'public|resolve'; done
 echo "===== fuel classes"; unzip -l "$MC" | grep -i fuel
 dump net.minecraft.world.entity.Entity 'getTags|setPos\(|setYRot|getPassengers|getFirstPassenger|ejectPassengers|stopRiding|discard|clearFire|AirSupply|blockPosition|getVehicle'
 dump net.minecraft.world.entity.LivingEntity 'knockback|isDeadOrDying'
@@ -35,3 +34,5 @@ dump net.minecraft.resources.Identifier 'fromNamespaceAndPath'
 dump net.minecraft.server.level.ServerLevel 'getEntity\(|getAllEntities'
 dump net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
 dump net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry\$Builder
+dump net.minecraft.server.MinecraftServer reloadableRegistries
+dump net.minecraft.server.ReloadableServerRegistries\$Holder public

@@ -37,7 +37,7 @@ final class Fuel {
 			if (burn instanceof ResolvableInt.Reference reference) {
 				// vanilla fuels point at a data-driven provider, e.g. minecraft:cooking/time_coal
 				ResourceKey<ContextIntProvider> key = reference.key();
-				ContextIntProvider provider = level.registryAccess().lookupOrThrow(key.registryKey()).getOrThrow(key).value();
+				ContextIntProvider provider = level.getServer().reloadableRegistries().lookup().lookupOrThrow(key.registryKey()).getOrThrow(key).value();
 				return Math.max(0, provider.getIntUnsafe(null));
 			}
 			return Math.max(0, burn.get(null, 0));
