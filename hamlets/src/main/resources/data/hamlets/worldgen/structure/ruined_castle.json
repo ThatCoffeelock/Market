@@ -11,6 +11,7 @@
           "type": "minecraft:skeleton",
           "weight": 10,
           "count": {
+            "type": "minecraft:uniform",
             "min_inclusive": 1,
             "max_inclusive": 2
           }
@@ -19,6 +20,7 @@
           "type": "minecraft:zombie",
           "weight": 8,
           "count": {
+            "type": "minecraft:uniform",
             "min_inclusive": 1,
             "max_inclusive": 2
           }
@@ -26,18 +28,12 @@
         {
           "type": "minecraft:pillager",
           "weight": 3,
-          "count": {
-            "min_inclusive": 1,
-            "max_inclusive": 1
-          }
+          "count": 1
         },
         {
           "type": "minecraft:vindicator",
           "weight": 1,
-          "count": {
-            "min_inclusive": 1,
-            "max_inclusive": 1
-          }
+          "count": 1
         }
       ]
     }
