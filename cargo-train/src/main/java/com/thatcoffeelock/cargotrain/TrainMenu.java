@@ -6,6 +6,7 @@ import java.util.Map;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
@@ -72,6 +73,19 @@ final class TrainMenu extends ChestMenu {
 		render();
 	}
 
+	private static final Map<String, Item> ITEMS = new HashMap<>();
+
+	/** Looks an item up by id (some, like the dyed ones, aren't constants in Items any more). */
+	private static Item item(String id, Item fallback) {
+		if (ITEMS.isEmpty()) {
+			for (Item item : BuiltInRegistries.ITEM) {
+				ITEMS.put(BuiltInRegistries.ITEM.getKey(item).toString(), item);
+			}
+		}
+		Item item = ITEMS.get(id);
+		return item == null || item == Items.AIR ? fallback : item;
+	}
+
 	private static ItemStack icon(Item item, Component name, Component... lore) {
 		ItemStack stack = new ItemStack(item);
 		stack.set(DataComponents.ITEM_NAME, name);
@@ -94,7 +108,7 @@ final class TrainMenu extends ChestMenu {
 
 	private void render() {
 		actions.clear();
-		ItemStack filler = icon(Items.YELLOW_STAINED_GLASS_PANE, Component.literal(" "));
+		ItemStack filler = icon(item("minecraft:yellow_stained_glass_pane", Items.GLASS_PANE), Component.literal(" "));
 		for (int i = 0; i < SIZE; i++) {
 			box.setItem(i, filler.copy());
 		}
