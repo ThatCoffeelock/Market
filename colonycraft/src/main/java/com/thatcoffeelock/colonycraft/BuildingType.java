@@ -25,13 +25,13 @@ import org.jetbrains.annotations.Nullable;
  * and are built in the colony's stone of their tier: cobblestone, then stone bricks, then deepslate.
  */
 public enum BuildingType {
-	TOWN_HALL("town_hall", "Town Hall", Items.BELL, 2500, 4, 4, 11, new int[] {1, 1, 1}, new int[] {2, 3, 4}, 3, false, BuildingType::townHall),
-	RESIDENCE("residence", "Residence", Items.OAK_DOOR, 400, 3, 3, 9, new int[] {0, 0, 0}, new int[] {4, 6, 8}, 3, false, BuildingType::residence),
+	TOWN_HALL("town_hall", "Town Hall", Items.BELL, 2500, 5, 5, 17, new int[] {1, 1, 1}, new int[] {2, 3, 4}, 3, false, BuildingType::townHall),
+	RESIDENCE("residence", "Residence", Items.OAK_DOOR, 400, 4, 4, 12, new int[] {0, 0, 0}, new int[] {4, 6, 8}, 3, false, BuildingType::residence),
 	FARM("farm", "Farm", Items.WHEAT, 800, 4, 4, 4, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::farm),
 	LUMBER_CAMP("lumber_camp", "Lumber Camp", Items.IRON_AXE, 900, 4, 4, 7, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::lumberCamp),
 	MINE("mine", "Mine", Items.IRON_PICKAXE, 2500, 3, 3, 6, new int[] {3, 4, 5}, new int[] {0, 0, 0}, 3, false, BuildingType::mine),
-	WORKSHOP("workshop", "Workshop", Items.CRAFTING_TABLE, 1500, 3, 3, 8, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::workshop),
-	STOREHOUSE("storehouse", "Storehouse", Items.BARREL, 500, 3, 3, 8, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 3, false, BuildingType::storehouse),
+	WORKSHOP("workshop", "Workshop", Items.CRAFTING_TABLE, 1500, 3, 3, 10, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::workshop),
+	STOREHOUSE("storehouse", "Storehouse", Items.BARREL, 500, 3, 3, 10, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 3, false, BuildingType::storehouse),
 	BARRACKS("barracks", "Barracks", Items.IRON_SWORD, 2000, 4, 4, 9, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 15, false, BuildingType::barracks),
 	WATCHTOWER("watchtower", "Watchtower", Items.CROSSBOW, 1800, 3, 3, 16, new int[] {1, 2, 3}, new int[] {1, 2, 3}, 10, true, BuildingType::watchtower),
 	WALL("wall", "Wall", Items.STONE_BRICK_WALL, 300, 4, 2, 8, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::wall),
@@ -222,6 +222,92 @@ public enum BuildingType {
 			set(0, 2, z, "minecraft:" + wood + "_door[facing=south,half=upper,hinge=left,open=false]");
 		}
 
+		/** The outline of a rectangle from (x1, z1) to (x2, z2) at one height. */
+		void rect(int x1, int z1, int x2, int z2, int y, String state) {
+			for (int x = x1; x <= x2; x++) {
+				set(x, y, z1, state);
+				set(x, y, z2, state);
+			}
+			for (int z = z1; z <= z2; z++) {
+				set(x1, y, z, state);
+				set(x2, y, z, state);
+			}
+		}
+
+		/** A ring of stairs around a rectangle, all climbing inwards. */
+		void stairRect(int x1, int z1, int x2, int z2, int y, String stairs) {
+			for (int x = x1; x <= x2; x++) {
+				stairs(x, y, z1, stairs, "south", false);
+				stairs(x, y, z2, stairs, "north", false);
+			}
+			for (int z = z1 + 1; z < z2; z++) {
+				stairs(x1, y, z, stairs, "east", false);
+				stairs(x2, y, z, stairs, "west", false);
+			}
+		}
+
+		/**
+		 * A mansard roof on walls outlining (x1, z1)-(x2, z2), starting at height y: a steep slate face two
+		 * blocks high set one block in, then two shallow steps and a flat top. Returns the height of the top.
+		 */
+		int mansard(int x1, int z1, int x2, int z2, int y) {
+			stairRect(x1, z1, x2, z2, y, SLATE);
+			rect(x1 + 1, z1 + 1, x2 - 1, z2 - 1, y + 1, SLATE_BLOCK);
+			rect(x1 + 1, z1 + 1, x2 - 1, z2 - 1, y + 2, SLATE_BLOCK);
+			stairRect(x1 + 1, z1 + 1, x2 - 1, z2 - 1, y + 3, SLATE);
+			stairRect(x1 + 2, z1 + 2, x2 - 2, z2 - 2, y + 4, SLATE);
+			fill(x1 + 3, y + 5, z1 + 3, x2 - 3, y + 5, z2 - 3, SLATE_SLAB);
+			return y + 5;
+		}
+
+		/** A dormer in the steep face of a mansard that runs along x (the front or the back). */
+		void dormerX(int x, int z, int y) {
+			set(x, y, z, "minecraft:glass_pane");
+			set(x - 1, y, z, TRIM);
+			set(x + 1, y, z, TRIM);
+			set(x, y + 1, z, ACCENT);
+		}
+
+		/** A dormer in the steep face of a mansard that runs along z (a side). */
+		void dormerZ(int x, int z, int y) {
+			set(x, y, z, "minecraft:glass_pane");
+			set(x, y, z - 1, TRIM);
+			set(x, y, z + 1, TRIM);
+			set(x, y + 1, z, ACCENT);
+		}
+
+		/**
+		 * Sandstone quoins up a corner: every other course the stone also turns both corners
+		 * (one block along each face, in the directions dx and dz), the courses between are single.
+		 */
+		void quoin(int x, int z, int dx, int dz, int y1, int y2) {
+			for (int y = y1; y <= y2; y++) {
+				set(x, y, z, TRIM);
+				if (Math.floorMod(y, 2) == 0) {
+					set(x + dx, y, z, TRIM);
+					set(x, y, z + dz, TRIM);
+				}
+			}
+		}
+
+		/** A window in a wall that runs along x: glass from x1 to x2, a sandstone lintel above (with a keystone if it's odd-sized). */
+		void windowX(int z, int x1, int x2, int y1, int y2) {
+			fill(x1, y1, z, x2, y2, z, "minecraft:glass_pane");
+			fill(x1, y2 + 1, z, x2, y2 + 1, z, TRIM);
+			if ((x2 - x1) % 2 == 0) {
+				set((x1 + x2) / 2, y2 + 1, z, ACCENT);
+			}
+		}
+
+		/** A window in a wall that runs along z. */
+		void windowZ(int x, int z1, int z2, int y1, int y2) {
+			fill(x, y1, z1, x, y2, z2, "minecraft:glass_pane");
+			fill(x, y2 + 1, z1, x, y2 + 1, z2, TRIM);
+			if ((z2 - z1) % 2 == 0) {
+				set(x, y2 + 1, (z1 + z2) / 2, ACCENT);
+			}
+		}
+
 		/** Stairs: "facing" is the side the tall back of the step is on; top = upside down. */
 		void stairs(int x, int y, int z, String stairs, String facing, boolean top) {
 			set(x, y, z, stairs + "[facing=" + facing + ",half=" + (top ? "top" : "bottom") + "]");
@@ -339,127 +425,257 @@ public enum BuildingType {
 
 	// ---------------------------------------------------------------- the designs
 
-	/** A brick hall on a stone footing with dark oak posts, a slate roof and a belfry with the colony bell. */
+	// ---------------------------------------------------------------- the colony style
+	// Dutch neo-renaissance: red brick dressed in cream sandstone (quoins on the corners, string courses
+	// between the floors, lintels with keystones over the windows) under dark slate mansard roofs.
+
+	private static final String BRICK = "minecraft:bricks";
+	private static final String TRIM = "minecraft:cut_sandstone";
+	private static final String BAND = "minecraft:smooth_sandstone";
+	private static final String ACCENT = "minecraft:chiseled_sandstone";
+	private static final String TRIM_STAIRS = "minecraft:sandstone_stairs";
+	private static final String TRIM_CAP = "minecraft:smooth_sandstone_slab[type=bottom]";
+	private static final String RAIL = "minecraft:sandstone_wall";
+	private static final String PLINTH = "minecraft:stone_bricks";
+	private static final String SLATE = "minecraft:deepslate_tile_stairs";
+	private static final String SLATE_BLOCK = "minecraft:deepslate_tiles";
+	private static final String SLATE_SLAB = "minecraft:deepslate_tile_slab[type=bottom]";
+	private static final String PAVING = "minecraft:polished_granite";
+
+	/** The town hall: a three-storey brick mansion with a gabled centre bay, a portico, a mansard roof and two chimneys. */
 	private static void townHall(Plan p) {
-		String post = "minecraft:stripped_dark_oak_log[axis=y]";
-		p.fill(-4, 0, -4, 4, 0, 4, "minecraft:stone_bricks");
-		p.fill(-3, 0, -3, 3, 0, 3, "minecraft:dark_oak_planks");
-		p.ring(4, 4, 1, "minecraft:stone_bricks", "minecraft:mossy_stone_bricks");
-		for (int y = 2; y <= 4; y++) {
-			p.ring(4, 4, y, "minecraft:bricks");
+		// paving out front, a stone footing, dark oak floors
+		p.fill(-5, 0, -5, 5, 0, 5, PAVING);
+		p.fill(-5, 0, -3, 5, 0, 5, PLINTH);
+		p.fill(-2, 0, -4, 2, 0, -4, PLINTH);
+		p.fill(-4, 0, -2, 4, 0, 4, "minecraft:dark_oak_planks");
+		p.fill(-1, 0, -3, 1, 0, -3, "minecraft:dark_oak_planks");
+		// the main block and the centre bay, one block proud of the front
+		for (int y = 1; y <= 10; y++) {
+			p.rect(-5, -3, 5, 5, y, BRICK);
+			p.fill(-2, y, -4, 2, y, -4, BRICK);
 		}
-		for (int y = 1; y <= 4; y++) {
-			for (int[] c : new int[][] {{-4, -4}, {4, -4}, {-4, 4}, {4, 4}, {-4, 0}, {4, 0}, {-1, -4}, {1, -4}}) {
-				p.set(c[0], y, c[1], post);
+		for (int[] course : new int[][] {{1, 0}, {5, 1}, {10, 2}}) {
+			String band = course[1] == 0 ? PLINTH : course[1] == 1 ? BAND : TRIM;
+			p.rect(-5, -3, 5, 5, course[0], band);
+			p.fill(-2, course[0], -4, 2, course[0], -4, band);
+		}
+		p.fill(-1, 1, -3, 1, 9, -3, "minecraft:air"); // the bay is part of the hall
+		for (int[] range : new int[][] {{2, 4}, {6, 9}}) {
+			p.quoin(-5, -3, 1, 1, range[0], range[1]);
+			p.quoin(5, -3, -1, 1, range[0], range[1]);
+			p.quoin(-5, 5, 1, -1, range[0], range[1]);
+			p.quoin(5, 5, -1, -1, range[0], range[1]);
+			p.quoin(-2, -4, 1, 1, range[0], range[1]);
+			p.quoin(2, -4, -1, 1, range[0], range[1]);
+		}
+		// windows: ground floor two high, first floor three high, each under a sandstone lintel
+		for (int[] floor : new int[][] {{2, 3}, {6, 8}}) {
+			int y1 = floor[0];
+			int y2 = floor[1];
+			p.windowX(-3, -4, -3, y1, y2);
+			p.windowX(-3, 3, 4, y1, y2);
+			for (int x : new int[] {-5, 5}) {
+				p.windowZ(x, -1, 0, y1, y2);
+				p.windowZ(x, 2, 3, y1, y2);
 			}
 		}
-		// windows: pairs at the front and sides, a tall amber one behind the counter
-		p.fill(-3, 2, -4, -2, 3, -4, "minecraft:glass_pane");
-		p.fill(2, 2, -4, 3, 3, -4, "minecraft:glass_pane");
-		for (int x : new int[] {-4, 4}) {
-			p.fill(x, 2, -2, x, 3, -1, "minecraft:glass_pane");
-			p.fill(x, 2, 1, x, 3, 2, "minecraft:glass_pane");
-		}
-		p.fill(0, 2, 4, 0, 4, 4, "minecraft:orange_stained_glass_pane");
+		p.windowX(5, 0, 0, 2, 3);
+		p.windowX(5, -1, 1, 6, 8);
+		// the bay: a door between sandstone pilasters, French doors above onto a little balcony
+		p.fill(-1, 1, -4, -1, 4, -4, TRIM);
+		p.fill(1, 1, -4, 1, 4, -4, TRIM);
 		p.door(-4, "dark_oak");
-		p.set(0, 4, -4, "minecraft:chiseled_stone_bricks");
-		// slate roof, then a belfry with the bell and a spire
-		p.hipRoof(4, 2, 5, "minecraft:deepslate_tile_stairs");
-		p.fill(-1, 7, -1, 1, 7, 1, "minecraft:dark_oak_planks");
-		for (int[] c : new int[][] {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}}) {
-			p.fill(c[0], 8, c[1], c[0], 9, c[1], "minecraft:dark_oak_fence");
+		p.set(0, 3, -4, "minecraft:glass_pane");
+		p.set(0, 4, -4, ACCENT);
+		p.fill(-1, 6, -4, -1, 8, -4, "minecraft:glass_pane");
+		p.fill(1, 6, -4, 1, 8, -4, "minecraft:glass_pane");
+		p.set(0, 6, -4, "minecraft:dark_oak_door[facing=south,half=lower,hinge=left,open=false]");
+		p.set(0, 7, -4, "minecraft:dark_oak_door[facing=south,half=upper,hinge=left,open=false]");
+		p.set(0, 8, -4, "minecraft:glass_pane");
+		p.fill(-1, 9, -4, 1, 9, -4, TRIM);
+		p.set(0, 9, -4, ACCENT);
+		// portico: two white columns carrying the balcony, a lantern in between
+		for (int x : new int[] {-1, 1}) {
+			p.fill(x, 1, -5, x, 3, -5, "minecraft:quartz_pillar[axis=y]");
+			p.set(x, 4, -5, "minecraft:chiseled_quartz_block");
 		}
-		p.set(0, 9, 0, "minecraft:bell[attachment=ceiling,facing=north]");
-		p.hipRoof(1, 1, 10, "minecraft:deepslate_tile_stairs");
-		p.set(0, 10, 0, "minecraft:deepslate_tiles");
-		p.set(0, 11, 0, "minecraft:lightning_rod");
-		// inside: a beam with lanterns, pews, a red carpet up to the counter, books and banners behind it
-		p.fill(-3, 4, 0, 3, 4, 0, "minecraft:dark_oak_log[axis=x]");
-		p.set(-2, 3, 0, "minecraft:lantern[hanging=true]");
-		p.set(2, 3, 0, "minecraft:lantern[hanging=true]");
+		p.fill(-1, 5, -5, 1, 5, -5, BAND);
+		p.fill(-1, 6, -5, 1, 6, -5, RAIL);
+		p.set(0, 4, -5, "minecraft:lantern[hanging=true]");
+		p.set(0, 0, -5, "minecraft:smooth_quartz");
+		// hedges either side of the portico
+		for (int x = -5; x <= 5; x++) {
+			if (Math.abs(x) >= 2) {
+				p.set(x, 1, -5, mix(x, 1, -5, "minecraft:azalea_leaves[persistent=true]", "minecraft:flowering_azalea_leaves[persistent=true]"));
+			}
+		}
+		for (int x : new int[] {-5, -4, -3, 3, 4, 5}) {
+			p.set(x, 1, -4, mix(x, 1, -4, "minecraft:azalea_leaves[persistent=true]", "minecraft:flowering_azalea_leaves[persistent=true]"));
+		}
+		// the mansard roof with dormers on every side
+		p.mansard(-5, -3, 5, 5, 11);
+		p.dormerX(-3, -2, 12);
+		p.dormerX(3, -2, 12);
+		p.dormerX(-2, 4, 12);
+		p.dormerX(2, 4, 12);
+		p.dormerZ(-4, 1, 12);
+		p.dormerZ(4, 1, 12);
+		// the gable over the bay: two windows, a round one, stepped shoulders, pinnacles and a spire
+		p.fill(-2, 11, -3, 2, 13, -3, "minecraft:air");
+		p.fill(-2, 11, -3, -2, 13, -3, BRICK);
+		p.fill(2, 11, -3, 2, 13, -3, BRICK);
+		p.fill(-2, 14, -3, 2, 14, -3, SLATE_SLAB);
+		for (int y = 11; y <= 13; y++) {
+			p.set(-2, y, -4, TRIM);
+			p.set(2, y, -4, TRIM);
+			p.set(0, y, -4, BRICK);
+		}
+		p.fill(-1, 11, -4, -1, 12, -4, "minecraft:glass_pane");
+		p.fill(1, 11, -4, 1, 12, -4, "minecraft:glass_pane");
+		p.set(-1, 13, -4, BRICK);
+		p.set(1, 13, -4, BRICK);
+		p.set(0, 13, -4, "minecraft:glass_pane");
+		p.set(-2, 14, -4, RAIL);
+		p.set(2, 14, -4, RAIL);
+		p.stairs(-1, 14, -4, TRIM_STAIRS, "east", false);
+		p.stairs(1, 14, -4, TRIM_STAIRS, "west", false);
+		p.set(0, 14, -4, BRICK);
+		p.set(0, 15, -4, ACCENT);
+		p.set(0, 16, -4, RAIL);
+		p.set(0, 17, -4, "minecraft:lightning_rod");
+		// two chimneys, one of them smoking
+		for (int x : new int[] {-4, 4}) {
+			p.fill(x, 11, 4, x, 15, 4, BRICK);
+			p.set(x, 16, 4, TRIM);
+		}
+		p.set(4, 17, 4, "minecraft:campfire[lit=true,facing=north]");
+		p.set(-4, 17, 4, TRIM_CAP);
+		// floors: the hall, the council chamber upstairs, the attic
+		p.fill(-4, 5, -2, 4, 5, 4, "minecraft:dark_oak_planks");
+		p.fill(-1, 5, -3, 1, 5, -3, "minecraft:dark_oak_planks");
+		p.fill(-4, 10, -2, 4, 10, 4, "minecraft:dark_oak_planks");
+		p.fill(-1, 10, -3, 1, 10, -3, "minecraft:dark_oak_planks");
+		p.fill(4, 1, -2, 4, 10, -2, "minecraft:ladder[facing=west]");
+		// the hall: red carpet to the counter, pews, books and banners behind the counter
 		p.fill(-1, 1, -3, 1, 1, 1, "minecraft:red_carpet");
-		for (int z = -2; z <= 0; z++) {
-			p.stairs(-3, 1, z, "minecraft:dark_oak_stairs", "west", false);
-			p.stairs(3, 1, z, "minecraft:dark_oak_stairs", "east", false);
+		for (int z = -1; z <= 1; z++) {
+			p.stairs(-4, 1, z, "minecraft:dark_oak_stairs", "west", false);
+			p.stairs(4, 1, z, "minecraft:dark_oak_stairs", "east", false);
 		}
-		p.set(-3, 1, -3, "minecraft:potted_fern");
-		p.set(3, 1, -3, "minecraft:potted_fern");
+		p.set(-4, 1, -2, "minecraft:potted_fern");
 		p.set(COUNTER.getX(), COUNTER.getY(), COUNTER.getZ(), "minecraft:lectern[facing=north]");
 		p.set(-1, 1, 2, "minecraft:dark_oak_slab[type=top]");
 		p.set(1, 1, 2, "minecraft:dark_oak_slab[type=top]");
-		p.fill(-3, 1, 3, -2, 3, 3, "minecraft:bookshelf");
-		p.fill(2, 1, 3, 3, 3, 3, "minecraft:bookshelf");
-		p.set(-1, 3, 3, "minecraft:red_wall_banner[facing=north]");
-		p.set(1, 3, 3, "minecraft:red_wall_banner[facing=north]");
+		p.fill(-4, 1, 4, -2, 3, 4, "minecraft:bookshelf");
+		p.fill(2, 1, 4, 4, 3, 4, "minecraft:bookshelf");
+		p.set(-1, 3, 4, "minecraft:red_wall_banner[facing=north]");
+		p.set(1, 3, 4, "minecraft:red_wall_banner[facing=north]");
+		p.set(-2, 4, 0, "minecraft:lantern[hanging=true]");
+		p.set(2, 4, 0, "minecraft:lantern[hanging=true]");
+		p.set(0, 4, 3, "minecraft:lantern[hanging=true]");
+		// the council chamber: a long table with chairs, bookcases, lanterns
+		p.fill(-2, 6, 1, 2, 6, 1, "minecraft:dark_oak_slab[type=top]");
+		for (int x = -2; x <= 2; x++) {
+			p.stairs(x, 6, 0, "minecraft:dark_oak_stairs", "north", false);
+			p.stairs(x, 6, 2, "minecraft:dark_oak_stairs", "south", false);
+		}
+		p.fill(-4, 6, 4, -3, 8, 4, "minecraft:bookshelf");
+		p.fill(3, 6, 4, 4, 8, 4, "minecraft:bookshelf");
+		p.set(0, 9, 1, "minecraft:lantern[hanging=true]");
+		p.set(-3, 9, 1, "minecraft:lantern[hanging=true]");
+		p.set(3, 9, 1, "minecraft:lantern[hanging=true]");
 	}
 
-	/** A narrow Dutch canal house: brick, white trim and a stepped gable at both ends. */
+	/** A brick townhouse in the same style: a little gable over the door, a mansard with dormers, a chimney. */
 	private static void residence(Plan p) {
-		String slab = "minecraft:stone_brick_slab[type=bottom]";
-		p.fill(-3, 0, -3, 3, 0, 3, "minecraft:stone_bricks");
-		p.fill(-2, 0, -2, 2, 0, 2, "minecraft:spruce_planks");
-		p.ring(3, 3, 1, "minecraft:stone_bricks", "minecraft:mossy_stone_bricks");
-		for (int y = 2; y <= 4; y++) {
-			p.ring(3, 3, y, "minecraft:bricks");
+		p.fill(-4, 0, -4, 4, 0, 4, PAVING);
+		p.fill(-4, 0, -3, 4, 0, 4, PLINTH);
+		p.fill(-3, 0, -2, 3, 0, 3, "minecraft:spruce_planks");
+		for (int y = 1; y <= 6; y++) {
+			p.rect(-4, -3, 4, 4, y, y == 1 ? PLINTH : y == 6 ? TRIM : BRICK);
 		}
-		// the roof runs front to back between two stepped gables
-		for (int k = 0; k <= 2; k++) {
-			for (int z = -2; z <= 2; z++) {
-				p.stairs(-3 + k, 5 + k, z, "minecraft:dark_oak_stairs", "east", false);
-				p.stairs(3 - k, 5 + k, z, "minecraft:dark_oak_stairs", "west", false);
-			}
-		}
-		p.fill(0, 8, -2, 0, 8, 2, "minecraft:dark_oak_slab[type=bottom]");
-		for (int z : new int[] {-3, 3}) {
-			for (int k = 0; k <= 3; k++) {
-				p.fill(-3 + k, 5 + k, z, 3 - k, 5 + k, z, "minecraft:bricks");
-				p.set(-3 + k, 6 + k, z, slab);
-				p.set(3 - k, 6 + k, z, slab);
-			}
-			p.set(0, 6, z, "minecraft:glass_pane");
-		}
-		// door, windows and white lintels
+		p.quoin(-4, -3, 1, 1, 2, 5);
+		p.quoin(4, -3, -1, 1, 2, 5);
+		p.quoin(-4, 4, 1, -1, 2, 5);
+		p.quoin(4, 4, -1, -1, 2, 5);
+		// the front: a door between sandstone pilasters, a window either side
+		p.fill(-1, 1, -3, -1, 5, -3, TRIM);
+		p.fill(1, 1, -3, 1, 5, -3, TRIM);
 		p.door(-3, "dark_oak");
 		p.set(0, 3, -3, "minecraft:glass_pane");
-		p.fill(-2, 2, -3, -2, 3, -3, "minecraft:glass_pane");
-		p.fill(2, 2, -3, 2, 3, -3, "minecraft:glass_pane");
-		p.fill(-2, 4, -3, 2, 4, -3, "minecraft:smooth_quartz");
-		p.fill(-3, 2, 0, -3, 3, 0, "minecraft:glass_pane");
-		p.fill(3, 2, 0, 3, 3, 0, "minecraft:glass_pane");
-		p.set(-3, 4, 0, "minecraft:smooth_quartz");
-		p.set(3, 4, 0, "minecraft:smooth_quartz");
-		p.set(-1, 3, 3, "minecraft:glass_pane");
-		p.set(1, 3, 3, "minecraft:glass_pane");
-		// inside: beds along the back, a rug, a table with flowers, a wash tub, lanterns from the ridge
-		String[] colours = {"red", "blue", "green", "yellow"};
-		int[] xs = {-2, -1, 1, 2};
-		for (int i = 0; i < 4; i++) {
-			p.set(xs[i], 1, 1, "minecraft:" + colours[i] + "_bed[facing=south,part=foot]");
-			p.set(xs[i], 1, 2, "minecraft:" + colours[i] + "_bed[facing=south,part=head]");
+		p.set(0, 4, -3, BRICK);
+		p.set(0, 5, -3, ACCENT);
+		p.windowX(-3, -3, -2, 2, 4);
+		p.windowX(-3, 2, 3, 2, 4);
+		p.windowZ(-4, 0, 1, 2, 4);
+		p.windowZ(4, 0, 1, 2, 4);
+		p.windowX(4, 0, 0, 2, 4);
+		// lamps by the door, hedges along the front
+		for (int x : new int[] {-1, 1}) {
+			p.set(x, 1, -4, RAIL);
+			p.set(x, 2, -4, "minecraft:lantern[hanging=false]");
 		}
+		p.set(0, 0, -4, "minecraft:smooth_quartz");
+		for (int x : new int[] {-4, -3, -2, 2, 3, 4}) {
+			p.set(x, 1, -4, mix(x, 1, -4, "minecraft:azalea_leaves[persistent=true]", "minecraft:flowering_azalea_leaves[persistent=true]"));
+		}
+		// mansard, dormers, the front gable and a chimney
+		p.mansard(-4, -3, 4, 4, 7);
+		p.dormerZ(-3, 0, 8);
+		p.dormerZ(3, 0, 8);
+		p.dormerX(0, 3, 8);
+		p.set(-1, 7, -3, TRIM);
+		p.set(1, 7, -3, TRIM);
+		p.set(0, 7, -3, "minecraft:glass_pane");
+		p.set(-1, 8, -3, TRIM);
+		p.set(1, 8, -3, TRIM);
+		p.set(0, 8, -3, "minecraft:glass_pane");
+		p.stairs(-1, 9, -3, TRIM_STAIRS, "east", false);
+		p.stairs(1, 9, -3, TRIM_STAIRS, "west", false);
+		p.set(0, 9, -3, BRICK);
+		p.set(0, 10, -3, ACCENT);
+		p.set(0, 11, -3, RAIL);
+		p.fill(3, 7, 3, 3, 11, 3, BRICK);
+		p.set(3, 12, 3, TRIM_CAP);
+		// inside: four beds, a rug, a bookcase with flowers, a wash tub, lanterns
+		p.fill(-3, 6, -2, 3, 6, 3, "minecraft:spruce_planks");
+		String[] colours = {"red", "blue", "green", "yellow"};
+		int[] xs = {-3, -2, 2, 3};
+		for (int i = 0; i < 4; i++) {
+			p.set(xs[i], 1, 2, "minecraft:" + colours[i] + "_bed[facing=south,part=foot]");
+			p.set(xs[i], 1, 3, "minecraft:" + colours[i] + "_bed[facing=south,part=head]");
+		}
+		p.set(0, 1, 3, "minecraft:crafting_table");
+		p.set(-1, 1, 3, "minecraft:bookshelf");
+		p.set(1, 1, 3, "minecraft:bookshelf");
+		p.set(0, 2, 3, "minecraft:potted_red_tulip");
 		p.fill(-1, 1, -2, 1, 1, 0, "minecraft:brown_carpet");
-		p.set(-2, 1, -2, "minecraft:crafting_table");
-		p.set(-2, 2, -2, "minecraft:potted_red_tulip");
-		p.set(2, 1, -2, "minecraft:water_cauldron[level=3]");
-		p.set(2, 1, 0, "minecraft:bookshelf");
-		p.set(0, 7, -1, "minecraft:lantern[hanging=true]");
-		p.set(0, 7, 1, "minecraft:lantern[hanging=true]");
+		p.set(-3, 1, -2, "minecraft:bookshelf");
+		p.set(-3, 2, -2, "minecraft:potted_fern");
+		p.set(3, 1, -2, "minecraft:water_cauldron[level=3]");
+		p.set(-2, 5, 0, "minecraft:lantern[hanging=true]");
+		p.set(2, 5, 0, "minecraft:lantern[hanging=true]");
 	}
 
-	/** A fenced plot with a pond down the middle, six crops, a scarecrow and lamps on the corner posts. */
+	/** A fenced plot with a pond down the middle, six crops, a scarecrow, and brick piers with lamps at the corners. */
 	private static void farm(Plan p) {
 		p.fillMix(-4, 0, -4, 4, 0, 4, "minecraft:coarse_dirt", "minecraft:rooted_dirt");
 		p.fill(-3, 0, -3, 2, 0, 2, "minecraft:farmland[moisture=7]");
 		p.fill(0, 0, -3, 0, 0, 2, "minecraft:water");
 		p.set(0, 1, -2, "minecraft:lily_pad");
 		p.set(0, 1, 1, "minecraft:lily_pad");
-		p.ring(4, 4, 1, "minecraft:oak_fence");
+		p.ring(4, 4, 1, "minecraft:dark_oak_fence");
 		p.set(0, 0, -4, "minecraft:dirt_path");
-		p.set(0, 1, -4, "minecraft:oak_fence_gate[facing=south,open=false]");
+		p.set(0, 1, -4, "minecraft:dark_oak_fence_gate[facing=south,open=false]");
 		for (int[] c : new int[][] {{-4, -4}, {4, -4}, {-4, 4}, {4, 4}}) {
-			p.set(c[0], 1, c[1], "minecraft:oak_log[axis=y]");
-			p.set(c[0], 2, c[1], "minecraft:oak_fence");
-			p.set(c[0], 3, c[1], "minecraft:lantern[hanging=false]");
+			p.fill(c[0], 1, c[1], c[0], 2, c[1], BRICK);
+			p.set(c[0], 3, c[1], TRIM);
+			p.set(c[0], 4, c[1], "minecraft:lantern[hanging=false]");
+		}
+		for (int x : new int[] {-1, 1}) {
+			p.fill(x, 1, -4, x, 2, -4, BRICK);
+			p.set(x, 3, -4, TRIM_CAP);
 		}
 		p.fill(-3, 1, -3, -2, 1, 2, "minecraft:wheat[age=7]");
 		p.fill(-1, 1, -3, -1, 1, 2, "minecraft:carrots[age=7]");
@@ -470,11 +686,11 @@ public enum BuildingType {
 		p.set(3, 1, 1, "minecraft:pumpkin");
 		// a scarecrow in the wheat
 		p.set(-2, 0, 0, "minecraft:coarse_dirt");
-		p.set(-2, 1, 0, "minecraft:oak_fence");
+		p.set(-2, 1, 0, "minecraft:dark_oak_fence");
 		p.set(-2, 2, 0, "minecraft:hay_block[axis=y]");
 		p.set(-2, 3, 0, "minecraft:carved_pumpkin[facing=north]");
-		p.set(-3, 2, 0, "minecraft:oak_fence");
-		p.set(-1, 2, 0, "minecraft:oak_fence");
+		p.set(-3, 2, 0, "minecraft:dark_oak_fence");
+		p.set(-1, 2, 0, "minecraft:dark_oak_fence");
 		// along the back: hay, a rain barrel and the compost
 		p.set(-3, 1, 3, "minecraft:water_cauldron[level=3]");
 		p.set(-2, 1, 3, "minecraft:carved_pumpkin[facing=north]");
@@ -484,19 +700,20 @@ public enum BuildingType {
 		p.set(3, 1, 3, "minecraft:composter[level=4]");
 	}
 
-	/** A clearing with a sawing shed, log piles, a campfire, a tree nursery and two trees that never get chopped. */
+	/** A clearing with a brick sawing shed, log piles, a campfire, a tree nursery and two trees that never get chopped. */
 	private static void lumberCamp(Plan p) {
 		p.fillMix(-4, 0, -4, 4, 0, 4, "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:rooted_dirt");
 		p.fill(0, 0, -4, 0, 0, 0, "minecraft:dirt_path");
-		p.ring(4, 4, 1, "minecraft:spruce_fence");
+		p.ring(4, 4, 1, "minecraft:dark_oak_fence");
 		p.fill(-1, 1, -4, 1, 1, -4, "minecraft:air");
-		// the shed, back left
+		// the shed, back left: brick on a stone footing, sandstone corners, a slate roof
+		p.fill(-4, 0, 1, -1, 0, 4, PLINTH);
 		for (int[] c : new int[][] {{-4, 1}, {-1, 1}, {-4, 4}, {-1, 4}}) {
-			p.fill(c[0], 1, c[1], c[0], 3, c[1], "minecraft:spruce_log[axis=y]");
+			p.fill(c[0], 1, c[1], c[0], 3, c[1], TRIM);
 		}
-		p.fill(-3, 1, 4, -2, 3, 4, "minecraft:spruce_planks");
-		p.fill(-4, 1, 2, -4, 3, 3, "minecraft:spruce_planks");
-		p.fill(-4, 4, 1, -1, 4, 4, "minecraft:spruce_slab[type=bottom]");
+		p.fill(-3, 1, 4, -2, 3, 4, BRICK);
+		p.fill(-4, 1, 2, -4, 3, 3, BRICK);
+		p.fill(-4, 4, 1, -1, 4, 4, SLATE_SLAB);
 		p.set(-3, 1, 3, "minecraft:stonecutter[facing=north]");
 		p.set(-2, 1, 3, "minecraft:crafting_table");
 		p.set(-3, 1, 2, "minecraft:grindstone[face=floor,facing=east]");
@@ -537,7 +754,7 @@ public enum BuildingType {
 		p.fill(x, 1, z, x, 5, z, "minecraft:" + wood + "_log[axis=y]");
 	}
 
-	/** A grassy hill with a timbered tunnel, ore showing in the rock, rails out to a yard with a blast furnace. */
+	/** A grassy hill with a brick-and-sandstone tunnel portal, ore showing in the rock, rails out to a yard. */
 	private static void mine(Plan p) {
 		p.fillMix(-3, 0, -3, 3, 0, 3, "minecraft:cobblestone", "minecraft:gravel", "minecraft:andesite");
 		for (int x = -3; x <= 3; x++) {
@@ -552,11 +769,16 @@ public enum BuildingType {
 		}
 		p.fill(0, 1, 0, 0, 2, 2, "minecraft:air");
 		p.fill(0, 1, 3, 0, 2, 3, "minecraft:deepslate");
-		for (int z : new int[] {0, 2}) {
-			p.fill(-1, 1, z, -1, 2, z, "minecraft:spruce_log[axis=y]");
-			p.fill(1, 1, z, 1, 2, z, "minecraft:spruce_log[axis=y]");
-			p.fill(-1, 3, z, 1, 3, z, "minecraft:spruce_log[axis=x]");
+		// the portal: brick piers with sandstone quoins, a lintel with a keystone
+		for (int x : new int[] {-1, 1}) {
+			p.set(x, 1, 0, TRIM);
+			p.set(x, 2, 0, BRICK);
 		}
+		p.fill(-1, 3, 0, 1, 3, 0, TRIM);
+		p.set(0, 3, 0, ACCENT);
+		p.fill(-1, 1, 2, -1, 2, 2, "minecraft:spruce_log[axis=y]");
+		p.fill(1, 1, 2, 1, 2, 2, "minecraft:spruce_log[axis=y]");
+		p.fill(-1, 3, 2, 1, 3, 2, "minecraft:spruce_log[axis=x]");
 		p.set(0, 2, 1, "minecraft:wall_torch[facing=east]");
 		// ore showing in the rock
 		p.set(-2, 2, 0, "minecraft:coal_ore");
@@ -576,34 +798,45 @@ public enum BuildingType {
 		p.set(-3, 2, -1, "minecraft:cobblestone_slab[type=bottom]");
 		p.set(-2, 1, -1, "minecraft:cobblestone");
 		for (int x : new int[] {-3, 3}) {
-			p.fill(x, 1, -3, x, 2, -3, "minecraft:spruce_fence");
+			p.fill(x, 1, -3, x, 2, -3, "minecraft:brick_wall");
 			p.set(x, 3, -3, "minecraft:lantern[hanging=false]");
 		}
 	}
 
-	/** An open-fronted smithy: a forge with a lava pool under a brick hood, a smoking chimney, a wall of tools. */
+	/** A brick smithy with a sandstone arcade along the front, a lava forge under a hood and a smoking chimney. */
 	private static void workshop(Plan p) {
-		p.fill(-3, 0, -3, 3, 0, 3, "minecraft:spruce_planks");
-		p.fill(-3, 0, 1, -1, 0, 3, "minecraft:stone_bricks");
-		p.fill(-3, 0, -3, 3, 0, -3, "minecraft:stone_bricks");
-		p.walls(3, 1, 3, "minecraft:spruce_planks", "minecraft:spruce_log[axis=y]");
-		p.fill(-3, 1, 0, -3, 3, 0, "minecraft:spruce_log[axis=y]");
-		p.fill(3, 1, 0, 3, 3, 0, "minecraft:spruce_log[axis=y]");
-		p.fill(-2, 1, -3, 2, 2, -3, "minecraft:air"); // open front
-		p.fill(-2, 3, -3, 2, 3, -3, "minecraft:spruce_log[axis=x]");
-		p.set(3, 2, -1, "minecraft:glass_pane");
-		p.set(3, 2, 1, "minecraft:glass_pane");
-		p.set(-3, 2, -1, "minecraft:glass_pane");
-		p.gableAlongX(3, 3, 4, "minecraft:spruce_stairs", "minecraft:spruce_slab[type=bottom]", "minecraft:spruce_planks");
-		p.fill(-2, 4, 0, 2, 4, 0, "minecraft:spruce_log[axis=x]");
-		p.set(0, 3, 0, "minecraft:lantern[hanging=true]");
-		// the forge and its chimney
+		p.fill(-3, 0, -3, 3, 0, 3, "minecraft:dark_oak_planks");
+		p.fill(-3, 0, 1, -1, 0, 3, PLINTH);
+		p.fill(-3, 0, -3, 3, 0, -3, PLINTH);
+		for (int y = 1; y <= 4; y++) {
+			p.rect(-3, -3, 3, 3, y, y == 1 ? PLINTH : y == 4 ? TRIM : BRICK);
+		}
+		p.quoin(-3, -3, 1, 1, 2, 3);
+		p.quoin(3, -3, -1, 1, 2, 3);
+		p.quoin(-3, 3, 1, -1, 2, 3);
+		p.quoin(3, 3, -1, -1, 2, 3);
+		// the arcade: two arches either side of a sandstone pier
+		p.fill(-2, 1, -3, 2, 3, -3, "minecraft:air");
+		p.fill(0, 1, -3, 0, 3, -3, TRIM);
+		p.stairs(-2, 3, -3, TRIM_STAIRS, "west", true);
+		p.stairs(-1, 3, -3, TRIM_STAIRS, "east", true);
+		p.stairs(1, 3, -3, TRIM_STAIRS, "west", true);
+		p.stairs(2, 3, -3, TRIM_STAIRS, "east", true);
+		p.set(0, 4, -3, ACCENT);
+		p.windowZ(-3, 0, 0, 2, 3);
+		p.windowZ(3, 0, 0, 2, 3);
+		// slate roof with brick gable ends, the chimney up the back
+		p.gableAlongX(3, 3, 5, SLATE, SLATE_SLAB, BRICK);
+		p.fill(-2, 5, 0, 2, 5, 0, "minecraft:dark_oak_log[axis=x]");
+		p.set(0, 4, 0, "minecraft:lantern[hanging=true]");
+		p.fill(-2, 1, 3, -2, 8, 3, BRICK);
+		p.set(-2, 9, 3, TRIM);
+		p.set(-2, 10, 3, "minecraft:campfire[lit=true,facing=north]");
+		// the forge
 		p.set(-2, 1, 2, "minecraft:blast_furnace[facing=north]");
 		p.set(-1, 1, 2, "minecraft:lava_cauldron");
-		p.set(-2, 2, 2, "minecraft:bricks");
-		p.fill(-2, 3, 2, -1, 3, 2, "minecraft:bricks");
-		p.fill(-2, 1, 3, -2, 7, 3, "minecraft:bricks");
-		p.set(-2, 8, 3, "minecraft:campfire[lit=true,facing=north]");
+		p.set(-2, 2, 2, BRICK);
+		p.fill(-2, 3, 2, -1, 3, 2, BRICK);
 		p.set(-2, 1, 0, "minecraft:water_cauldron[level=3]");
 		// the anvil and the benches
 		p.set(0, 1, 2, "minecraft:anvil[facing=north]");
@@ -614,32 +847,43 @@ public enum BuildingType {
 		p.set(2, 1, -1, "minecraft:stonecutter[facing=west]");
 	}
 
-	/** Walls of barrels (lids out) on a stone footing, a timber frame, a hayloft door and sacks and crates inside. */
+	/** A brick warehouse with a stepped gable, a hayloft door, barrel portholes in the sides and crates inside. */
 	private static void storehouse(Plan p) {
-		p.fill(-3, 0, -3, 3, 0, 3, "minecraft:stone_bricks");
+		p.fill(-3, 0, -3, 3, 0, 3, PLINTH);
 		p.fill(-2, 0, -2, 2, 0, 2, "minecraft:spruce_planks");
-		p.ring(3, 3, 1, "minecraft:stone_bricks", "minecraft:mossy_stone_bricks");
-		for (int y = 2; y <= 3; y++) {
-			for (int i = -2; i <= 2; i++) {
-				p.set(i, y, -3, "minecraft:barrel[facing=north]");
-				p.set(i, y, 3, "minecraft:barrel[facing=south]");
-				p.set(-3, y, i, "minecraft:barrel[facing=west]");
-				p.set(3, y, i, "minecraft:barrel[facing=east]");
-			}
+		for (int y = 1; y <= 5; y++) {
+			p.rect(-3, -3, 3, 3, y, y == 1 ? PLINTH : y == 5 ? BAND : BRICK);
 		}
-		for (int[] c : new int[][] {{-3, -3}, {3, -3}, {-3, 3}, {3, 3}}) {
-			p.fill(c[0], 1, c[1], c[0], 4, c[1], "minecraft:spruce_log[axis=y]");
-		}
-		p.fill(-2, 4, -3, 2, 4, -3, "minecraft:spruce_log[axis=x]");
-		p.fill(-2, 4, 3, 2, 4, 3, "minecraft:spruce_log[axis=x]");
-		p.fill(-3, 4, -2, -3, 4, 2, "minecraft:spruce_log[axis=z]");
-		p.fill(3, 4, -2, 3, 4, 2, "minecraft:spruce_log[axis=z]");
+		p.quoin(-3, -3, 1, 1, 2, 4);
+		p.quoin(3, -3, -1, 1, 2, 4);
+		p.quoin(-3, 3, 1, -1, 2, 4);
+		p.quoin(3, 3, -1, -1, 2, 4);
 		p.door(-3, "spruce");
-		p.gableAlongZ(3, 3, 5, "minecraft:spruce_stairs", "minecraft:spruce_slab[type=bottom]", "minecraft:spruce_planks");
+		p.set(0, 3, -3, "minecraft:glass_pane");
+		p.set(0, 4, -3, ACCENT);
+		p.windowX(-3, -2, -2, 2, 3);
+		p.windowX(-3, 2, 2, 2, 3);
+		// barrel portholes: right-click any barrel in the storehouse to open its storage
+		p.set(-3, 2, 0, "minecraft:barrel[facing=west]");
+		p.set(3, 2, 0, "minecraft:barrel[facing=east]");
+		p.set(-3, 3, 0, TRIM);
+		p.set(3, 3, 0, TRIM);
+		// slate roof between two stepped gables
+		p.gableAlongZ(3, 3, 6, SLATE, SLATE_SLAB, null);
+		for (int z : new int[] {-3, 3}) {
+			for (int k = 0; k <= 3; k++) {
+				p.fill(-3 + k, 6 + k, z, 3 - k, 6 + k, z, BRICK);
+				p.set(-3 + k, 7 + k, z, TRIM_CAP);
+				p.set(3 - k, 7 + k, z, TRIM_CAP);
+			}
+			p.set(0, 10, z, RAIL);
+		}
 		p.set(0, 6, -3, "minecraft:spruce_trapdoor[facing=north,half=bottom,open=true]");
+		p.set(0, 7, -3, TRIM);
+		p.set(0, 7, 3, "minecraft:glass_pane");
 		// inside: a tie beam with a lantern, hay, sacks of wool and stacked crates
-		p.fill(-2, 4, 0, 2, 4, 0, "minecraft:spruce_log[axis=x]");
-		p.set(0, 3, 0, "minecraft:lantern[hanging=true]");
+		p.fill(-2, 5, 0, 2, 5, 0, "minecraft:dark_oak_log[axis=x]");
+		p.set(0, 4, 0, "minecraft:lantern[hanging=true]");
 		p.set(-2, 1, 2, "minecraft:hay_block[axis=y]");
 		p.set(-2, 2, 2, "minecraft:white_carpet");
 		p.set(-2, 1, 1, "minecraft:white_wool");
@@ -650,45 +894,39 @@ public enum BuildingType {
 		p.set(1, 1, 2, "minecraft:spruce_slab[type=bottom]");
 	}
 
-	/** A crenellated stone guardhouse with a flag, behind a walled drill yard with a training dummy and a target. */
+	/** A brick guardhouse with sandstone battlements and a flag, behind a walled drill yard with a dummy and a target. */
 	private static void barracks(Plan p) {
 		p.fillMix(-4, 0, -4, 4, 0, 0, "minecraft:coarse_dirt", "minecraft:gravel");
-		p.fill(-4, 0, 1, 4, 0, 4, "minecraft:stone_bricks");
+		p.fill(-4, 0, 1, 4, 0, 4, PLINTH);
 		// the guardhouse
-		for (int y = 1; y <= 4; y++) {
-			for (int x = -4; x <= 4; x++) {
-				for (int z : new int[] {1, 4}) {
-					p.set(x, y, z, y == 1 ? mix(x, y, z, "minecraft:cobblestone", "minecraft:mossy_cobblestone")
-						: mix(x, y, z, "minecraft:stone_bricks", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks"));
-				}
-			}
-			for (int x : new int[] {-4, 4}) {
-				for (int z = 2; z <= 3; z++) {
-					p.set(x, y, z, y == 1 ? "minecraft:cobblestone" : mix(x, y, z, "minecraft:stone_bricks", "minecraft:mossy_stone_bricks"));
-				}
-			}
+		for (int y = 1; y <= 5; y++) {
+			p.rect(-4, 1, 4, 4, y, y == 1 ? PLINTH : y == 5 ? TRIM : BRICK);
 		}
-		for (int[] c : new int[][] {{-4, 1}, {4, 1}, {-4, 4}, {4, 4}}) {
-			p.fill(c[0], 1, c[1], c[0], 4, c[1], "minecraft:polished_andesite");
-		}
+		p.quoin(-4, 1, 1, 1, 2, 4);
+		p.quoin(4, 1, -1, 1, 2, 4);
+		p.quoin(-4, 4, 1, -1, 2, 4);
+		p.quoin(4, 4, -1, -1, 2, 4);
 		p.fill(-1, 1, 1, 1, 3, 1, "minecraft:air"); // big enough for an iron golem
-		p.stairs(-1, 3, 1, "minecraft:stone_brick_stairs", "west", true);
-		p.stairs(1, 3, 1, "minecraft:stone_brick_stairs", "east", true);
+		p.stairs(-1, 3, 1, TRIM_STAIRS, "west", true);
+		p.stairs(1, 3, 1, TRIM_STAIRS, "east", true);
+		p.set(0, 4, 1, ACCENT);
 		p.fill(-3, 2, 1, -3, 3, 1, "minecraft:iron_bars");
 		p.fill(3, 2, 1, 3, 3, 1, "minecraft:iron_bars");
-		p.set(-4, 3, 2, "minecraft:iron_bars");
-		p.set(4, 3, 2, "minecraft:iron_bars");
-		// flat roof with battlements and a flag
-		p.fill(-4, 5, 1, 4, 5, 4, "minecraft:smooth_stone");
+		p.set(-3, 4, 1, TRIM);
+		p.set(3, 4, 1, TRIM);
+		p.set(-4, 3, 3, "minecraft:iron_bars");
+		p.set(4, 3, 3, "minecraft:iron_bars");
+		// flat roof with sandstone battlements and a flag
+		p.fill(-3, 5, 2, 3, 5, 3, "minecraft:smooth_stone");
 		for (int x = -4; x <= 4; x++) {
 			for (int z = 1; z <= 4; z++) {
 				boolean edge = Math.abs(x) == 4 || z == 1 || z == 4;
 				if (edge && Math.floorMod(x + z, 2) == 0) {
-					p.set(x, 6, z, mix(x, 6, z, "minecraft:stone_bricks", "minecraft:mossy_stone_bricks"));
+					p.set(x, 6, z, TRIM);
 				}
 			}
 		}
-		p.fill(3, 6, 3, 3, 9, 3, "minecraft:spruce_fence");
+		p.fill(3, 6, 3, 3, 9, 3, "minecraft:dark_oak_fence");
 		p.fill(1, 8, 3, 2, 9, 3, "minecraft:red_wool");
 		// the armoury inside
 		p.set(-3, 1, 3, "minecraft:smithing_table");
@@ -702,25 +940,26 @@ public enum BuildingType {
 		p.set(1, 3, 3, "minecraft:red_wall_banner[facing=north]");
 		p.set(-2, 4, 2, "minecraft:lantern[hanging=true]");
 		p.set(2, 4, 2, "minecraft:lantern[hanging=true]");
-		// the drill yard: a low wall with an opening at the front, lamp pillars, a dummy and a target
+		// the drill yard: a low brick wall with gate piers, a dummy and a target
 		for (int z = -4; z <= 0; z++) {
-			p.set(-4, 1, z, "minecraft:cobblestone_wall");
-			p.set(4, 1, z, "minecraft:cobblestone_wall");
+			p.set(-4, 1, z, "minecraft:brick_wall");
+			p.set(4, 1, z, "minecraft:brick_wall");
 		}
 		for (int x = -4; x <= 4; x++) {
 			if (Math.abs(x) > 1) {
-				p.set(x, 1, -4, "minecraft:cobblestone_wall");
+				p.set(x, 1, -4, "minecraft:brick_wall");
 			}
 		}
-		for (int x : new int[] {-4, 4}) {
-			p.fill(x, 1, -4, x, 2, -4, "minecraft:stone_bricks");
-			p.set(x, 3, -4, "minecraft:lantern[hanging=false]");
+		for (int x : new int[] {-2, 2}) {
+			p.fill(x, 1, -4, x, 2, -4, BRICK);
+			p.set(x, 3, -4, TRIM);
+			p.set(x, 4, -4, "minecraft:lantern[hanging=false]");
 		}
-		p.set(-2, 1, -2, "minecraft:oak_fence");
+		p.set(-2, 1, -2, "minecraft:dark_oak_fence");
 		p.set(-2, 2, -2, "minecraft:hay_block[axis=y]");
 		p.set(-2, 3, -2, "minecraft:carved_pumpkin[facing=north]");
-		p.set(-3, 2, -2, "minecraft:oak_fence");
-		p.set(-1, 2, -2, "minecraft:oak_fence");
+		p.set(-3, 2, -2, "minecraft:dark_oak_fence");
+		p.set(-1, 2, -2, "minecraft:dark_oak_fence");
 		p.set(2, 1, -2, "minecraft:hay_block[axis=y]");
 		p.set(2, 2, -2, "minecraft:target");
 		p.set(3, 1, 0, "minecraft:water_cauldron[level=3]");

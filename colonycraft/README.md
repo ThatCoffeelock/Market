@@ -32,6 +32,8 @@ Put **Fabric API**, **`market-<version>.jar`** and **`colonycraft-<version>.jar`
 | Storehouse | ₥500 | 1/1/2 | 27 slots, 54 at tier 2, and +10% on auto-sales at tier 3. Right-click any barrel to open it |
 | Barracks | ₥2,000 | 1/2/3 iron golems | Golems patrol the colony's land and fight monsters. ₥15 a day each, no beds needed |
 
+Every building is in the same Dutch neo-renaissance style: red brick dressed in cream sandstone (quoins, string courses, lintels with keystones) under dark slate mansard roofs. The Town Hall is a three-storey mansion with a gabled centre bay, a portico and a council chamber upstairs. The Town Hall is 11 × 11 and the Residence 9 × 9; existing ones grow into the path around them when you **Repair & renovate** them (see below).
+
 Upgrades cost 1.5× the price for tier 2 and 3× for tier 3. Each tier adds workers, and each worker produces more. Demolishing a building refunds half of everything you paid for it. The Town Hall goes last, and demolishing it disbands the colony.
 
 Only the owner can break blocks of colony buildings. Colony villagers don't trade; they're busy.
