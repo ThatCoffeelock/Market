@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a7fc0"/>
+      <stop offset="1" stop-color="#174a7a"/>
+    </linearGradient>
+    <clipPath id="glass">
+      <rect x="84" y="166" width="300" height="180" rx="80"/>
+    </clipPath>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#sky)"/>
+  <g transform="rotate(-10 256 256)">
+    <!-- shadow -->
+    <ellipse cx="250" cy="372" rx="170" ry="16" fill="#0e3358" opacity="0.5"/>
+    <!-- neck + cork -->
+    <rect x="370" y="216" width="62" height="80" rx="14" fill="#cfeefc" fill-opacity="0.25" stroke="#eaf8ff" stroke-width="10"/>
+    <rect x="424" y="224" width="46" height="64" rx="10" fill="#b5793f" stroke="#7a4c22" stroke-width="6"/>
+    <!-- glass body -->
+    <rect x="84" y="166" width="300" height="180" rx="80" fill="#cfeefc" fill-opacity="0.25"/>
+    <g clip-path="url(#glass)">
+      <!-- sea -->
+      <path d="M60 296 q30 -14 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V360 H60 Z" fill="#1f9bd1"/>
+      <!-- masts -->
+      <rect x="187" y="190" width="7" height="100" fill="#5a3a1c"/>
+      <rect x="257" y="182" width="7" height="108" fill="#5a3a1c"/>
+      <!-- sails -->
+      <path d="M160 206 q30 -6 60 0 q6 28 0 56 q-30 -6 -60 0 q-6 -28 0 -56 Z" fill="#ffffff"/>
+      <path d="M230 198 q30 -6 60 0 q6 32 0 64 q-30 -6 -60 0 q-6 -32 0 -64 Z" fill="#ffffff"/>
+      <!-- flag -->
+      <path d="M264 182 l26 8 l-26 8 Z" fill="#e8463b"/>
+      <!-- hull -->
+      <path d="M130 278 H330 l-26 36 H158 Z" fill="#8a5a2b" stroke="#5a3a1c" stroke-width="6" stroke-linejoin="round"/>
+      <rect x="138" y="284" width="184" height="7" fill="#f2c14e"/>
+      <!-- front wave over hull -->
+      <path d="M60 312 q30 -12 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V360 H60 Z" fill="#1683b8"/>
+    </g>
+    <!-- glass outline + shine -->
+    <rect x="84" y="166" width="300" height="180" rx="80" fill="none" stroke="#eaf8ff" stroke-width="10"/>
+    <path d="M128 196 q40 -16 120 -14" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
+  </g>
+</svg>
