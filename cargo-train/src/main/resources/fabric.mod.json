@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "cargotrain",
+	"version": "${version}",
+	"name": "Cargo Train",
+	"description": "A little locomotive and a cargo wagon that shuttle along your rails by themselves, picking up and dropping off at station chests. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.cargotrain.CargoTrainMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

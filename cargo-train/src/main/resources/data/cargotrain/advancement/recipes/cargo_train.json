@@ -1,0 +1,19 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_furnace_minecart": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:furnace_minecart"}]}
+		},
+		"has_chest_minecart": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:chest_minecart"}]}
+		},
+		"has_rail": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:rail"}]}
+		}
+	},
+	"requirements": [["has_furnace_minecart", "has_chest_minecart", "has_rail"]],
+	"rewards": {"recipes": ["cargotrain:cargo_train"]}
+}

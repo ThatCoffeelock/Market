@@ -1,0 +1,25 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:furnace_minecart",
+		"minecraft:chest_minecart",
+		"minecraft:redstone_block"
+	],
+	"result": {
+		"id": "minecraft:furnace_minecart",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"cargotrain": "train"},
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {"text": "Cargo Train", "color": "yellow"},
+			"minecraft:lore": [
+				{"text": "A locomotive and a cargo wagon.", "color": "gray", "italic": false},
+				{"text": "Right-click a rail to put it on the track.", "color": "gray", "italic": false},
+				{"text": "It shuttles between the ends of the line by itself,", "color": "dark_gray", "italic": false},
+				{"text": "stopping at every Pickup / Drop-off / Swap Station.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

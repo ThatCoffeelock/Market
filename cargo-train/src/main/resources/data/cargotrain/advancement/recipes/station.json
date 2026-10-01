@@ -1,0 +1,11 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_rail": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:rail"}]}
+		}
+	},
+	"requirements": [["has_rail"]],
+	"rewards": {"recipes": ["cargotrain:station"]}
+}
