@@ -163,6 +163,10 @@ final class SmokeTest {
 	private static int shotsBefore;
 
 	private static void defences(ServerLevel level) {
+		// the colony is still on strike from earlier (guards don't shoot then): pay up first
+		Colonies.payday(colony);
+		check(!colony.striking, "paying the wages ends the strike");
+
 		// a wall, a second one that snaps onto its end, a gatehouse after that and a tower at the other end
 		wallA = Colonies.construct(level, colony, BuildingType.WALL, new BlockPos(-8, 99, -26), 0, Bank.cents(BuildingType.WALL.price), true);
 		BlockPos second = Colonies.snap(level, BuildingType.WALL, new BlockPos(2, 99, -25), 0);
