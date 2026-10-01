@@ -59,7 +59,7 @@ Ahoy is **server-side only**. Your friends join with a plain vanilla client and 
 
 ## 🛠️ Commands
 
-- `/ahoy`: info
+- `/ahoy`: a quick how-to guide in chat
 - `/ahoy give`: gives you a Ship in a Bottle (ops only)
 
 ---
