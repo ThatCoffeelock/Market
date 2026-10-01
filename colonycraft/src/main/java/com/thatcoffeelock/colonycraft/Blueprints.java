@@ -41,9 +41,12 @@ public final class Blueprints {
 				text("everything else. Rename this in an anvil to name the colony.", ChatFormatting.DARK_GRAY))));
 		} else {
 			stack.set(DataComponents.ITEM_NAME, Component.literal("Blueprint: " + type.displayName).withStyle(ChatFormatting.AQUA));
+			String detail = type.fortification ? "No building slot needed. Lines up with its neighbours."
+				: type.workers(1) > 0 ? "Comes with " + type.workers(1) + " " + type.crewNoun(type.workers(1)) + "."
+				: "Sleeps " + type.housing(1) + " workers.";
 			stack.set(DataComponents.LORE, new ItemLore(List.of(
 				text("Right-click the ground inside your colony to build.", ChatFormatting.GRAY),
-				text(type.housing(1) > 0 ? "Sleeps " + type.housing(1) + " workers." : "Comes with " + type.workers(1) + " workers.", ChatFormatting.DARK_GRAY))));
+				text(detail, ChatFormatting.DARK_GRAY))));
 		}
 		return stack;
 	}

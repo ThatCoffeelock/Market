@@ -2,21 +2,27 @@ package com.thatcoffeelock.colonycraft;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Only runs with -Dcolonycraft.smokeTest=true (CI). Boots a real server (with the Market mod), founds
- * a colony, builds one of everything, runs paydays (normal, autosell, strike), kills and replaces a
- * worker, saves and reloads, then demolishes it all again.
+ * Only runs with -Dcolonycraft.smokeTest=true (CI). Boots a real server (with the Market mod), checks
+ * every design, founds a colony, builds one of everything, runs paydays (normal, autosell, strike),
+ * kills and replaces a worker, saves and reloads, builds a fortified line (walls, gatehouse, watchtower)
+ * and a barracks, lets the archers shoot at a husk, repairs and upgrades, then demolishes it all again.
  */
 final class SmokeTest {
 	private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-00000000c01a");
@@ -46,6 +52,28 @@ final class SmokeTest {
 	private static Colony colony;
 
 	private static void build(ServerLevel level) {
+		// every design fits its footprint, every block state in it is real, and the crew has headroom
+		for (BuildingType type : BuildingType.values()) {
+			for (int tier = 1; tier <= BuildingType.MAX_TIER; tier++) {
+				Map<BlockPos, BlockState> plan = type.plan(tier);
+				for (BlockPos pos : plan.keySet()) {
+					check(Math.abs(pos.getX()) <= type.half && Math.abs(pos.getZ()) <= type.depth && pos.getY() >= 0 && pos.getY() <= type.height,
+						type.id + " tier " + tier + " stays inside its footprint (" + pos + ")", false);
+				}
+				for (int i = 0; i < Math.max(1, type.workers(tier)); i++) {
+					BlockPos at = type.station(i);
+					// villagers are under two blocks tall, iron golems need three
+					BlockPos[] room = type == BuildingType.BARRACKS ? new BlockPos[] {at.above(), at.above(2)} : new BlockPos[] {at.above()};
+					for (BlockPos head : room) {
+						BlockState state = plan.get(head);
+						check(state == null || state.isAir(), type.id + " tier " + tier + " crew " + i + " has headroom", false);
+					}
+				}
+			}
+		}
+		check(BuildingType.badStates == 0, "every block state in every design parses (" + BuildingType.badStates + " bad)");
+		ColonycraftMod.LOG.info("[smoke] ok: every design fits its footprint and leaves its crew headroom");
+
 		for (int x = -60; x < 60; x += 20) {
 			Cmd.run(level, "fill " + x + " 96 -60 " + (x + 19) + " 98 60 minecraft:stone");
 			Cmd.run(level, "fill " + x + " 99 -60 " + (x + 19) + " 99 60 minecraft:grass_block");
@@ -126,10 +154,88 @@ final class SmokeTest {
 		List<Colony> back = ColonyStore.fromJson(level.getServer(), json);
 		check(back.size() == 1 && back.get(0).buildings.size() == 9, "colonies survive a save and load");
 		check(ColonyStore.clock == 1234, "the payday clock survives a save and load");
+		defences(level);
+	}
+
+	private static Colony.Building tower;
+	private static Colony.Building wallA;
+	private static UUID husk;
+	private static int shotsBefore;
+
+	private static void defences(ServerLevel level) {
+		// a wall, a second one that snaps onto its end, a gatehouse after that and a tower at the other end
+		wallA = Colonies.construct(level, colony, BuildingType.WALL, new BlockPos(-8, 99, -26), 0, Bank.cents(BuildingType.WALL.price), true);
+		BlockPos second = Colonies.snap(level, BuildingType.WALL, new BlockPos(2, 99, -25), 0);
+		check(second.equals(new BlockPos(1, 99, -26)), "a wall snaps onto the end of the one next to it (" + second + ")");
+		Colonies.construct(level, colony, BuildingType.WALL, second, 0, Bank.cents(BuildingType.WALL.price), true);
+		BlockPos gate = Colonies.snap(level, BuildingType.GATEHOUSE, new BlockPos(10, 99, -27), 0);
+		check(gate.equals(new BlockPos(9, 99, -26)), "a gatehouse snaps onto the end of the wall (" + gate + ")");
+		Colonies.construct(level, colony, BuildingType.GATEHOUSE, gate, 0, Bank.cents(BuildingType.GATEHOUSE.price), true);
+		BlockPos corner = Colonies.snap(level, BuildingType.WATCHTOWER, new BlockPos(-17, 99, -25), 0);
+		check(corner.equals(new BlockPos(-16, 99, -26)), "a watchtower snaps onto the other end (" + corner + ")");
+		tower = Colonies.construct(level, colony, BuildingType.WATCHTOWER, corner, 0, Bank.cents(BuildingType.WATCHTOWER.price), true);
+		Colony.Building barracks = Colonies.construct(level, colony, BuildingType.BARRACKS, new BlockPos(24, 99, 12), 0,
+			Bank.cents(BuildingType.BARRACKS.price), true);
+		check(colony.slotsUsed() == 9, "fortifications don't use building slots (" + colony.slotsUsed() + " used)");
+		check(level.getBlockState(wallA.world(new BlockPos(2, 3, -2))).is(Blocks.LADDER), "the wall has its ladder");
+		check(level.getBlockState(gate.offset(0, 1, 0)).is(Blocks.SPRUCE_FENCE_GATE), "the gatehouse has its gates");
+
+		// everything stands exactly as designed: no lantern, ladder, torch or banner fell off
+		for (Colony.Building b : colony.buildings) {
+			int off = Colonies.damaged(level, b);
+			check(off == 0, b.type.id + " was built as designed (" + off + " blocks off)");
+		}
+
+		// the crews
+		Entity golem = level.getEntity(barracks.villagers.get(0));
+		check(golem != null && BuiltInRegistries.ENTITY_TYPE.getKey(golem.getType()).getPath().equals("iron_golem"), "the barracks hired an iron golem");
+		Entity archer = level.getEntity(tower.villagers.get(0));
+		check(archer instanceof Mob m && m.isNoAi(), "the archer stands still at their post");
+		check(archer instanceof LivingEntity l && l.getMainHandItem().is(Items.CROSSBOW), "the archer holds a crossbow");
+		long wages = Bank.cents(Colonies.WAGE) * 11 + Bank.cents(BuildingType.BARRACKS.wage) + Bank.cents(BuildingType.WATCHTOWER.wage);
+		check(colony.dailyWages() == wages, "guards earn more than workers (" + Bank.format(colony.dailyWages()) + " a day)");
+
+		// a husk (it doesn't burn in daylight) walks up in front of the tower
+		husk = UUID.randomUUID();
+		BlockPos front = tower.world(new BlockPos(0, 1, -14));
+		Cmd.run(level, "summon minecraft:husk " + Cmd.pos(front.getX() + 0.5, front.getY(), front.getZ() + 0.5)
+			+ " {" + Cmd.uuidNbt(husk) + ",PersistenceRequired:1b}");
+		check(level.getEntity(husk) != null, "a husk showed up");
+		shotsBefore = Colonies.shots;
+
+		// a broken wall gets repaired
+		level.setBlock(wallA.world(new BlockPos(0, 5, 0)), Blocks.AIR.defaultBlockState(), 3);
+		check(Colonies.damaged(level, wallA) == 1, "a hole in the walkway is noticed");
+		check(Colonies.whyNoRebuild(level, wallA) == null, "the wall can be repaired");
+		Colonies.rebuild(level, wallA, true);
+		check(Colonies.damaged(level, wallA) == 0, "the wall is repaired");
+
+		// a chest with something in it stops a rebuild (rebuilding would clear it)
+		BlockPos chest = tower.world(new BlockPos(-2, 1, -2));
+		Cmd.run(level, "setblock " + chest.getX() + " " + chest.getY() + " " + chest.getZ()
+			+ " minecraft:chest{Items:[{Slot:0b,id:\"minecraft:stick\",count:1}]}");
+		check(Colonies.whyNoRebuild(level, tower) != null, "a full chest stops a rebuild");
+		Cmd.run(level, "setblock " + chest.getX() + " " + chest.getY() + " " + chest.getZ() + " minecraft:air");
+
+		// upgrading a wall rebuilds it in stone bricks
+		Colonies.upgrade(level, wallA, 0);
+		ColonycraftMod.later(200, () -> step(level.getServer(), () -> afterVolley(level)));
+	}
+
+	private static void afterVolley(ServerLevel level) {
+		check(Colonies.shots > shotsBefore, "the archer shot at the husk (" + (Colonies.shots - shotsBefore) + " arrows)");
+		Entity target = level.getEntity(husk);
+		check(target == null || !target.isAlive() || (target instanceof LivingEntity l && l.getHealth() < l.getMaxHealth()),
+			"the husk got hit");
+		check(level.getBlockState(wallA.world(new BlockPos(0, 1, 1))).is(Blocks.POLISHED_ANDESITE), "the upgraded wall is rebuilt in stone");
+		check(Colonies.damaged(level, wallA) == 0, "the upgraded wall is complete");
+		Cmd.run(level, "kill @e[type=minecraft:husk]");
+		Cmd.run(level, "kill @e[type=minecraft:arrow]");
 
 		// demolish everything, Town Hall last
 		Colony.Building workshop = find(BuildingType.WORKSHOP);
 		BlockPos anvil = workshop.world(new BlockPos(0, 1, 2));
+		check(level.getBlockState(anvil).is(Blocks.ANVIL), "the workshop has its anvil");
 		long before = Bank.balance(OWNER);
 		long refund = Colonies.demolish(level, workshop);
 		check(level.getBlockState(anvil).isAir(), "the workshop is gone");
@@ -197,9 +303,15 @@ final class SmokeTest {
 	}
 
 	private static void check(boolean ok, String what) {
+		check(ok, what, true);
+	}
+
+	private static void check(boolean ok, String what, boolean log) {
 		if (!ok) {
 			throw new IllegalStateException("Smoke check failed: " + what);
 		}
-		ColonycraftMod.LOG.info("[smoke] ok: {}", what);
+		if (log) {
+			ColonycraftMod.LOG.info("[smoke] ok: {}", what);
+		}
 	}
 }

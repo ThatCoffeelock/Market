@@ -33,7 +33,8 @@ final class TownHallMenu extends ChestMenu {
 	private static final int SIZE = 54;
 	private static final int PER_PAGE = 18;
 	private static final BuildingType[] SHOP = {BuildingType.RESIDENCE, BuildingType.FARM, BuildingType.LUMBER_CAMP,
-		BuildingType.MINE, BuildingType.WORKSHOP, BuildingType.STOREHOUSE, BuildingType.TOWN_HALL};
+		BuildingType.MINE, BuildingType.WORKSHOP, BuildingType.STOREHOUSE, BuildingType.BARRACKS, BuildingType.TOWN_HALL};
+	private static final BuildingType[] FORTIFICATIONS = {BuildingType.WALL, BuildingType.GATEHOUSE, BuildingType.WATCHTOWER};
 
 	@FunctionalInterface
 	private interface Action {
@@ -135,34 +136,32 @@ final class TownHallMenu extends ChestMenu {
 		List<Component> info = new ArrayList<>();
 		info.add(t("Founded by " + colony.ownerName, ChatFormatting.GRAY));
 		info.add(t("Level " + colony.tier() + " · land " + (colony.radius() * 2 + 1) + " × " + (colony.radius() * 2 + 1), ChatFormatting.GRAY));
-		info.add(t("Buildings: " + (colony.buildings.size() - 1) + " / " + colony.maxBuildings(), ChatFormatting.GRAY));
+		info.add(t("Buildings: " + colony.slotsUsed() + " / " + colony.maxBuildings(), ChatFormatting.GRAY));
 		info.add(t("Workers: " + colony.workers() + " (beds for " + colony.housing() + ")", ChatFormatting.GRAY));
 		info.add(money("Wages per day: ", colony.dailyWages()));
 		info.add(Component.empty());
 		info.add(colony.striking
 			? t("ON STRIKE: yesterday's wages weren't paid. Nobody gathers until they are.", ChatFormatting.RED, ChatFormatting.BOLD)
 			: t("Everyone's hard at work.", ChatFormatting.GREEN));
+		if (colony.striking) {
+			info.add(t("The guards are standing down too.", ChatFormatting.RED));
+		}
 		button(4, icon(Items.BELL, t(colony.name, ChatFormatting.GOLD, ChatFormatting.BOLD), info), null);
 
 		button(9, icon(Items.WRITABLE_BOOK, t("Blueprints for sale", ChatFormatting.AQUA, ChatFormatting.BOLD),
 			List.of(t("Buy one, then right-click the ground", ChatFormatting.GRAY), t("inside the colony to build it.", ChatFormatting.GRAY))), null);
 		for (int i = 0; i < SHOP.length; i++) {
-			BuildingType type = SHOP[i];
-			long price = Bank.cents(type.price);
-			List<Component> lore = new ArrayList<>();
-			lore.add(money("Price: ", price));
-			lore.add(t(describe(type), ChatFormatting.GRAY));
-			if (type.workers(1) > 0) {
-				lore.add(t(type.workers(1) + " workers, " + Bank.format(Bank.cents(Colonies.WAGE) * type.workers(1)) + " wages a day", ChatFormatting.DARK_GRAY));
-			}
-			lore.add(Component.empty());
-			lore.add(t("Click to buy.", ChatFormatting.YELLOW));
-			String name = type == BuildingType.TOWN_HALL ? "Colony Charter (a new colony)" : type.displayName;
-			button(10 + i, icon(type.icon, t(name, ChatFormatting.AQUA, ChatFormatting.BOLD), lore), () -> buy(type, price));
+			shopButton(10 + i, SHOP[i]);
+		}
+		button(18, icon(Items.SHIELD, t("Fortifications", ChatFormatting.AQUA, ChatFormatting.BOLD),
+			List.of(t("Thick walls you can walk on, gates and towers.", ChatFormatting.GRAY),
+				t("They don't use building slots, and snap", ChatFormatting.GRAY), t("together end to end.", ChatFormatting.GRAY))), null);
+		for (int i = 0; i < FORTIFICATIONS.length; i++) {
+			shopButton(19 + i, FORTIFICATIONS[i]);
 		}
 
-		button(18, icon(Items.OAK_SIGN, t("Your buildings", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("Click one to upgrade it, hire replacements,", ChatFormatting.GRAY), t("open storage or demolish it.", ChatFormatting.GRAY))), null);
+		button(26, icon(Items.OAK_SIGN, t("Your buildings (below)", ChatFormatting.AQUA, ChatFormatting.BOLD),
+			List.of(t("Click one to upgrade it, repair it, hire", ChatFormatting.GRAY), t("replacements, open storage or demolish it.", ChatFormatting.GRAY))), null);
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		page = Math.min(page, pages - 1);
@@ -207,6 +206,24 @@ final class TownHallMenu extends ChestMenu {
 		}
 	}
 
+	private void shopButton(int slot, BuildingType type) {
+		long price = Bank.cents(type.price);
+		List<Component> lore = new ArrayList<>();
+		lore.add(money("Price: ", price));
+		lore.add(t(describe(type), ChatFormatting.GRAY));
+		int crew = type.workers(1);
+		if (crew > 0) {
+			lore.add(t(crew + " " + type.crewNoun(crew) + ", " + Bank.format(Bank.cents(type.wage) * crew) + " wages a day", ChatFormatting.DARK_GRAY));
+		}
+		if (type.fortification) {
+			lore.add(t("Doesn't use a building slot.", ChatFormatting.DARK_GRAY));
+		}
+		lore.add(Component.empty());
+		lore.add(t("Click to buy.", ChatFormatting.YELLOW));
+		String name = type == BuildingType.TOWN_HALL ? "Colony Charter (a new colony)" : type.displayName;
+		button(slot, icon(type.icon, t(name, ChatFormatting.AQUA, ChatFormatting.BOLD), lore), () -> buy(type, price));
+	}
+
 	private static String describe(BuildingType type) {
 		return switch (type) {
 			case TOWN_HALL -> "Found another colony somewhere else.";
@@ -216,6 +233,10 @@ final class TownHallMenu extends ChestMenu {
 			case MINE -> "Cobblestone, coal, iron, copper, gold, redstone, lapis, the odd diamond.";
 			case WORKSHOP -> "Turns logs, ores, cobble and wheat into planks, ingots, stone and bread.";
 			case STOREHOUSE -> "Everything the colony makes goes here. Can auto-sell to the Market.";
+			case BARRACKS -> "Iron golem guards that patrol the colony's land.";
+			case WATCHTOWER -> "Archers on top shoot monsters up to 24 blocks away.";
+			case WALL -> "9 blocks of thick wall with a walkway on top.";
+			case GATEHOUSE -> "A way through the wall. You can open the gates, monsters can't.";
 		};
 	}
 
@@ -223,8 +244,8 @@ final class TownHallMenu extends ChestMenu {
 		List<Component> info = new ArrayList<>();
 		info.add(t(describe(b.type), ChatFormatting.GRAY));
 		if (!b.villagers.isEmpty()) {
-			info.add(t("Workers: " + b.alive() + " / " + b.villagers.size(), ChatFormatting.GRAY));
-			info.add(money("Wages per day: ", Bank.cents(Colonies.WAGE) * b.alive()));
+			info.add(t("Crew: " + b.alive() + " / " + b.villagers.size() + " " + b.type.crewNoun(b.villagers.size()), ChatFormatting.GRAY));
+			info.add(money("Wages per day: ", Bank.cents(b.type.wage) * b.alive()));
 		}
 		if (b.type.housing(b.tier) > 0) {
 			info.add(t("Beds: " + b.type.housing(b.tier), ChatFormatting.GRAY));
@@ -274,6 +295,16 @@ final class TownHallMenu extends ChestMenu {
 				render();
 			});
 		}
+		// repair and renovate
+		ServerLevel here = level();
+		int broken = here == null ? 0 : Colonies.damaged(here, b);
+		long rebuildPrice = Colonies.rebuildPrice(b);
+		button(38, icon(Items.BRICKS, t("Repair & renovate", ChatFormatting.AQUA, ChatFormatting.BOLD),
+			List.of(money("Price: ", rebuildPrice),
+				broken > 0 ? t(broken + " blocks missing or out of place.", ChatFormatting.RED) : t("Nothing's broken.", ChatFormatting.GREEN),
+				t("Rebuilds it exactly as designed. Older", ChatFormatting.GRAY), t("buildings get the latest look.", ChatFormatting.GRAY),
+				t("Anything else in it gets cleared.", ChatFormatting.DARK_GRAY), Component.empty(), t("Click to rebuild.", ChatFormatting.YELLOW))),
+			() -> rebuild(b, rebuildPrice));
 		// demolish
 		String why = Colonies.whyNoDemolish(b);
 		long refund = Math.round(b.spent * Colonies.REFUND);
@@ -293,6 +324,9 @@ final class TownHallMenu extends ChestMenu {
 			case TOWN_HALL -> "Bigger land and room for " + (8 + 6 * (next - 1)) + " buildings.";
 			case RESIDENCE -> "Beds for " + b.type.housing(next) + " workers.";
 			case STOREHOUSE -> next == 2 ? "54 slots of storage." : "+10% on everything it auto-sells.";
+			case BARRACKS -> b.type.workers(next) + " iron golems.";
+			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
+			case WALL, GATEHOUSE -> "Rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}
@@ -326,6 +360,13 @@ final class TownHallMenu extends ChestMenu {
 			nope("Go a bit closer to that building first.");
 			return;
 		}
+		if (b.type.fortification) {
+			String blocked = Colonies.whyNoRebuild(level, b);
+			if (blocked != null) {
+				nope(blocked);
+				return;
+			}
+		}
 		if (!Bank.pay(viewer, price)) {
 			nope("You need " + Bank.format(price) + " for that.");
 			return;
@@ -352,6 +393,28 @@ final class TownHallMenu extends ChestMenu {
 			Bank.credit(viewer.getUUID(), viewer.getName().getString(), Bank.cents(Colonies.REPLACE_PRICE) * (dead - hired));
 		}
 		kaching();
+		render();
+	}
+
+	private void rebuild(Colony.Building b, long price) {
+		ServerLevel level = level();
+		if (level == null) {
+			nope("Can't reach that building right now.");
+			return;
+		}
+		String why = Colonies.whyNoRebuild(level, b);
+		if (why != null) {
+			nope(why);
+			return;
+		}
+		if (!Bank.pay(viewer, price)) {
+			nope("You need " + Bank.format(price) + " for that.");
+			return;
+		}
+		Colonies.rebuild(level, b, false);
+		kaching();
+		viewer.sendSystemMessage(Component.literal("The builders are on it: the " + b.title() + " is going back up as designed.")
+			.withStyle(ChatFormatting.GOLD));
 		render();
 	}
 

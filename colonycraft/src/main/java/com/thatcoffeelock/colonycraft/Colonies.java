@@ -14,15 +14,23 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +45,10 @@ public final class Colonies {
 	public static final double REFUND = 0.5;
 	/** One Minecraft day. */
 	public static final int DAY = 24000;
+	/** How far a watchtower archer can see, in blocks. */
+	public static final double ARCHER_RANGE = 24;
+	/** Share of a building's price that a repair and renovation costs. */
+	public static final double REBUILD_SHARE = 0.1;
 
 	private static final int QUIET = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
 	private static final String[] NAMES = {"Jan", "Piet", "Klaas", "Marieke", "Anouk", "Sem", "Fenna", "Joost", "Willem", "Grietje",
@@ -54,6 +66,8 @@ public final class Colonies {
 	private static long clock;
 	private static long ticks;
 	private static boolean dirty;
+	/** Arrows fired by watchtower archers since the server started (the smoke test checks they shoot). */
+	static int shots;
 
 	private record Pending(BuildingType type, BlockPos origin, int quarter, long until) {
 	}
@@ -151,6 +165,9 @@ public final class Colonies {
 		}
 		if (ticks % 100 == 0) {
 			keepVillagersHome();
+		}
+		if (ticks % 30 == 0) {
+			guardDuty();
 		}
 		if (ticks % 6000 == 0 && dirty) {
 			save();
@@ -254,8 +271,9 @@ public final class Colonies {
 	/** Why this building can't go here, or null if it can. */
 	static @Nullable String whyNot(ServerPlayer player, ServerLevel level, BuildingType type, BlockPos origin, int quarter) {
 		int h = type.half;
-		BlockPos[] corners = {toWorld(origin, quarter, -h, 0, -h), toWorld(origin, quarter, h, 0, h),
-			toWorld(origin, quarter, -h, 0, h), toWorld(origin, quarter, h, 0, -h)};
+		int d = type.depth;
+		BlockPos[] corners = {toWorld(origin, quarter, -h, 0, -d), toWorld(origin, quarter, h, 0, d),
+			toWorld(origin, quarter, -h, 0, d), toWorld(origin, quarter, h, 0, -d)};
 		String dim = dim(level);
 		Colony target = null;
 		if (type == BuildingType.TOWN_HALL) {
@@ -276,22 +294,27 @@ public final class Colonies {
 			if (target == null) {
 				return "Build it on your own colony's land, near one of your Town Halls.";
 			}
-			if (target.buildings.size() - 1 >= target.maxBuildings()) {
+			if (!type.fortification && target.slotsUsed() >= target.maxBuildings()) {
 				return target.name + " is full (" + target.maxBuildings() + " buildings). Upgrade the Town Hall for more room.";
 			}
-			if (target.housing() + type.housing(1) < target.jobs() + type.workers(1)) {
-				return "Not enough beds for " + type.workers(1) + " more workers. Build a Residence first.";
+			int sleepers = type.needsBeds() ? type.workers(1) : 0;
+			if (target.housing() + type.housing(1) < target.jobs() + sleepers) {
+				return "Not enough beds for " + sleepers + " more workers. Build a Residence first.";
 			}
 		}
-		// no overlapping other buildings (leaving a one-block path between them)
+		// no overlapping other buildings (leaving a one-block path between them; fortifications may touch)
+		int ex = type.extentX(quarter);
+		int ez = type.extentZ(quarter);
 		for (Colony c : COLONIES) {
 			if (!c.dimension.equals(dim)) {
 				continue;
 			}
 			for (Colony.Building b : c.buildings) {
-				int reach = b.type.half + h + 1;
-				if (Math.abs(b.origin.getX() - origin.getX()) <= reach && Math.abs(b.origin.getZ() - origin.getZ()) <= reach) {
-					return "Too close to the " + b.type.displayName + ". Leave a path between buildings.";
+				int gap = type.fortification && b.type.fortification ? 0 : 1;
+				if (Math.abs(b.origin.getX() - origin.getX()) <= b.type.extentX(b.quarter) + ex + gap
+					&& Math.abs(b.origin.getZ() - origin.getZ()) <= b.type.extentZ(b.quarter) + ez + gap) {
+					return gap == 0 ? "That overlaps the " + b.type.displayName + ". Line it up with its end."
+						: "Too close to the " + b.type.displayName + ". Leave a path between buildings.";
 				}
 			}
 		}
@@ -299,7 +322,7 @@ public final class Colonies {
 		int wet = 0;
 		int total = 0;
 		for (int x = -h; x <= h; x++) {
-			for (int z = -h; z <= h; z++) {
+			for (int z = -d; z <= d; z++) {
 				BlockPos floor = toWorld(origin, quarter, x, 0, z);
 				if (!level.isLoaded(floor)) {
 					return "Part of that spot isn't loaded. Get closer.";
@@ -331,6 +354,8 @@ public final class Colonies {
 			origin = origin.below();
 		}
 		int quarter = Math.floorMod(Math.round(player.getYRot() / 90f), 4);
+		BlockPos clicked = origin;
+		origin = snap(level, type, origin, quarter);
 		String why = whyNot(player, level, type, origin, quarter);
 		if (why != null) {
 			player.sendSystemMessage(Component.literal(why).withStyle(ChatFormatting.RED));
@@ -341,7 +366,13 @@ public final class Colonies {
 		if (pending == null || pending.type != type || !pending.origin.equals(origin) || pending.quarter != quarter || pending.until < ticks) {
 			PENDING.put(player.getUUID(), new Pending(type, origin, quarter, ticks + 200));
 			outline(level, type, origin, quarter, "minecraft:happy_villager");
-			player.sendSystemMessage(Component.literal("That's where the " + type.displayName + " will go (the door faces you). ")
+			String where = switch (type) {
+				case WALL -> " (the side facing you is the inside, with the ladder)";
+				case GATEHOUSE -> " (the ladder is on the side facing you)";
+				default -> " (the door faces you)";
+			};
+			String snapped = clicked.equals(origin) ? "" : " Lined up with the one next to it.";
+			player.sendSystemMessage(Component.literal("That's where the " + type.displayName + " will go" + where + "." + snapped + " ")
 				.withStyle(ChatFormatting.YELLOW)
 				.append(Component.literal("Right-click the same spot again to build.").withStyle(ChatFormatting.GOLD)));
 			return InteractionResult.SUCCESS;
@@ -373,13 +404,21 @@ public final class Colonies {
 
 	private static void outline(ServerLevel level, BuildingType type, BlockPos origin, int quarter, String particle) {
 		int h = type.half;
-		for (int i = -h; i <= h; i++) {
-			for (int[] p : new int[][] {{i, -h}, {i, h}, {-h, i}, {h, i}}) {
-				BlockPos at = toWorld(origin, quarter, p[0], 1, p[1]);
-				Cmd.particles(level, particle, at.getX() + 0.5, at.getY() + 0.3, at.getZ() + 0.5, 0.1, 0, 2);
-			}
+		int d = type.depth;
+		List<int[]> rim = new ArrayList<>();
+		for (int x = -h; x <= h; x++) {
+			rim.add(new int[] {x, -d});
+			rim.add(new int[] {x, d});
 		}
-		BlockPos door = toWorld(origin, quarter, 0, 1, -h - 1);
+		for (int z = -d; z <= d; z++) {
+			rim.add(new int[] {-h, z});
+			rim.add(new int[] {h, z});
+		}
+		for (int[] p : rim) {
+			BlockPos at = toWorld(origin, quarter, p[0], 1, p[1]);
+			Cmd.particles(level, particle, at.getX() + 0.5, at.getY() + 0.3, at.getZ() + 0.5, 0.1, 0, 2);
+		}
+		BlockPos door = toWorld(origin, quarter, 0, 1, -d - 1);
 		Cmd.particles(level, "minecraft:flame", door.getX() + 0.5, door.getY() + 0.3, door.getZ() + 0.5, 0.1, 0, 6);
 	}
 
@@ -391,15 +430,38 @@ public final class Colonies {
 		b.resizeStorage();
 		colony.buildings.add(b);
 		markDirty();
+		run(buildJob(level, b, () -> movedIn(level, b)), instant);
+		return b;
+	}
 
-		BuildJob job = new BuildJob(level, () -> movedIn(level, b));
+	private static void run(BuildJob job, boolean instant) {
+		if (instant) {
+			for (int i = 0; i < job.positions.size(); i++) {
+				job.level.setBlock(job.positions.get(i), job.states.get(i), QUIET);
+			}
+			finish(job);
+		} else {
+			JOBS.add(job);
+		}
+	}
+
+	/**
+	 * Clears the footprint, shores up the ground underneath (dirt for buildings, a deep stone footing for
+	 * fortifications, so walls don't float over dips) and puts the design down for the building's tier.
+	 */
+	private static BuildJob buildJob(ServerLevel level, Colony.Building b, Runnable done) {
+		BuildJob job = new BuildJob(level, done);
+		BuildingType type = b.type;
 		int h = type.half;
+		int d = type.depth;
+		Map<BlockPos, BlockState> design = type.plan(b.tier);
 		BlockState air = Blocks.AIR.defaultBlockState();
 		BlockState dirt = Blocks.DIRT.defaultBlockState();
+		Rotation rot = rotation(b.quarter);
 		for (int y = type.height + 1; y >= 1; y--) {
 			for (int x = -h; x <= h; x++) {
-				for (int z = -h; z <= h; z++) {
-					BlockPos pos = toWorld(origin, quarter, x, y, z);
+				for (int z = -d; z <= d; z++) {
+					BlockPos pos = toWorld(b.origin, b.quarter, x, y, z);
 					if (!level.getBlockState(pos).isAir()) {
 						job.positions.add(pos);
 						job.states.add(air);
@@ -407,34 +469,27 @@ public final class Colonies {
 				}
 			}
 		}
-		for (int y = -3; y <= -1; y++) {
+		int footing = type.fortification ? 8 : 3;
+		for (int y = -footing; y <= -1; y++) {
 			for (int x = -h; x <= h; x++) {
-				for (int z = -h; z <= h; z++) {
-					BlockPos pos = toWorld(origin, quarter, x, y, z);
+				for (int z = -d; z <= d; z++) {
+					BlockPos pos = toWorld(b.origin, b.quarter, x, y, z);
 					if (level.getBlockState(pos).canBeReplaced()) {
+						BlockState floor = design.get(new BlockPos(x, 0, z));
 						job.positions.add(pos);
-						job.states.add(dirt);
+						job.states.add(type.fortification && floor != null ? floor.rotate(rot) : dirt);
 					}
 				}
 			}
 		}
-		Rotation rot = rotation(quarter);
-		List<Map.Entry<BlockPos, BlockState>> plan = new ArrayList<>(type.plan().entrySet());
+		List<Map.Entry<BlockPos, BlockState>> plan = new ArrayList<>(design.entrySet());
 		plan.sort((a, c) -> Integer.compare(a.getKey().getY(), c.getKey().getY()));
 		for (Map.Entry<BlockPos, BlockState> e : plan) {
 			BlockPos l = e.getKey();
-			job.positions.add(toWorld(origin, quarter, l.getX(), l.getY(), l.getZ()));
+			job.positions.add(toWorld(b.origin, b.quarter, l.getX(), l.getY(), l.getZ()));
 			job.states.add(e.getValue().rotate(rot));
 		}
-		if (instant) {
-			for (int i = 0; i < job.positions.size(); i++) {
-				level.setBlock(job.positions.get(i), job.states.get(i), QUIET);
-			}
-			finish(job);
-		} else {
-			JOBS.add(job);
-		}
-		return b;
+		return job;
 	}
 
 	private static void finish(BuildJob job) {
@@ -457,9 +512,7 @@ public final class Colonies {
 	}
 
 	private static void movedIn(ServerLevel level, Colony.Building b) {
-		while (b.villagers.size() < b.type.workers(b.tier)) {
-			b.villagers.add(spawnVillager(level, b));
-		}
+		hireMissing(level, b);
 		BlockPos at = b.world(b.type.home());
 		Cmd.sound(level, "minecraft:entity.player.levelup", at.getX(), at.getY(), at.getZ(), 1f, 1.2f);
 		Cmd.particles(level, "minecraft:happy_villager", at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, 2, 0, 30);
@@ -477,17 +530,37 @@ public final class Colonies {
 			case WORKSHOP -> "Smith";
 			case STOREHOUSE -> "Storekeeper";
 			case RESIDENCE -> "Resident";
+			case BARRACKS -> "Iron Guard";
+			case WATCHTOWER -> "Archer";
+			case WALL, GATEHOUSE -> "Sentry";
 		};
 	}
 
-	static @Nullable UUID spawnVillager(ServerLevel level, Colony.Building b) {
-		BlockPos home = b.world(b.type.home());
-		if (!level.isLoaded(home)) {
+	/** Hires crew until every job of the building's tier is taken. */
+	private static void hireMissing(ServerLevel level, Colony.Building b) {
+		while (b.villagers.size() < b.type.workers(b.tier)) {
+			b.villagers.add(spawnVillager(level, b, b.villagers.size()));
+		}
+	}
+
+	/**
+	 * Hires crew member number {@code index}: a villager, an iron golem for the barracks, or an archer
+	 * for a watchtower (a villager with a crossbow who stands at a post and doesn't move or run away).
+	 */
+	static @Nullable UUID spawnVillager(ServerLevel level, Colony.Building b, int index) {
+		BlockPos at = b.world(b.type.station(index));
+		if (!level.isLoaded(at)) {
 			return null;
 		}
 		UUID id = UUID.randomUUID();
-		Cmd.run(level, "summon minecraft:villager " + Cmd.pos(home.getX() + 0.5, home.getY(), home.getZ() + 0.5)
-			+ " {" + Cmd.uuidNbt(id) + ",PersistenceRequired:1b,Tags:[\"colonycraft\"]}");
+		String mob = b.type == BuildingType.BARRACKS ? "minecraft:iron_golem" : "minecraft:villager";
+		String extra = switch (b.type) {
+			case BARRACKS -> ",PlayerCreated:1b";
+			case WATCHTOWER -> ",NoAI:1b";
+			default -> "";
+		};
+		Cmd.run(level, "summon " + mob + " " + Cmd.pos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5)
+			+ " {" + Cmd.uuidNbt(id) + ",PersistenceRequired:1b" + extra + ",Tags:[\"colonycraft\"]}");
 		Entity villager = level.getEntity(id);
 		if (villager == null) {
 			ColonycraftMod.LOG.error("Could not hire a villager for the {} in {}", b.type.id, b.colony.name);
@@ -495,11 +568,29 @@ public final class Colonies {
 		}
 		villager.setAttached(ColonycraftMod.WORKER, true);
 		villager.setCustomName(Component.literal(NAMES[RANDOM.nextInt(NAMES.length)] + " the " + job(b.type)));
+		if (b.type == BuildingType.WATCHTOWER && villager instanceof LivingEntity archer) {
+			archer.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
+		}
 		VILLAGERS.put(id, b);
 		return id;
 	}
 
-	/** Workers wander, but not too far from their building. */
+	/** Sends everyone back to where they belong, e.g. after a rebuild. */
+	private static void settle(ServerLevel level, Colony.Building b) {
+		for (int i = 0; i < b.villagers.size(); i++) {
+			UUID v = b.villagers.get(i);
+			if (v == null) {
+				continue;
+			}
+			BlockPos at = b.world(b.type.station(i));
+			Cmd.run(level, "tp " + v + " " + Cmd.pos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5));
+		}
+	}
+
+	/**
+	 * Workers wander, but not too far from their building. Archers stay at their posts. Iron golems
+	 * patrol the whole colony, and stand still while the colony is on strike.
+	 */
 	private static void keepVillagersHome() {
 		for (Colony c : COLONIES) {
 			ServerLevel level = level(c);
@@ -507,19 +598,192 @@ public final class Colonies {
 				continue;
 			}
 			for (Colony.Building b : c.buildings) {
-				BlockPos home = b.world(b.type.home());
-				double max = (b.type.half + 8) * (b.type.half + 8);
-				for (UUID v : b.villagers) {
+				int reach = Math.max(b.type.half, b.type.depth) + 8;
+				double max = reach * reach;
+				for (int i = 0; i < b.villagers.size(); i++) {
+					UUID v = b.villagers.get(i);
 					if (v == null) {
 						continue;
 					}
 					Entity villager = level.getEntity(v);
-					if (villager != null && villager.distanceToSqr(home.getX() + 0.5, home.getY(), home.getZ() + 0.5) > max) {
-						Cmd.run(level, "tp " + v + " " + Cmd.pos(home.getX() + 0.5, home.getY(), home.getZ() + 0.5));
+					if (villager == null) {
+						continue;
+					}
+					BlockPos at = b.world(b.type.station(i));
+					boolean away = switch (b.type) {
+						case WATCHTOWER -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > 1;
+						case BARRACKS -> !c.claims(villager.blockPosition());
+						default -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > max;
+					};
+					if (away) {
+						Cmd.run(level, "tp " + v + " " + Cmd.pos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5));
+					}
+					if (b.type == BuildingType.BARRACKS && villager instanceof Mob golem && golem.isNoAi() != c.striking) {
+						golem.setNoAi(c.striking);
 					}
 				}
 			}
 		}
+	}
+
+	// ---------------------------------------------------------------- defence
+
+	/** Watchtower archers shoot the nearest monster they can see on their side of the tower. */
+	private static void guardDuty() {
+		for (Colony c : COLONIES) {
+			if (c.striking) {
+				continue;
+			}
+			ServerLevel level = level(c);
+			if (level == null) {
+				continue;
+			}
+			for (Colony.Building b : c.buildings) {
+				if (b.type != BuildingType.WATCHTOWER) {
+					continue;
+				}
+				for (int i = 0; i < b.villagers.size(); i++) {
+					UUID v = b.villagers.get(i);
+					if (v == null || !(level.getEntity(v) instanceof LivingEntity archer) || !archer.isAlive()) {
+						continue;
+					}
+					BlockPos post = BuildingType.post(i);
+					BlockPos out = b.world(post.offset(BuildingType.lookout(i))).subtract(b.world(post));
+					Entity target = null;
+					double best = ARCHER_RANGE * ARCHER_RANGE;
+					for (Entity e : level.getEntities(archer, archer.getBoundingBox().inflate(ARCHER_RANGE),
+						m -> m.isAlive() && m.getType().getCategory() == MobCategory.MONSTER)) {
+						double dx = e.getX() - archer.getX();
+						double dz = e.getZ() - archer.getZ();
+						if (dx * out.getX() + dz * out.getZ() < 0) {
+							continue; // behind this archer: that side is someone else's
+						}
+						double dist = archer.distanceToSqr(e);
+						if (dist < best && archer.hasLineOfSight(e)) {
+							best = dist;
+							target = e;
+						}
+					}
+					if (target != null) {
+						shoot(level, archer, target);
+					}
+				}
+			}
+		}
+	}
+
+	/** Turns the archer to the target and looses a crossbow bolt at it (an arrow nobody can pick up). */
+	private static void shoot(ServerLevel level, Entity archer, Entity target) {
+		Cmd.run(level, "tp " + archer.getUUID() + " " + Cmd.pos(archer.getX(), archer.getY(), archer.getZ())
+			+ " facing entity " + target.getUUID() + " eyes");
+		double ex = archer.getX();
+		double ey = archer.getEyeY();
+		double ez = archer.getZ();
+		double dx = target.getX() - ex;
+		double dz = target.getZ() - ez;
+		double flat = Math.sqrt(dx * dx + dz * dz);
+		double dy = target.getY(0.5) - ey + flat * 0.06; // aim a little high: arrows drop
+		double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		if (length < 0.5) {
+			return;
+		}
+		double speed = 2.6;
+		double sx = flat > 0.1 ? ex + dx / flat * 0.8 : ex;
+		double sz = flat > 0.1 ? ez + dz / flat * 0.8 : ez;
+		Cmd.run(level, "summon minecraft:arrow " + Cmd.pos(sx, ey - 0.1, sz) + " {Motion:[" + Cmd.f(dx / length * speed) + "d,"
+			+ Cmd.f(dy / length * speed) + "d," + Cmd.f(dz / length * speed) + "d],pickup:0b,damage:2.0d}");
+		Cmd.sound(level, "minecraft:item.crossbow.shoot", ex, ey, ez, 1f, 1.1f);
+		shots++;
+	}
+
+	/** Where a fortification should go so it lines up end to end with one that's already there (or where it was clicked). */
+	static BlockPos snap(ServerLevel level, BuildingType type, BlockPos origin, int quarter) {
+		if (!type.fortification) {
+			return origin;
+		}
+		String dim = dim(level);
+		BlockPos best = origin;
+		int bestDistance = 4;
+		for (Colony c : COLONIES) {
+			if (!c.dimension.equals(dim)) {
+				continue;
+			}
+			for (Colony.Building b : c.buildings) {
+				if (!b.type.fortification) {
+					continue;
+				}
+				for (boolean alongX : new boolean[] {true, false}) {
+					if (!b.type.attachesAlongX(b.quarter, alongX) || !type.attachesAlongX(quarter, alongX)) {
+						continue;
+					}
+					int reach = alongX ? b.type.extentX(b.quarter) + type.extentX(quarter) + 1
+						: b.type.extentZ(b.quarter) + type.extentZ(quarter) + 1;
+					int y = Math.abs(origin.getY() - b.origin.getY()) <= 2 ? b.origin.getY() : origin.getY();
+					for (int sign : new int[] {-1, 1}) {
+						BlockPos candidate = alongX ? new BlockPos(b.origin.getX() + sign * reach, y, b.origin.getZ())
+							: new BlockPos(b.origin.getX(), y, b.origin.getZ() + sign * reach);
+						int distance = Math.max(Math.abs(candidate.getX() - origin.getX()), Math.abs(candidate.getZ() - origin.getZ()));
+						if (distance < bestDistance) {
+							bestDistance = distance;
+							best = candidate;
+						}
+					}
+				}
+			}
+		}
+		return best;
+	}
+
+	// ---------------------------------------------------------------- repair and renovate
+
+	/** How many blocks of the design are missing or replaced by something else. Crops don't count: harvesting isn't damage. */
+	static int damaged(ServerLevel level, Colony.Building b) {
+		int n = 0;
+		for (Map.Entry<BlockPos, BlockState> e : b.type.plan(b.tier).entrySet()) {
+			if (e.getValue().isAir() || e.getValue().is(BlockTags.CROPS)) {
+				continue;
+			}
+			BlockPos at = b.world(e.getKey());
+			if (level.isLoaded(at) && !level.getBlockState(at).is(e.getValue().getBlock())) {
+				n++;
+			}
+		}
+		return n;
+	}
+
+	static long rebuildPrice(Colony.Building b) {
+		return Bank.cents(b.type.price * REBUILD_SHARE);
+	}
+
+	/** Why it can't be rebuilt right now, or null if it can. Rebuilding clears the footprint, so containers must be empty. */
+	static @Nullable String whyNoRebuild(ServerLevel level, Colony.Building b) {
+		for (int y = 0; y <= b.type.height + 1; y++) {
+			for (int x = -b.type.half; x <= b.type.half; x++) {
+				for (int z = -b.type.depth; z <= b.type.depth; z++) {
+					BlockPos pos = toWorld(b.origin, b.quarter, x, y, z);
+					if (!level.isLoaded(pos)) {
+						return "Go a bit closer to that building first.";
+					}
+					BlockEntity entity = level.getBlockEntity(pos);
+					if (entity instanceof Container box && !box.isEmpty()) {
+						return "Empty the " + level.getBlockState(pos).getBlock().getName().getString() + " at " + pos.getX() + ", "
+							+ pos.getY() + ", " + pos.getZ() + " first. Rebuilding clears everything that isn't part of the building.";
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/** Puts the building back exactly as designed (for its tier), then sends its crew back to their places. */
+	static void rebuild(ServerLevel level, Colony.Building b, boolean instant) {
+		run(buildJob(level, b, () -> {
+			if (b.colony.buildings.contains(b)) {
+				hireMissing(level, b);
+				settle(level, b);
+			}
+		}), instant);
+		markDirty();
 	}
 
 	static void onVillagerDeath(Entity entity) {
@@ -553,7 +817,7 @@ public final class Colonies {
 		int hired = 0;
 		for (int i = 0; i < b.villagers.size(); i++) {
 			if (b.villagers.get(i) == null) {
-				UUID id = spawnVillager(level, b);
+				UUID id = spawnVillager(level, b, i);
 				if (id != null) {
 					b.villagers.set(i, id);
 					hired++;
@@ -569,7 +833,7 @@ public final class Colonies {
 		if (b.tier >= BuildingType.MAX_TIER) {
 			return "Already at the top tier.";
 		}
-		int extraJobs = b.type.workers(b.tier + 1) - b.type.workers(b.tier);
+		int extraJobs = b.type.needsBeds() ? b.type.workers(b.tier + 1) - b.type.workers(b.tier) : 0;
 		int extraBeds = b.type.housing(b.tier + 1) - b.type.housing(b.tier);
 		if (b.colony.housing() + extraBeds < b.colony.jobs() + extraJobs) {
 			return "Not enough beds for " + extraJobs + " more workers. Build or upgrade a Residence first.";
@@ -581,8 +845,10 @@ public final class Colonies {
 		b.tier++;
 		b.spent += paid;
 		b.resizeStorage();
-		while (b.villagers.size() < b.type.workers(b.tier)) {
-			b.villagers.add(spawnVillager(level, b));
+		if (b.type.fortification) {
+			rebuild(level, b, false); // in the next tier's stone; new archers get hired when it's done
+		} else {
+			hireMissing(level, b);
 		}
 		BlockPos at = b.world(b.type.home());
 		Cmd.sound(level, "minecraft:block.anvil.use", at.getX(), at.getY(), at.getZ(), 1f, 1.2f);
@@ -598,7 +864,8 @@ public final class Colonies {
 		if (b.type == BuildingType.STOREHOUSE && !b.storage.isEmpty()) {
 			return "Empty the storehouse first.";
 		}
-		if (b.type.housing(b.tier) > 0 && b.colony.housing() - b.type.housing(b.tier) < b.colony.jobs() - b.villagers.size()) {
+		int leaving = b.type.needsBeds() ? b.villagers.size() : 0;
+		if (b.type.housing(b.tier) > 0 && b.colony.housing() - b.type.housing(b.tier) < b.colony.jobs() - leaving) {
 			return "Your workers would have nowhere to sleep. Demolish some workplaces first.";
 		}
 		return null;
@@ -617,11 +884,12 @@ public final class Colonies {
 			}
 		}
 		int h = b.type.half;
+		int d = b.type.depth;
 		BlockState air = Blocks.AIR.defaultBlockState();
 		BlockState ground = Blocks.GRASS_BLOCK.defaultBlockState();
 		for (int y = b.type.height + 1; y >= 0; y--) {
 			for (int x = -h; x <= h; x++) {
-				for (int z = -h; z <= h; z++) {
+				for (int z = -d; z <= d; z++) {
 					BlockPos pos = toWorld(b.origin, b.quarter, x, y, z);
 					level.removeBlockEntity(pos);
 					level.setBlock(pos, y == 0 ? ground : air, QUIET);
@@ -663,7 +931,7 @@ public final class Colonies {
 				ServerPlayer owner = server.getPlayerList().getPlayer(c.owner);
 				if (owner != null) {
 					owner.sendSystemMessage(Component.literal("The workers of " + c.name + " are on strike: you can't pay today's wages (")
-						.withStyle(ChatFormatting.RED).append(Bank.text(wages)).append(Component.literal("). Nothing gets gathered until you can.")
+						.withStyle(ChatFormatting.RED).append(Bank.text(wages)).append(Component.literal("). Nothing gets gathered, and nobody stands guard, until you can.")
 							.withStyle(ChatFormatting.RED)));
 				}
 			}
@@ -807,10 +1075,17 @@ public final class Colonies {
 		if (b == null) {
 			return InteractionResult.PASS;
 		}
+		if (b.type == BuildingType.BARRACKS && player.getItemInHand(hand).is(Items.IRON_INGOT)) {
+			return InteractionResult.PASS; // patching up an iron golem works as usual
+		}
 		if (hand == InteractionHand.MAIN_HAND) {
+			String what = switch (b.type) {
+				case BARRACKS -> " guards " + b.colony.name + ". Doesn't say much.";
+				case WATCHTOWER -> " keeps watch from the " + b.title() + " of " + b.colony.name + ". Eyes on the horizon, please.";
+				default -> " works at the " + b.title() + " of " + b.colony.name + ". No time to trade, sorry.";
+			};
 			player.sendSystemMessage(Component.literal(entity.getName().getString()).withStyle(ChatFormatting.GOLD)
-				.append(Component.literal(" works at the " + b.title() + " of " + b.colony.name + ". No time to trade, sorry.")
-					.withStyle(ChatFormatting.GRAY)));
+				.append(Component.literal(what).withStyle(ChatFormatting.GRAY)));
 		}
 		return InteractionResult.SUCCESS;
 	}

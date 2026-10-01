@@ -67,7 +67,7 @@ public final class Colony {
 		/** Is this world position inside the building (its footprint, from the floor to the roof)? */
 		public boolean contains(BlockPos pos) {
 			BlockPos local = Colonies.toLocal(origin, quarter, pos);
-			return Math.abs(local.getX()) <= type.half && Math.abs(local.getZ()) <= type.half
+			return Math.abs(local.getX()) <= type.half && Math.abs(local.getZ()) <= type.depth
 				&& local.getY() >= 0 && local.getY() <= type.height + 1;
 		}
 
@@ -120,6 +120,17 @@ public final class Colony {
 		return 8 + 6 * (tier() - 1);
 	}
 
+	/** Building slots in use: everything but the Town Hall and the fortifications. */
+	public int slotsUsed() {
+		int n = 0;
+		for (Building b : buildings) {
+			if (b.type != BuildingType.TOWN_HALL && !b.type.fortification) {
+				n++;
+			}
+		}
+		return n;
+	}
+
 	public BlockPos centre() {
 		Building hall = townHall();
 		return hall == null ? BlockPos.ZERO : hall.origin;
@@ -138,11 +149,13 @@ public final class Colony {
 		return beds;
 	}
 
-	/** Jobs, filled or not (a dead worker still has a bed waiting). */
+	/** Jobs that need a bed, filled or not (a dead worker still has a bed waiting). Iron golems don't sleep. */
 	public int jobs() {
 		int jobs = 0;
 		for (Building b : buildings) {
-			jobs += b.villagers.size();
+			if (b.type.needsBeds()) {
+				jobs += b.villagers.size();
+			}
 		}
 		return jobs;
 	}
@@ -156,7 +169,11 @@ public final class Colony {
 	}
 
 	public long dailyWages() {
-		return Bank.cents(Colonies.WAGE) * workers();
+		long wages = 0;
+		for (Building b : buildings) {
+			wages += Bank.cents(b.type.wage) * b.alive();
+		}
+		return wages;
 	}
 
 	public boolean isOwner(UUID player) {
