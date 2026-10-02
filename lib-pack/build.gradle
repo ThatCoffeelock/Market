@@ -1,0 +1,94 @@
+import groovy.json.JsonOutput
+
+// LIB Pack: every mod in this repo in one jar.
+// It doesn't compile anything. It nests the jars the other projects built (Fabric "jar-in-jar"),
+// so build those first (see .github/workflows/lib-pack.yml), then run ./gradlew build here.
+
+plugins {
+	id 'base'
+}
+
+version = "${project.mod_version}+mc${project.minecraft_version}"
+
+base {
+	archivesName = project.archives_base_name
+}
+
+// Mod id -> folder (relative to this one) whose build/libs holds its jar.
+def bundled = [
+	market     : '..',
+	ahoy       : '../ahoy',
+	burlapsack : '../burlap-sack',
+	cannon     : '../cannon',
+	cargotrain : '../cargo-train',
+	colonycraft: '../colonycraft',
+	havana     : '../havana',
+	mobilehome : '../mobile-home',
+]
+
+def here = projectDir
+def bundledJars = providers.provider {
+	bundled.collect { id, dir ->
+		def libs = new File(here, "${dir}/build/libs").canonicalFile
+		def jars = (libs.listFiles() ?: []).findAll {
+			it.name.endsWith('.jar') && !it.name.endsWith('-sources.jar')
+		}
+		if (jars.size() != 1) {
+			throw new GradleException("Expected exactly one ${id} jar in ${libs}, found ${jars*.name}. Build ${dir} first.")
+		}
+		jars[0]
+	}
+}
+
+def modJsonDir = layout.buildDirectory.dir('generated/modJson')
+
+def writeModJson = tasks.register('writeModJson') {
+	def modVersion = project.version.toString()
+	def minecraftVersion = project.minecraft_version
+	def loaderVersion = project.loader_version
+	def ids = bundled.keySet().toList()
+	inputs.property 'version', modVersion
+	inputs.property 'jars', bundledJars.map { it*.name }
+	outputs.dir modJsonDir
+	doLast {
+		def depends = [
+			fabricloader : ">=${loaderVersion}".toString(),
+			minecraft    : "~${minecraftVersion}".toString(),
+			java         : '>=25',
+			'fabric-api' : '*',
+		]
+		ids.each { depends[it] = '*' }
+		def json = [
+			schemaVersion: 1,
+			id           : 'libpack',
+			version      : modVersion,
+			name         : 'LIB Pack',
+			description  : 'All of thatcoffeelock\'s mods in one jar: Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Havana and Mobile Home. Server-side: vanilla clients can join.',
+			authors      : ['thatcoffeelock'],
+			contact      : [sources: 'https://github.com/thatcoffeelock/market'],
+			environment  : '*',
+			jars         : bundledJars.get().collect { [file: "META-INF/jars/${it.name}".toString()] },
+			depends      : depends,
+		]
+		def out = modJsonDir.get().file('fabric.mod.json').asFile
+		out.parentFile.mkdirs()
+		out.text = JsonOutput.prettyPrint(JsonOutput.toJson(json)) + '\n'
+	}
+}
+
+def bundle = tasks.register('bundle', Jar) {
+	archiveBaseName = project.archives_base_name
+	archiveVersion = project.version.toString()
+	destinationDirectory = layout.buildDirectory.dir('libs')
+	// Nested jars are stored, not deflated again: they're zips already.
+	entryCompression = ZipEntryCompression.STORED
+	from(writeModJson)
+	from('README.md')
+	into('META-INF/jars') {
+		from(bundledJars)
+	}
+}
+
+tasks.named('assemble') {
+	dependsOn bundle
+}
