@@ -1,0 +1,11 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_barrel": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:barrel"}]}
+		}
+	},
+	"requirements": [["has_barrel"]],
+	"rewards": {"recipes": ["havana:curing_barrel"]}
+}

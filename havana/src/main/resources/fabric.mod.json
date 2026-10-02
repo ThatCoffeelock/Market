@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "havana",
+	"version": "${version}",
+	"name": "Havana",
+	"description": "Grow tobacco, cure it in a barrel, roll cigars and smoke them. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.havana.HavanaMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
