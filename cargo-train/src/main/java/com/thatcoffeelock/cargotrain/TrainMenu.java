@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.ContainerInput;
@@ -42,13 +43,20 @@ final class TrainMenu extends ChestMenu {
 			Component.literal("Cargo Train · " + (train.data.ownerName.isEmpty() ? "nobody" : train.data.ownerName)).withStyle(ChatFormatting.DARK_BLUE)));
 	}
 
-	static void openCargo(ServerPlayer player, Train train) {
-		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, train.data.cargo, 3) {
+	/** Opens one wagon's 27 slots (0 = right behind the locomotive). */
+	static void openCargo(ServerPlayer player, Train train, int wagon) {
+		if (wagon < 0 || wagon >= train.data.wagons()) {
+			return;
+		}
+		SimpleContainer cargo = train.data.cargo.get(wagon);
+		String title = train.data.wagons() > 1 ? "Cargo Wagon " + (wagon + 1) + " of " + train.data.wagons() : "Cargo Wagon";
+		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, cargo, 3) {
 			@Override
 			public boolean stillValid(Player who) {
-				return canUse(train, who);
+				// an uncoupled wagon's cargo is gone from the train: close the screen
+				return canUse(train, who) && train.data.cargo.contains(cargo);
 			}
-		}, Component.literal("Cargo Wagon")));
+		}, Component.literal(title)));
 	}
 
 	static boolean canUse(Train train, Player player) {
@@ -58,7 +66,13 @@ final class TrainMenu extends ChestMenu {
 		if (Trains.trainOf(player) == train || player.distanceToSqr(train.root) <= 8 * 8) {
 			return true;
 		}
-		return train.wagon != null && player.distanceToSqr(train.wagon) <= 8 * 8;
+		for (int i = 0; i < train.data.wagons(); i++) {
+			Entity wagon = train.wagon(i);
+			if (wagon != null && player.distanceToSqr(wagon) <= 8 * 8) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private TrainMenu(int syncId, ServerPlayer viewer, Train train) {
@@ -120,7 +134,8 @@ final class TrainMenu extends ChestMenu {
 			t("Owner: " + (data.ownerName.isEmpty() ? "nobody" : data.ownerName), ChatFormatting.GRAY),
 			t(train.status(), ChatFormatting.WHITE),
 			t("Speed: " + train.kmh() + " km/h", ChatFormatting.GRAY),
-			t("Cargo: " + data.usedSlots() + " / " + TrainData.SLOTS + " slots (" + data.itemCount() + " items)", ChatFormatting.GRAY),
+			t("Wagons: " + data.wagons() + " / " + TrainData.MAX_WAGONS, ChatFormatting.GRAY),
+			t("Cargo: " + data.usedSlots() + " / " + data.totalSlots() + " slots (" + data.itemCount() + " items)", ChatFormatting.GRAY),
 			t("Delivered so far: " + data.hauled + " items", ChatFormatting.GRAY),
 			t(train.lastStop == null ? "No stations visited yet." : "Last stop: " + train.lastStop, ChatFormatting.DARK_GRAY)), null);
 
@@ -149,34 +164,48 @@ final class TrainMenu extends ChestMenu {
 					}
 				}));
 		}
-		if (use) {
-			button(14, icon(Items.CHEST, t("Cargo wagon", ChatFormatting.GOLD, ChatFormatting.BOLD),
-				t(TrainData.SLOTS + " slots. You can also right-click the wagon.", ChatFormatting.GRAY)),
-				() -> CargoTrainMod.nextTick(() -> openCargo(viewer, train)));
-		}
-		button(16, icon(Items.GOAT_HORN, t("Horn", ChatFormatting.YELLOW, ChatFormatting.BOLD),
+		button(14, icon(Items.GOAT_HORN, t("Horn", ChatFormatting.YELLOW, ChatFormatting.BOLD),
 			t("TOOOOOT. Absolutely necessary.", ChatFormatting.GRAY)), train::horn);
 
 		if (owner) {
-			button(20, icon(data.locked ? Items.IRON_BARS : Items.TRIPWIRE_HOOK,
+			button(16, icon(data.locked ? Items.IRON_BARS : Items.TRIPWIRE_HOOK,
 				t(data.locked ? "Locked" : "Unlocked", data.locked ? ChatFormatting.RED : ChatFormatting.GREEN, ChatFormatting.BOLD),
-				t(data.locked ? "Only you can drive it, start it and open the cargo." : "Anyone can drive it, start it and open the cargo.", ChatFormatting.GRAY),
+				t(data.locked ? "Only you can drive it, start it, couple wagons and open the cargo." : "Anyone can drive it, start it, couple wagons and open the cargo.", ChatFormatting.GRAY),
 				t("Click to toggle.", ChatFormatting.YELLOW)), () -> {
 				data.locked = !data.locked;
 				render();
 			});
 		}
+
+		// bottom row: one button per wagon, then an empty spot showing how to add the next one
+		for (int i = 0; i < TrainData.MAX_WAGONS; i++) {
+			int wagon = i;
+			if (i < data.wagons() && use) {
+				button(18 + i, icon(Items.CHEST, t("Wagon " + (i + 1), ChatFormatting.GOLD, ChatFormatting.BOLD),
+					t(data.usedSlots(i) + " / " + TrainData.SLOTS + " slots used.", ChatFormatting.GRAY),
+					t("Click to open. You can also right-click the wagon.", ChatFormatting.DARK_GRAY)),
+					() -> CargoTrainMod.nextTick(() -> openCargo(viewer, train, wagon)));
+			} else if (i == data.wagons()) {
+				button(18 + i, icon(Items.MINECART, t("Room for another wagon", ChatFormatting.GRAY),
+					t("Craft a Cargo Wagon (Chest Minecart + Iron Ingot)", ChatFormatting.DARK_GRAY),
+					t("and right-click the train with it while it stands still.", ChatFormatting.DARK_GRAY)), null);
+			}
+		}
+		if (use && data.wagons() > 1) {
+			button(22, icon(Items.SHEARS, t("Uncouple the last wagon", ChatFormatting.YELLOW, ChatFormatting.BOLD),
+				t("You get the Cargo Wagon back. It has to be empty.", ChatFormatting.GRAY)), this::uncouple);
+		}
 		if (owner || viewer.isCreative()) {
 			button(24, icon(Items.FURNACE_MINECART, t(confirmPickUp ? "Click again to pick it up" : "Pick up the train", ChatFormatting.GOLD, ChatFormatting.BOLD),
-				t("Takes it off the track and gives you the item back.", ChatFormatting.GRAY),
-				t("The wagon has to be empty first.", ChatFormatting.DARK_GRAY)), this::pickUp);
+				t("Takes it off the track and gives you the items back.", ChatFormatting.GRAY),
+				t(data.wagons() > 1 ? "The wagons have to be empty first." : "The wagon has to be empty first.", ChatFormatting.DARK_GRAY)), this::pickUp);
 		}
 		button(26, icon(Items.BARRIER, t("Close", ChatFormatting.RED)), () -> CargoTrainMod.nextTick(viewer::closeContainer));
 	}
 
 	private void pickUp() {
-		if (!train.data.cargo.isEmpty()) {
-			nope("Empty the wagon first. We don't do surprise cargo.");
+		if (!train.data.isEmpty()) {
+			nope("Empty the cargo first. We don't do surprise cargo.");
 			return;
 		}
 		if (!confirmPickUp) {
@@ -187,10 +216,30 @@ final class TrainMenu extends ChestMenu {
 		CargoTrainMod.nextTick(() -> {
 			viewer.closeContainer();
 			if (!train.isRemoved()) {
-				TrainItems.give(viewer, Trains.pickUp(train));
+				for (ItemStack item : Trains.pickUp(train)) {
+					TrainItems.give(viewer, item);
+				}
 				viewer.sendSystemMessage(Component.literal("Train packed up. The rails miss it already.").withStyle(ChatFormatting.GOLD));
 			}
 		});
+	}
+
+	private void uncouple() {
+		int last = train.data.wagons() - 1;
+		if (!train.data.cargo.get(last).isEmpty()) {
+			nope("Wagon " + (last + 1) + " isn't empty. Unload it first.");
+			return;
+		}
+		if (train.speed > 0) {
+			nope("Wait until it's standing still.");
+			return;
+		}
+		if (!train.uncouple()) {
+			nope("Can't uncouple that wagon right now.");
+			return;
+		}
+		TrainItems.give(viewer, TrainItems.wagon());
+		render();
 	}
 
 	private void nope(String why) {

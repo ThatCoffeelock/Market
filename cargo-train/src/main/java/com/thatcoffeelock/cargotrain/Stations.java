@@ -185,16 +185,56 @@ final class Stations {
 		return moved;
 	}
 
+	/** Puts as much of the stack as fits into the wagons, front wagon first. */
+	static int insert(List<? extends Container> wagons, ItemStack stack) {
+		int moved = 0;
+		for (Container wagon : wagons) {
+			if (stack.isEmpty()) {
+				break;
+			}
+			moved += insert(wagon, stack);
+		}
+		return moved;
+	}
+
+	/** Loads a chest into the wagons. */
+	static int load(Container chest, List<? extends Container> wagons) {
+		int moved = 0;
+		for (int i = 0; i < chest.getContainerSize(); i++) {
+			ItemStack stack = chest.getItem(i);
+			if (stack.isEmpty()) {
+				continue;
+			}
+			moved += insert(wagons, stack);
+			if (stack.isEmpty()) {
+				chest.setItem(i, ItemStack.EMPTY);
+			}
+		}
+		if (moved > 0) {
+			chest.setChanged();
+		}
+		return moved;
+	}
+
+	/** Unloads the wagons into a chest, front wagon first. */
+	static int unload(List<? extends Container> wagons, Container chest) {
+		int moved = 0;
+		for (Container wagon : wagons) {
+			moved += moveAll(wagon, chest);
+		}
+		return moved;
+	}
+
 	/** The train stops at a station: load, unload or swap. Nothing is ever lost; the last resort is dropping it on top. */
-	static @Nullable Visit serve(ServerLevel level, BlockPos pos, Container wagon) {
+	static @Nullable Visit serve(ServerLevel level, BlockPos pos, List<? extends Container> wagons) {
 		Mode mode = modeAt(level, pos);
 		Container chest = container(level, pos);
 		if (mode == null || chest == null) {
 			return null;
 		}
 		return switch (mode) {
-			case PICKUP -> new Visit(pos, mode, moveAll(chest, wagon), 0);
-			case DROPOFF -> new Visit(pos, mode, 0, moveAll(wagon, chest));
+			case PICKUP -> new Visit(pos, mode, load(chest, wagons), 0);
+			case DROPOFF -> new Visit(pos, mode, 0, unload(wagons, chest));
 			case SWAP -> {
 				List<ItemStack> outgoing = new ArrayList<>();
 				for (int i = 0; i < chest.getContainerSize(); i++) {
@@ -204,10 +244,10 @@ final class Stations {
 						chest.setItem(i, ItemStack.EMPTY);
 					}
 				}
-				int unloaded = moveAll(wagon, chest);
+				int unloaded = unload(wagons, chest);
 				int loaded = 0;
 				for (ItemStack stack : outgoing) {
-					loaded += insert(wagon, stack);
+					loaded += insert(wagons, stack);
 					if (!stack.isEmpty()) {
 						insert(chest, stack);
 					}

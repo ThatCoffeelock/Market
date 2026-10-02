@@ -151,7 +151,7 @@ public final class Trains {
 
 	/** Builds a train with its locomotive on the given rail. Null if there isn't room on the track. */
 	static @Nullable Train spawn(ServerLevel level, TrainData data, BlockPos at, float yaw) {
-		Route route = Route.start(level, at, yaw);
+		Route route = Route.start(level, at, yaw, data.wagons());
 		if (route == null) {
 			return null;
 		}
@@ -172,15 +172,28 @@ public final class Trains {
 		return train;
 	}
 
-	/** Takes the train off the track and returns it as an item. The wagon must be empty. */
-	static ItemStack pickUp(Train train) {
+	/** Takes the train off the track and returns it as items: the train, plus one Cargo Wagon per extra wagon. The wagons must be empty. */
+	static List<ItemStack> pickUp(Train train) {
+		List<ItemStack> items = new ArrayList<>();
+		items.add(TrainItems.train());
+		for (int i = 1; i < train.data.wagons(); i++) {
+			items.add(TrainItems.wagon());
+		}
 		train.remove();
-		return TrainItems.train();
+		return items;
 	}
 
 	/** Right-clicking a rail with a Cargo Train. */
 	static InteractionResult useTrainItem(ServerPlayer player, ServerLevel level, InteractionHand hand, BlockHitResult hit) {
 		ItemStack held = player.getItemInHand(hand);
+		if (TrainItems.isWagon(held)) {
+			// don't let it turn into a plain vanilla chest minecart
+			if (Track.isRail(level.getBlockState(hit.getBlockPos()))) {
+				player.sendSystemMessage(Component.literal("Right-click your train with the wagon to couple it, not the rails.").withStyle(ChatFormatting.YELLOW));
+				return InteractionResult.FAIL;
+			}
+			return InteractionResult.PASS;
+		}
 		if (!TrainItems.isTrain(held)) {
 			return InteractionResult.PASS;
 		}
@@ -217,9 +230,11 @@ public final class Trains {
 		Entity car = entity.getVehicle();
 		Train train = BY_ROOT.get(car.getUUID());
 		boolean loco = train != null;
+		int wagon = -1;
 		if (train == null) {
 			train = BY_MARKER.get(car.getUUID());
-			if (train == null || train.wagon != car) {
+			wagon = train == null ? -1 : train.wagonIndex(car);
+			if (wagon < 0) {
 				return InteractionResult.PASS;
 			}
 		}
@@ -229,11 +244,15 @@ public final class Trains {
 		if (hand != InteractionHand.MAIN_HAND) {
 			return InteractionResult.SUCCESS;
 		}
+		if (TrainItems.isWagon(player.getMainHandItem())) {
+			couple(player, train);
+			return InteractionResult.SUCCESS;
+		}
 		if (!loco) {
 			if (!train.mayUse(player)) {
 				player.sendSystemMessage(Component.literal("That's " + train.data.ownerName + "'s cargo, and it's locked. Nice try.").withStyle(ChatFormatting.RED));
 			} else {
-				TrainMenu.openCargo(player, train);
+				TrainMenu.openCargo(player, train, wagon);
 			}
 			return InteractionResult.SUCCESS;
 		}
@@ -253,5 +272,28 @@ public final class Trains {
 			? "The train drives itself; enjoy the ride. Space: horn · Shift: get off · Right-click: menu (stop it there to drive yourself)."
 			: "W/S: drive · Space: horn · Shift: get off · Right-click: menu").withStyle(ChatFormatting.GRAY)));
 		return InteractionResult.SUCCESS;
+	}
+
+	/** Right-clicking a train with a Cargo Wagon: couple it at the back. */
+	private static void couple(ServerPlayer player, Train train) {
+		if (!train.mayUse(player)) {
+			player.sendSystemMessage(Component.literal("This train is locked by " + train.data.ownerName + ". No freeloading wagons.").withStyle(ChatFormatting.RED));
+			return;
+		}
+		String why = train.whyNoCoupling();
+		if (why != null) {
+			player.sendSystemMessage(Component.literal(why).withStyle(ChatFormatting.RED));
+			return;
+		}
+		if (!train.couple()) {
+			player.sendSystemMessage(Component.literal("Not enough track behind the train for another wagon. Each wagon needs about 2 more rails.")
+				.withStyle(ChatFormatting.RED));
+			return;
+		}
+		if (!player.isCreative()) {
+			player.getMainHandItem().shrink(1);
+		}
+		player.sendSystemMessage(Component.literal("Wagon coupled! ").withStyle(ChatFormatting.GOLD)
+			.append(Component.literal("The train now has " + train.data.wagons() + " wagons (" + train.data.totalSlots() + " slots).").withStyle(ChatFormatting.YELLOW)));
 	}
 }

@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.util.Mth;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Input;
@@ -25,8 +26,8 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One train: a locomotive (the saved root entity, carrying its model) and a cargo wagon (rebuilt whenever the
- * train loads). While it's running it shuttles along the track by itself: to the end of the line, turn
+ * One train: a locomotive (the saved root entity, carrying its model) and one to four cargo wagons (rebuilt
+ * whenever the train loads). While it's running it shuttles along the track by itself: to the end of the line, turn
  * around, back to the other end, stopping at every station on the way. When it's parked, whoever sits in
  * the cab can drive it with W/S.
  *
@@ -37,6 +38,7 @@ public final class Train {
 	/** Rails per tick: 8 blocks a second, as fast as a vanilla minecart. */
 	static final double MAX_SPEED = 0.4;
 	static final double DRIVE_SPEED = 0.3;
+	/** Acceleration with one wagon. Every extra wagon makes it a bit more sluggish to get going. */
 	static final double ACCEL = 0.008;
 	static final double BRAKE = 0.012;
 	/** How far ahead it looks for stations, so it can brake in time. */
@@ -61,9 +63,20 @@ public final class Train {
 	private int railsCrossed;
 	@Nullable String lastStop;
 
-	@Nullable Entity wagon;
-	private final List<Entity> crates = new ArrayList<>();
-	private int shownCrates = -1;
+	/** A wagon's entities: its root (carrying the model) and the crates that show how full it is. */
+	static final class Car {
+		final Entity root;
+		final List<Entity> crates = new ArrayList<>();
+		int shown;
+
+		Car(Entity root, int shown) {
+			this.root = root;
+			this.shown = shown;
+		}
+	}
+
+	/** One per wagon, front to back. An entry is null while that wagon couldn't be built (an unloaded chunk). */
+	final List<Car> cars = new ArrayList<>();
 	private int wagonRetry;
 	@Nullable Entity seat;
 	@Nullable UUID driver;
@@ -110,16 +123,33 @@ public final class Train {
 		return route != null ? route.point(route.s) : root.position();
 	}
 
-	Vec3 wagonPos() {
+	/** Where wagon {@code k} (1 = right behind the locomotive) is. */
+	Vec3 wagonPos(int k) {
 		if (route != null) {
-			return route.point(route.s - Route.GAP);
+			return route.point(route.s - k * Route.GAP);
 		}
-		double[] w = toWorld(root.getX(), root.getZ(), root.getYRot(), 0, -Route.GAP);
+		double[] w = toWorld(root.getX(), root.getZ(), root.getYRot(), 0, -k * Route.GAP);
 		return new Vec3(w[0], root.getY(), w[1]);
 	}
 
-	float wagonYaw() {
-		return route != null ? route.heading(route.s - Route.GAP, root.getYRot()) : root.getYRot();
+	float wagonYaw(int k) {
+		return route != null ? route.heading(route.s - k * Route.GAP, root.getYRot()) : root.getYRot();
+	}
+
+	/** The wagon entity at index {@code i} (0 = right behind the locomotive), if it's built. */
+	@Nullable Entity wagon(int i) {
+		Car car = i >= 0 && i < cars.size() ? cars.get(i) : null;
+		return car == null || car.root.isRemoved() ? null : car.root;
+	}
+
+	/** Which wagon this entity is, or -1. */
+	int wagonIndex(Entity entity) {
+		for (int i = 0; i < cars.size(); i++) {
+			if (cars.get(i) != null && cars.get(i).root == entity) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	// ---------------------------------------------------------------- ticking
@@ -132,7 +162,7 @@ public final class Train {
 		if (route == null && age % 40 == 1) {
 			findTrack();
 		}
-		ensureWagon();
+		ensureWagons();
 		ensureSeat();
 		updateDriver();
 		ServerPlayer driver = driver();
@@ -175,11 +205,11 @@ public final class Train {
 
 	/** After loading, or if the track under it went missing: get back on the rails. */
 	private void findTrack() {
-		route = Route.start(level, data.at, root.getYRot());
+		route = Route.start(level, data.at, root.getYRot(), data.wagons());
 		if (route == null) {
 			BlockPos under = BlockPos.containing(root.getX(), root.getY(), root.getZ());
 			if (!under.equals(data.at)) {
-				route = Route.start(level, under, root.getYRot());
+				route = Route.start(level, under, root.getYRot(), data.wagons());
 			}
 		}
 	}
@@ -210,7 +240,7 @@ public final class Train {
 		}
 		double dist = Math.max(0, (stop - front) * dir);
 		double cap = Math.max(0.03, Math.sqrt(2 * BRAKE * dist));
-		speed = Math.min(Math.min(speed + ACCEL, wanted), cap);
+		speed = Math.min(Math.min(speed + ACCEL / (1 + 0.3 * (data.wagons() - 1)), wanted), cap);
 		if (speed <= 0) {
 			speed = 0;
 			return;
@@ -316,9 +346,9 @@ public final class Train {
 			if (!moved.isEmpty()) {
 				what += String.join(", ", moved) + " items";
 			} else if (visit.mode() == Stations.Mode.DROPOFF) {
-				what += data.cargo.isEmpty() ? "nothing to drop off" : "the chest is full!";
+				what += data.isEmpty() ? "nothing to drop off" : "the chest is full!";
 			} else if (visit.mode() == Stations.Mode.PICKUP) {
-				what += wagonFull() ? "the wagon is full!" : "nothing to pick up";
+				what += data.isFull() ? (data.wagons() > 1 ? "the wagons are full!" : "the wagon is full!") : "nothing to pick up";
 			} else {
 				what += "nothing to swap";
 			}
@@ -334,15 +364,6 @@ public final class Train {
 		if (driver != null && !parts.isEmpty()) {
 			driver.sendSystemMessage(Component.literal(lastStop).withStyle(ChatFormatting.YELLOW));
 		}
-	}
-
-	boolean wagonFull() {
-		for (int i = 0; i < data.cargo.getContainerSize(); i++) {
-			if (data.cargo.getItem(i).isEmpty()) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	void horn() {
@@ -369,7 +390,7 @@ public final class Train {
 	/** Mobs standing on the track get shoved aside; players get the horn. */
 	private void shove() {
 		int dir = dir();
-		Vec3 front = dir > 0 ? locoPos() : wagonPos();
+		Vec3 front = dir > 0 ? locoPos() : wagonPos(data.wagons());
 		Vec3 ahead = route.point(route.front(dir) + dir * 1.2);
 		AABB box = new AABB(ahead.x - 0.9, ahead.y, ahead.z - 0.9, ahead.x + 0.9, ahead.y + 1.8, ahead.z + 0.9);
 		double fx = ahead.x - front.x;
@@ -409,8 +430,11 @@ public final class Train {
 			move(root, route.point(route.s), route.heading(route.s, root.getYRot()), true);
 			data.at = route.node((int) Math.round(route.s)).pos();
 		}
-		if (wagon != null && !wagon.isRemoved()) {
-			move(wagon, wagonPos(), wagonYaw(), true);
+		for (int i = 0; i < cars.size(); i++) {
+			Entity wagon = wagon(i);
+			if (wagon != null) {
+				move(wagon, wagonPos(i + 1), wagonYaw(i + 1), true);
+			}
 		}
 		if (seat != null && !seat.isRemoved()) {
 			float yaw = root.getYRot();
@@ -433,48 +457,118 @@ public final class Train {
 		return entity;
 	}
 
-	private void ensureWagon() {
-		if ((wagon != null && !wagon.isRemoved()) || wagonRetry-- > 0) {
+	/** Builds any wagon that's missing, and takes away any that was uncoupled. */
+	private void ensureWagons() {
+		while (cars.size() > data.wagons()) {
+			discard(cars.remove(cars.size() - 1));
+		}
+		while (cars.size() < data.wagons()) {
+			cars.add(null);
+		}
+		if (wagonRetry > 0) {
+			wagonRetry--;
 			return;
 		}
-		Vec3 p = wagonPos();
-		int show = crateCount();
-		UUID id = UUID.randomUUID();
-		wagon = summonMarked(TrainModel.wagonCommand(id, p.x, p.y, p.z, wagonYaw(), show), id);
-		crates.clear();
-		if (wagon == null) {
-			wagonRetry = 100; // probably in a chunk that isn't loaded; try again in a bit
-			return;
+		for (int i = 0; i < cars.size(); i++) {
+			if (wagon(i) != null) {
+				continue;
+			}
+			Vec3 p = wagonPos(i + 1);
+			int show = crateCount(i);
+			UUID id = UUID.randomUUID();
+			Entity wagon = summonMarked(TrainModel.wagonCommand(id, p.x, p.y, p.z, wagonYaw(i + 1), show), id);
+			if (wagon == null) {
+				cars.set(i, null);
+				wagonRetry = 100; // probably in a chunk that isn't loaded; try again in a bit
+				return;
+			}
+			Car car = new Car(wagon, show);
+			List<Entity> parts = wagon.getPassengers();
+			int first = parts.size() - TrainModel.CRATES.size();
+			for (int c = 0; c < TrainModel.CRATES.size() && first >= 0; c++) {
+				car.crates.add(parts.get(first + c));
+			}
+			cars.set(i, car);
 		}
-		List<Entity> parts = wagon.getPassengers();
-		int first = parts.size() - TrainModel.CRATES.size();
-		for (int i = 0; i < TrainModel.CRATES.size() && first >= 0; i++) {
-			crates.add(parts.get(first + i));
-		}
-		shownCrates = show;
 	}
 
-	/** How many crates to show: none when empty, all four when (nearly) full. */
-	int crateCount() {
-		int used = data.usedSlots();
+	private static void discard(@Nullable Car car) {
+		if (car == null) {
+			return;
+		}
+		for (Entity part : new ArrayList<>(car.root.getPassengers())) {
+			part.discard();
+		}
+		car.root.discard();
+	}
+
+	/** How many crates to show on a wagon: none when it's empty, all four when it's (nearly) full. */
+	int crateCount(int wagon) {
+		int used = data.usedSlots(wagon);
 		return used == 0 ? 0 : Math.min(TrainModel.CRATES.size(), 1 + used * TrainModel.CRATES.size() / (TrainData.SLOTS + 1));
 	}
 
 	private void updateCrates() {
-		int show = crateCount();
-		if (show == shownCrates || crates.size() != TrainModel.CRATES.size()) {
-			return;
-		}
-		for (int i = 0; i < crates.size(); i++) {
-			boolean was = i < shownCrates;
-			boolean now = i < show;
-			Entity crate = crates.get(i);
-			if (was != now && !crate.isRemoved()) {
-				Cmd.run(level, "data merge entity " + crate.getUUID() + " {transformation:" + TrainModel.transformation(TrainModel.CRATES.get(i), now)
-					+ ",start_interpolation:0,interpolation_duration:6}");
+		for (int w = 0; w < cars.size(); w++) {
+			Car car = cars.get(w);
+			if (car == null || car.root.isRemoved() || car.crates.size() != TrainModel.CRATES.size()) {
+				continue;
 			}
+			int show = crateCount(w);
+			for (int i = 0; i < car.crates.size() && show != car.shown; i++) {
+				boolean was = i < car.shown;
+				boolean now = i < show;
+				Entity crate = car.crates.get(i);
+				if (was != now && !crate.isRemoved()) {
+					Cmd.run(level, "data merge entity " + crate.getUUID() + " {transformation:" + TrainModel.transformation(TrainModel.CRATES.get(i), now)
+						+ ",start_interpolation:0,interpolation_duration:6}");
+				}
+			}
+			car.shown = show;
 		}
-		shownCrates = show;
+	}
+
+	// ---------------------------------------------------------------- coupling
+
+	/** Why another wagon can't be coupled right now, or null if it can. */
+	@Nullable String whyNoCoupling() {
+		if (data.wagons() >= TrainData.MAX_WAGONS) {
+			return "That's as long as it gets: " + TrainData.MAX_WAGONS + " wagons. The locomotive has feelings too.";
+		}
+		if (route == null) {
+			return "Put the train back on the track first.";
+		}
+		if (speed > 0) {
+			return "Wait until it's standing still. Coupling at speed is how you lose fingers.";
+		}
+		return null;
+	}
+
+	/** Couples another wagon at the back. False if there isn't enough track behind it. */
+	boolean couple() {
+		if (whyNoCoupling() != null || !route.resize(data.wagons() + 1)) {
+			return false;
+		}
+		data.cargo.add(new SimpleContainer(TrainData.SLOTS));
+		ensureWagons();
+		Vec3 p = wagonPos(data.wagons());
+		Cmd.sound(level, "minecraft:block.chain.place", p.x, p.y + 0.5, p.z, 1.0f, 0.7f);
+		Cmd.sound(level, "minecraft:block.anvil.land", p.x, p.y + 0.5, p.z, 0.3f, 1.6f);
+		return true;
+	}
+
+	/** Uncouples the last wagon (it must be empty). False if it can't. */
+	boolean uncouple() {
+		int last = data.wagons() - 1;
+		if (last < 1 || !data.cargo.get(last).isEmpty() || route == null) {
+			return false;
+		}
+		Vec3 p = wagonPos(data.wagons());
+		data.cargo.remove(last);
+		route.resize(data.wagons());
+		ensureWagons();
+		Cmd.sound(level, "minecraft:block.chain.break", p.x, p.y + 0.5, p.z, 1.0f, 0.8f);
+		return true;
 	}
 
 	// ---------------------------------------------------------------- keeping chunks loaded
@@ -595,7 +689,7 @@ public final class Train {
 		if (speed == 0 && route.headDead && route.tailDead) {
 			return "Stuck: there's no track either way.";
 		}
-		return dir() > 0 ? "Running, locomotive first." : "Running, wagon first.";
+		return dir() > 0 ? "Running, locomotive first." : data.wagons() > 1 ? "Running, wagons first." : "Running, wagon first.";
 	}
 
 	int kmh() {
@@ -605,7 +699,7 @@ public final class Train {
 	private void hud(ServerPlayer player) {
 		MutableComponent line = Component.literal(kmh() + " km/h").withStyle(ChatFormatting.AQUA)
 			.append(Component.literal("   " + status()).withStyle(ChatFormatting.WHITE))
-			.append(Component.literal("   Cargo " + data.usedSlots() + "/" + TrainData.SLOTS).withStyle(ChatFormatting.GOLD));
+			.append(Component.literal("   Cargo " + data.usedSlots() + "/" + data.totalSlots()).withStyle(ChatFormatting.GOLD));
 		if (data.running) {
 			line.append(Component.literal("   Space: horn · Shift: get off").withStyle(ChatFormatting.GRAY));
 		} else {
@@ -628,14 +722,10 @@ public final class Train {
 			seat.discard();
 			seat = null;
 		}
-		if (wagon != null) {
-			for (Entity part : new ArrayList<>(wagon.getPassengers())) {
-				part.discard();
-			}
-			wagon.discard();
-			wagon = null;
+		for (Car car : cars) {
+			discard(car);
 		}
-		crates.clear();
+		cars.clear();
 	}
 
 	/** Gone for good: every entity it's made of. */
@@ -653,7 +743,7 @@ public final class Train {
 		Trains.unregister(this);
 	}
 
-	/** Chunk unloaded or server stopping: drop the wagon and seat (they're rebuilt on load), keep the locomotive. */
+	/** Chunk unloaded or server stopping: drop the wagons and seat (they're rebuilt on load), keep the locomotive. */
 	void unload() {
 		if (removed) {
 			return;

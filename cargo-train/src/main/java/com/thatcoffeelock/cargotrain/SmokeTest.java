@@ -83,7 +83,7 @@ final class SmokeTest {
 			return "no train";
 		}
 		return "status=" + train.status() + " dir=" + train.dir() + " speed=" + train.speed + " loco=" + train.root.blockPosition()
-			+ " wagon=" + (train.wagon == null ? "none" : train.wagon.blockPosition()) + " cargo=" + train.data.itemCount()
+			+ " wagons=" + train.data.wagons() + " last=" + (last() == null ? "none" : last().blockPosition()) + " cargo=" + train.data.itemCount()
 			+ " route=" + (train.route == null ? "none" : train.route.size() + " rails, s=" + train.route.s);
 	}
 
@@ -120,6 +120,8 @@ final class SmokeTest {
 		check(Stations.parse("SWAP-STATION!") == Stations.Mode.SWAP, "'SWAP-STATION!' is a swap station");
 		check(Stations.parse("Pickup") == null && Stations.parse("My Station") == null, "other names aren't stations");
 		check(TrainItems.isTrain(TrainItems.train()), "train item is recognised");
+		check(TrainItems.isWagon(TrainItems.wagon()) && !TrainItems.isTrain(TrainItems.wagon()), "wagon item is recognised");
+		check(!TrainItems.isWagon(new ItemStack(Items.CHEST_MINECART)), "a plain chest minecart is not a wagon");
 		check(!TrainItems.isTrain(new ItemStack(Items.FURNACE_MINECART)), "a plain furnace minecart is not a train");
 
 		// lay the line one rail at a time, the way a player would (the shapes are what vanilla would pick anyway)
@@ -131,7 +133,7 @@ final class SmokeTest {
 		for (Rail rail : line()) {
 			check(Track.isRail(level.getBlockState(rail.pos())), "rail at " + rail.pos().toShortString() + " is " + level.getBlockState(rail.pos()));
 		}
-		Route whole = Route.start(level, new BlockPos(3, 100, 0), -90f);
+		Route whole = Route.start(level, new BlockPos(3, 100, 0), -90f, 1);
 		check(whole != null, "a route starts at x=3");
 		int guard = 0;
 		while (!whole.headDead && guard++ < 100) {
@@ -163,6 +165,7 @@ final class SmokeTest {
 		((Container) level.getBlockEntity(PLAIN)).setItem(0, new ItemStack(Items.APPLE, 7));
 
 		swapCheck(level);
+		overflowCheck(level);
 
 		TrainData data = new TrainData();
 		data.owner = "00000000-0000-0000-0000-000000000000";
@@ -171,11 +174,14 @@ final class SmokeTest {
 		check(train != null, "train put on the track");
 		check(train.root.getPassengers().size() == TrainModel.loco().size() + 1, "locomotive has all its parts and a hitbox");
 		check(Math.abs(Mth.wrapDegrees(train.root.getYRot() + 90f)) < 1f, "locomotive faces east (yaw=" + train.root.getYRot() + ")");
+		check(train.whyNoCoupling() == null && !train.couple() && train.data.wagons() == 1,
+			"no second wagon at the very start of the line: there's no track behind for it");
 		CargoTrainMod.later(3, () -> step(server, () -> {
-			check(train.wagon != null && !train.wagon.isRemoved(), "wagon built");
-			check(train.wagon.getPassengers().size() == TrainModel.wagon().size() + TrainModel.CRATES.size() + 1, "wagon has all its parts, crates and a hitbox");
+			Entity wagon = train.wagon(0);
+			check(wagon != null, "wagon built");
+			check(wagon.getPassengers().size() == TrainModel.wagon().size() + TrainModel.CRATES.size() + 1, "wagon has all its parts, crates and a hitbox");
 			check(train.seat != null && !train.seat.isRemoved(), "driver's seat built");
-			check(train.wagon.getX() < train.root.getX() - 1.5, "the wagon is behind the locomotive");
+			check(wagon.getX() < train.root.getX() - 1.5, "the wagon is behind the locomotive");
 			waitFor(server, "the train to stop at the Pickup Station and load everything", 300,
 				() -> Stations.container(level, PICKUP).isEmpty() && train.data.itemCount() == CARGO, () -> loaded(level));
 		}));
@@ -191,7 +197,7 @@ final class SmokeTest {
 		chest.setItem(3, new ItemStack(Items.APPLE, 5));
 		SimpleContainer wagon = new SimpleContainer(TrainData.SLOTS);
 		wagon.setItem(0, new ItemStack(Items.BREAD, 3));
-		Stations.Visit visit = Stations.serve(level, at, wagon);
+		Stations.Visit visit = Stations.serve(level, at, List.of(wagon));
 		check(visit != null && visit.loaded() == 5 && visit.unloaded() == 3, "swap moved 5 out and 3 in");
 		check(wagon.countItem(Items.APPLE) == 5 && wagon.countItem(Items.BREAD) == 0, "the wagon took the apples and left the bread");
 		boolean bread = false;
@@ -203,13 +209,46 @@ final class SmokeTest {
 		check(Stations.Mode.PICKUP.next() == Stations.Mode.DROPOFF && Stations.Mode.SWAP.next() == Stations.Mode.PICKUP, "modes cycle");
 	}
 
+	/** Two wagons: when the first is full, a pickup spills over into the second. */
+	private static void overflowCheck(ServerLevel level) {
+		BlockPos at = new BlockPos(-5, 100, -7);
+		Cmd.run(level, "setblock " + at.getX() + " " + at.getY() + " " + at.getZ() + " minecraft:chest");
+		Stations.setMode(level, at, Stations.Mode.PICKUP);
+		Container chest = Stations.container(level, at);
+		chest.setItem(0, new ItemStack(Items.COBBLESTONE, 64));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 64));
+		chest.setItem(2, new ItemStack(Items.COBBLESTONE, 10));
+		SimpleContainer first = new SimpleContainer(TrainData.SLOTS);
+		for (int i = 0; i < TrainData.SLOTS - 1; i++) {
+			first.setItem(i, new ItemStack(Items.DIRT, 64));
+		}
+		first.setItem(TrainData.SLOTS - 1, new ItemStack(Items.COBBLESTONE, 60));
+		SimpleContainer second = new SimpleContainer(TrainData.SLOTS);
+		Stations.Visit visit = Stations.serve(level, at, List.of(first, second));
+		check(visit != null && visit.loaded() == 138, "pickup into two wagons loaded all 138 cobblestone (" + (visit == null ? "-" : visit.loaded()) + ")");
+		check(first.countItem(Items.COBBLESTONE) == 64, "the first wagon's last stack was topped up to 64");
+		check(second.countItem(Items.COBBLESTONE) == 134, "the rest spilled into the second wagon (" + second.countItem(Items.COBBLESTONE) + ")");
+		check(chest.isEmpty(), "the pickup chest is empty");
+	}
+
 	private static void loaded(ServerLevel level) {
 		MinecraftServer server = level.getServer();
-		check(train.crateCount() >= 1, "crates show up in the wagon");
+		check(train.crateCount(0) >= 1, "crates show up in the wagon");
 		check(train.dwell > 0 || train.speed > 0, "it's either loading or already on its way");
 
-		// pretend the chunk unloaded and loaded again: the wagon and seat are rebuilt, and the train finds the track again
-		Entity oldWagon = train.wagon;
+		// couple a second wagon while it's standing at the station
+		if (train.speed == 0) {
+			check(train.whyNoCoupling() == null, "coupling is allowed while it stands at a station");
+			check(train.couple(), "a second wagon coupled");
+		} else {
+			check(train.whyNoCoupling() != null, "no coupling while it's moving");
+			train.speed = 0;
+			check(train.couple(), "a second wagon coupled once it stopped");
+		}
+		check(train.data.wagons() == 2 && train.data.totalSlots() == 2 * TrainData.SLOTS, "the train has 2 wagons and 54 slots");
+
+		// pretend the chunk unloaded and loaded again: the wagons and seat are rebuilt, and the train finds the track again
+		Entity oldWagon = train.wagon(0);
 		Entity root = train.root;
 		train.unload();
 		check(oldWagon.isRemoved(), "unloading removes the wagon");
@@ -219,10 +258,11 @@ final class SmokeTest {
 			check(Trains.all().size() == 1, "train registered again after loading");
 			train = Trains.all().get(0);
 			check(train.route != null, "it found the track again");
-			check(train.wagon != null && !train.wagon.isRemoved(), "a new wagon was built");
+			check(train.wagon(0) != null && train.wagon(1) != null, "both wagons were built again");
+			check(train.wagon(1).getX() < train.wagon(0).getX() - 1.5, "the second wagon is behind the first");
 			check(train.data.itemCount() == CARGO, "the cargo survived");
 			waitFor(server, "the cargo to reach the Drop-off Station round the corner and up the slope", 800,
-				() -> train.data.cargo.isEmpty() && countIn(Stations.container(level, DROPOFF)) == CARGO, () -> delivered(level));
+				() -> train.data.isEmpty() && countIn(Stations.container(level, DROPOFF)) == CARGO, () -> delivered(level));
 		}));
 	}
 
@@ -238,8 +278,10 @@ final class SmokeTest {
 		check(train.data.hauled == CARGO, "hauled counter = " + CARGO + " (" + train.data.hauled + ")");
 		check(train.root.getY() > 100.9, "the locomotive climbed the slope (y=" + train.root.getY() + ")");
 		check(Math.abs(train.root.getX() - 20.5) < 0.01, "the locomotive is on the north-south leg");
-		double gap = train.root.position().distanceTo(train.wagon.position());
-		check(gap > 1.6 && gap < 2.4, "the wagon follows at a sensible distance (" + gap + ")");
+		double gap = train.root.position().distanceTo(train.wagon(0).position());
+		check(gap > 1.6 && gap < 2.4, "the first wagon follows at a sensible distance (" + gap + ")");
+		double gap2 = train.wagon(0).position().distanceTo(train.wagon(1).position());
+		check(gap2 > 1.6 && gap2 < 2.4, "the second wagon follows the first at a sensible distance (" + gap2 + ")");
 		waitFor(server, "the train to turn around at the end of the line", 200, () -> train.dir() == -1 && train.speed > 0, () -> {
 			// someone breaks a rail on the way back: the train must stop short of the gap and turn around again
 			Cmd.run(level, "setblock " + BROKEN.getX() + " " + BROKEN.getY() + " " + BROKEN.getZ() + " minecraft:air");
@@ -250,10 +292,10 @@ final class SmokeTest {
 	private static void watchGap(ServerLevel level, int waited) {
 		MinecraftServer server = level.getServer();
 		CargoTrainMod.later(5, () -> step(server, () -> {
-			check(train.wagon != null && train.wagon.getX() > BROKEN.getX() + 0.4, "the train never runs past the broken rail (" + describe() + ")");
+			check(last() != null && last().getX() > BROKEN.getX() + 0.4, "the train never runs past the broken rail (" + describe() + ")");
 			if (train.dir() == 1) {
 				CargoTrainMod.LOG.info("[smoke] ok: stopped at the broken rail and turned around (after {} ticks)", waited + 5);
-				check(Math.abs(train.wagon.getX() - (BROKEN.getX() + 1.5)) < 0.3, "it stopped right at the gap (wagon x=" + train.wagon.getX() + ")");
+				check(Math.abs(last().getX() - (BROKEN.getX() + 1.5)) < 0.3, "the last wagon stopped right at the gap (x=" + last().getX() + ")");
 				check(countIn((Container) level.getBlockEntity(PLAIN)) == 7, "the ordinary chest next to the track was left alone");
 				park(level);
 			} else if (waited + 5 >= 900) {
@@ -268,8 +310,9 @@ final class SmokeTest {
 		MinecraftServer server = level.getServer();
 		train.data.running = false;
 		waitFor(server, "the train to brake and park", 100, () -> train.speed == 0 && train.status().startsWith("Parked"), () -> {
-			ItemStack item = Trains.pickUp(train);
-			check(TrainItems.isTrain(item), "picking it up gives the train item back");
+			List<ItemStack> items = Trains.pickUp(train);
+			check(items.size() == 2 && TrainItems.isTrain(items.get(0)) && TrainItems.isWagon(items.get(1)),
+				"picking it up gives back the train and the extra wagon");
 			CargoTrainMod.later(5, () -> step(server, () -> {
 				check(Trains.all().isEmpty(), "no trains left registered");
 				check(countParts(level) == entitiesBefore, "picking up removes every entity (" + countParts(level) + " left, expected " + entitiesBefore + ")");
@@ -277,6 +320,11 @@ final class SmokeTest {
 				server.halt(false);
 			}));
 		});
+	}
+
+	/** The last wagon (the one that leads on the way back). */
+	private static Entity last() {
+		return train == null ? null : train.wagon(train.data.wagons() - 1);
 	}
 
 	private static int countIn(Container container) {

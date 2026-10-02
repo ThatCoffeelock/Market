@@ -15,12 +15,14 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
 
 /**
- * The train is a furnace minecart with custom data (vanilla clients see a glowing furnace minecart).
+ * The train is a furnace minecart with custom data (vanilla clients see a glowing furnace minecart), an extra
+ * wagon is a chest minecart with custom data.
  * A station is just a chest with a station name. Must match the results in data/cargotrain/recipe.
  */
 public final class TrainItems {
 	static final String KEY = "cargotrain";
 	static final String TRAIN = "train";
+	static final String WAGON = "wagon";
 
 	private TrainItems() {
 	}
@@ -46,12 +48,34 @@ public final class TrainItems {
 		return stack;
 	}
 
-	public static boolean isTrain(ItemStack stack) {
-		if (stack.isEmpty() || !stack.is(Items.FURNACE_MINECART)) {
-			return false;
+	public static ItemStack wagon() {
+		ItemStack stack = new ItemStack(Items.CHEST_MINECART);
+		CompoundTag tag = new CompoundTag();
+		tag.putString(KEY, WAGON);
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+		stack.set(DataComponents.ITEM_NAME, Component.literal("Cargo Wagon").withStyle(ChatFormatting.YELLOW));
+		stack.set(DataComponents.LORE, new ItemLore(List.of(
+			text("27 more slots for your Cargo Train.", ChatFormatting.GRAY),
+			text("Right-click your train (standing still) to couple it.", ChatFormatting.GRAY),
+			text("Up to " + TrainData.MAX_WAGONS + " wagons per train.", ChatFormatting.DARK_GRAY))));
+		stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+		return stack;
+	}
+
+	private static String kind(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return "";
 		}
 		CustomData data = stack.get(DataComponents.CUSTOM_DATA);
-		return data != null && TRAIN.equals(data.copyTag().getStringOr(KEY, ""));
+		return data == null ? "" : data.copyTag().getStringOr(KEY, "");
+	}
+
+	public static boolean isTrain(ItemStack stack) {
+		return stack.is(Items.FURNACE_MINECART) && TRAIN.equals(kind(stack));
+	}
+
+	public static boolean isWagon(ItemStack stack) {
+		return stack.is(Items.CHEST_MINECART) && WAGON.equals(kind(stack));
 	}
 
 	public static ItemStack station(Stations.Mode mode) {

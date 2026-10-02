@@ -1,0 +1,11 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_chest_minecart": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:chest_minecart"}]}
+		}
+	},
+	"requirements": [["has_chest_minecart"]],
+	"rewards": {"recipes": ["cargotrain:cargo_wagon"]}
+}

@@ -10,12 +10,14 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Everything a train remembers: owner, lock, whether it's running its route, which way it's going and the
- * cargo in the wagon. Saved on the locomotive's root entity (a Fabric data attachment). Its heading is the
+ * Everything a train remembers: owner, lock, whether it's running its route, which way it's going, how many
+ * wagons it pulls and the cargo in them. Saved on the locomotive's root entity (a Fabric data attachment). Its heading is the
  * root's yaw, which always points at the locomotive's nose.
  */
 public final class TrainData {
+	/** Slots per wagon. */
 	public static final int SLOTS = 27;
+	public static final int MAX_WAGONS = 4;
 
 	private record Slot(int slot, ItemStack stack) {
 		static final Codec<Slot> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -32,7 +34,9 @@ public final class TrainData {
 		Codec.INT.optionalFieldOf("dir", 1).forGetter(d -> d.dir),
 		Codec.LONG.optionalFieldOf("at", 0L).forGetter(d -> d.at.asLong()),
 		Codec.LONG.optionalFieldOf("hauled", 0L).forGetter(d -> d.hauled),
-		Slot.CODEC.listOf().optionalFieldOf("cargo", List.of()).forGetter(d -> slots(d.cargo))
+		Codec.INT.optionalFieldOf("wagons", 1).forGetter(d -> d.cargo.size()),
+		// one list for all wagons: slot 27 is the first slot of the second wagon
+		Slot.CODEC.listOf().optionalFieldOf("cargo", List.of()).forGetter(TrainData::allSlots)
 	).apply(i, TrainData::new));
 
 	public String owner;
@@ -46,13 +50,14 @@ public final class TrainData {
 	public BlockPos at;
 	/** Items delivered so far, for bragging rights. */
 	public long hauled;
-	public final SimpleContainer cargo = new SimpleContainer(SLOTS);
+	/** One container per wagon, front (next to the locomotive) to back. Always at least one. */
+	public final List<SimpleContainer> cargo = new ArrayList<>();
 
 	public TrainData() {
-		this("", "", false, true, 1, 0L, 0L, List.of());
+		this("", "", false, true, 1, 0L, 0L, 1, List.of());
 	}
 
-	private TrainData(String owner, String ownerName, boolean locked, boolean running, int dir, long at, long hauled, List<Slot> cargo) {
+	private TrainData(String owner, String ownerName, boolean locked, boolean running, int dir, long at, long hauled, int wagons, List<Slot> cargo) {
 		this.owner = owner;
 		this.ownerName = ownerName;
 		this.locked = locked;
@@ -60,11 +65,26 @@ public final class TrainData {
 		this.dir = dir < 0 ? -1 : 1;
 		this.at = BlockPos.of(at);
 		this.hauled = hauled;
+		int count = Math.max(1, Math.min(MAX_WAGONS, wagons));
+		for (int w = 0; w < count; w++) {
+			this.cargo.add(new SimpleContainer(SLOTS));
+		}
 		for (Slot slot : cargo) {
-			if (slot.slot >= 0 && slot.slot < SLOTS) {
-				this.cargo.setItem(slot.slot, slot.stack.copy());
+			int w = slot.slot / SLOTS;
+			if (slot.slot >= 0 && w < count) {
+				this.cargo.get(w).setItem(slot.slot % SLOTS, slot.stack.copy());
 			}
 		}
+	}
+
+	private static List<Slot> allSlots(TrainData data) {
+		List<Slot> slots = new ArrayList<>();
+		for (int w = 0; w < data.cargo.size(); w++) {
+			for (Slot slot : slots(data.cargo.get(w))) {
+				slots.add(new Slot(w * SLOTS + slot.slot, slot.stack));
+			}
+		}
+		return slots;
 	}
 
 	private static List<Slot> slots(SimpleContainer container) {
@@ -78,15 +98,49 @@ public final class TrainData {
 		return slots;
 	}
 
+	public int wagons() {
+		return cargo.size();
+	}
+
+	public int totalSlots() {
+		return cargo.size() * SLOTS;
+	}
+
 	public int usedSlots() {
-		return slots(cargo).size();
+		return allSlots(this).size();
+	}
+
+	public int usedSlots(int wagon) {
+		return slots(cargo.get(wagon)).size();
 	}
 
 	public int itemCount() {
 		int n = 0;
-		for (int i = 0; i < cargo.getContainerSize(); i++) {
-			n += cargo.getItem(i).getCount();
+		for (SimpleContainer wagon : cargo) {
+			for (int i = 0; i < wagon.getContainerSize(); i++) {
+				n += wagon.getItem(i).getCount();
+			}
 		}
 		return n;
+	}
+
+	public boolean isEmpty() {
+		for (SimpleContainer wagon : cargo) {
+			if (!wagon.isEmpty()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean isFull() {
+		for (SimpleContainer wagon : cargo) {
+			for (int i = 0; i < wagon.getContainerSize(); i++) {
+				if (wagon.getItem(i).isEmpty()) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }
