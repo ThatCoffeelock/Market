@@ -1,0 +1,376 @@
+<title>LIB Pack Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a survival-guide poster. Inventory-panel cards, one per mod, each with its real crafting grid;
+   cross-mod sheets (controls, tobacco, colony prices) at the bottom. */
+:root {
+  --bg: #e9e7e1;
+  --panel: #c6c6c6;
+  --panel-ink: #1d1d1f;
+  --ink: #1f1e1c;
+  --muted: #55524c;
+  --slot: #8b8b8b;
+  --bevel-dark: #373737;
+  --bevel-light: #ffffff;
+  --edge: #1d1d1f;
+  --accent: #1b7f4b;        /* emerald, the colour of money in this world */
+  --gold: #a8740a;
+  --chip: #dedcd6;
+  --rule: #b5b2aa;
+  --display: "Pixelify Sans", "Courier New", monospace;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17181b; --panel: #2a2b30; --panel-ink: #ecebe6; --ink: #ecebe6; --muted: #a9a7a0;
+    --slot: #1c1d20; --bevel-dark: #0b0b0c; --bevel-light: #46474e; --edge: #050506;
+    --accent: #4fd08a; --gold: #f0bf4c; --chip: #33343a; --rule: #3a3b42; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17181b; --panel: #2a2b30; --panel-ink: #ecebe6; --ink: #ecebe6; --muted: #a9a7a0;
+  --slot: #1c1d20; --bevel-dark: #0b0b0c; --bevel-light: #46474e; --edge: #050506;
+  --accent: #4fd08a; --gold: #f0bf4c; --chip: #33343a; --rule: #3a3b42; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.1; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+code, .cmd { font-family: var(--mono); font-size: .82em; overflow-wrap: anywhere; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+/* Hero */
+.hero { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: end; }
+.hero h1 { font-size: clamp(48px, 9vw, 104px); letter-spacing: -.01em; }
+.hero h1 span { color: var(--accent); }
+.hero .lede { font-size: 19px; max-width: 34em; color: var(--ink); }
+.hero .lede b { color: var(--accent); }
+.install { background: var(--panel); color: var(--panel-ink); border: 3px solid var(--edge); box-shadow: inset 3px 3px 0 var(--bevel-light), inset -3px -3px 0 var(--bevel-dark); padding: 18px 20px; display: grid; gap: 10px; }
+.install ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.install h2 { font-size: 22px; }
+
+/* Mod cards */
+.mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 22px; }
+.card { background: var(--panel); color: var(--panel-ink); border: 3px solid var(--edge); box-shadow: inset 3px 3px 0 var(--bevel-light), inset -3px -3px 0 var(--bevel-dark); padding: 20px 22px 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.card header { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; justify-content: space-between; }
+.card h2 { font-size: 30px; }
+.card h2 i { font-style: normal; display: inline-block; width: 14px; height: 14px; margin-right: 10px; vertical-align: 3px; border: 2px solid var(--edge); }
+.card .tag { font-size: 15px; color: var(--panel-ink); opacity: .85; }
+.card .id { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.card ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 15px; }
+.card li::marker { color: var(--accent); }
+.cmds { display: flex; flex-wrap: wrap; gap: 6px; }
+.cmd { background: var(--chip); border: 2px solid var(--edge); padding: 2px 8px; color: var(--panel-ink); }
+.cmd.op::after { content: " op"; color: var(--muted); font-size: .85em; }
+
+/* Crafting */
+.recipes { display: flex; flex-wrap: wrap; gap: 16px 28px; }
+.recipe { display: grid; gap: 6px; min-width: 0; }
+.craft { display: flex; align-items: center; gap: 10px; }
+.grid { display: grid; grid-template-columns: repeat(3, 40px); gap: 3px; }
+.grid.shapeless { grid-template-columns: repeat(var(--n), 40px); }
+.slot { width: 40px; height: 40px; background: var(--slot); box-shadow: inset 2px 2px 0 var(--bevel-dark), inset -2px -2px 0 var(--bevel-light); display: grid; place-items: center; }
+.item { width: 30px; height: 30px; display: grid; place-items: center; font: 700 10px/1 var(--mono); color: #fff; text-shadow: 1px 1px 0 #000a; border: 2px solid #0006; }
+.arrow { font-family: var(--display); font-size: 26px; color: var(--muted); }
+.result .slot { width: 52px; height: 52px; }
+.result .item { width: 40px; height: 40px; font-size: 11px; box-shadow: 0 0 0 2px #b77cff, 0 0 10px #b77cffaa; }
+.result .count { position: relative; }
+.result .count b { position: absolute; right: -4px; bottom: -6px; font: 700 13px/1 var(--display); color: #fff; text-shadow: 2px 2px 0 #3f3f3f; }
+.legend { font-size: 12.5px; color: var(--muted); max-width: 22em; }
+.legend b { color: var(--panel-ink); font-family: var(--mono); font-weight: 500; }
+.recipe-name { font-family: var(--display); font-size: 16px; }
+.note { font-size: 13.5px; color: var(--muted); }
+
+/* Sheets */
+.sheet { display: grid; gap: 16px; }
+.sheet > header { display: grid; gap: 6px; }
+.sheet h2 { font-size: clamp(28px, 4vw, 40px); }
+.scroll { overflow-x: auto; border: 3px solid var(--edge); background: var(--panel); color: var(--panel-ink); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tbody th { font-family: var(--display); font-size: 17px; letter-spacing: 0; text-transform: none; color: var(--panel-ink); white-space: nowrap; }
+tr:last-child td, tr:last-child th { border-bottom: 0; }
+.key { display: inline-block; font: 500 12px/1 var(--mono); padding: 4px 6px; background: var(--chip); border: 2px solid var(--edge); border-bottom-width: 4px; margin: 0 2px 2px 0; color: var(--panel-ink); }
+.dash { color: var(--muted); }
+td.num { text-align: right; white-space: nowrap; }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 22px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border: 3px solid var(--edge); background: var(--panel); color: var(--panel-ink); }
+.steps li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+.steps li:last-child { border-bottom: 0; }
+.steps .n { font: 700 20px/1 var(--display); color: var(--accent); }
+.steps .t { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.puffs { display: flex; flex-wrap: wrap; gap: 8px; }
+.puff { border: 2px solid var(--edge); padding: 6px 10px; background: var(--panel); color: var(--panel-ink); font-size: 14px; }
+.puff b { font-family: var(--display); font-weight: 500; }
+
+.money { color: var(--accent); font-weight: 700; }
+footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; border-top: 3px solid var(--rule); padding-top: 16px; }
+
+@media (max-width: 760px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .grid { grid-template-columns: repeat(3, 34px); }
+  .grid.shapeless { grid-template-columns: repeat(var(--n), 34px); }
+  .slot { width: 34px; height: 34px; }
+  .item { width: 26px; height: 26px; font-size: 9px; }
+  .card { padding: 16px; }
+  .steps li { grid-template-columns: 34px minmax(0, 1fr); }
+  .steps .t { grid-column: 2; }
+}
+</style>
+
+<div class="wrap">
+  <section class="hero">
+    <div style="display:grid;gap:16px;min-width:0">
+      <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
+      <h1>LIB <span>Pack</span></h1>
+      <p class="lede">Eight mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, drive camper vans and tanks, fire cannons, kidnap villagers and smoke cigars. Players join with a <b>plain vanilla client</b>.</p>
+    </div>
+    <div class="install">
+      <h2>Install</h2>
+      <ol>
+        <li>Install Fabric Loader for 26.3 on the server.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.0.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
+      </ol>
+      <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
+    </div>
+  </section>
+
+  <section class="mods" id="mods"></section>
+
+  <section class="sheet" id="controls">
+    <header>
+      <p class="eyebrow">Things you can sit in</p>
+      <h2>Controls cheat sheet</h2>
+    </header>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Ride</th><th>Get on</th><th>Move</th><th>Space</th><th>Shift</th><th>Menu</th><th>Put away</th></tr></thead>
+        <tbody>
+          <tr><th>Ship (Ahoy)</th><td>Right-click the ship. Owner takes the wheel</td><td><span class="key">W</span><span class="key">S</span> sails · <span class="key">A</span><span class="key">D</span> rudder</td><td>Ring the bell</td><td>Get off (ashore, or overboard)</td><td>Right-click aboard, or sneak + right-click</td><td>Menu → Bottle it up</td></tr>
+          <tr><th>Van / Tank</th><td>Right-click it. Owner drives</td><td><span class="key">W</span><span class="key">S</span> gas · <span class="key">A</span><span class="key">D</span> steer · <span class="key">Ctrl</span> turbo</td><td>Honk</td><td>Get out by the door</td><td>Right-click seated, or sneak + right-click</td><td>Menu → Pack up</td></tr>
+          <tr><th>Cargo Train</th><td>Right-click the locomotive (cab)</td><td>Drives itself. Stop it, then <span class="key">W</span><span class="key">S</span></td><td>Horn</td><td>Get off</td><td>Sneak + right-click the locomotive</td><td>Menu → Pick up the train</td></tr>
+          <tr><th>Cannon</th><td>Right-click the cannon</td><td>Look to aim (−10° to 60°)</td><td>Fire (2 s reload)</td><td>Get off</td><td class="dash">–</td><td>Sneak + right-click</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="sheet">
+      <header>
+        <p class="eyebrow">Havana · from seed to stogie</p>
+        <h2>The tobacco road</h2>
+      </header>
+      <ol class="steps">
+        <li><span class="n">1</span><span>Break grass and ferns for <b>Tobacco Seeds</b></span><span class="t">1 in 12</span></li>
+        <li><span class="n">2</span><span>Plant on farmland. Bone meal works</span><span class="t">like any crop</span></li>
+        <li><span class="n">3</span><span>Ripe plants shoot up 2 blocks. Harvest <b>3–5 leaves</b></span><span class="t">+1–2 seeds</span></li>
+        <li><span class="n">4</span><span>Leaves in a <b>Curing Barrel</b> become Cured Tobacco</span><span class="t">1 day · 20 min</span></li>
+        <li><span class="n">5</span><span>Leave it in for <b>Aged Tobacco</b> (optional)</span><span class="t">+2 days</span></li>
+        <li><span class="n">6</span><span>Hold tobacco, right-click a crafting table to roll</span><span class="t">3 tobacco = 1 cigar</span></li>
+        <li><span class="n">7</span><span>Light it: flint and steel in your off hand, or a campfire, torch or lantern</span><span class="t">8 puffs</span></li>
+      </ol>
+      <div class="puffs">
+        <span class="puff"><b>Cigar</b> · Regeneration</span>
+        <span class="puff"><b>Gran Reserva</b> · Regen + Resistance, finish it for Hero of the Village</span>
+        <span class="puff"><b>Honey</b> · Absorption</span>
+        <span class="puff"><b>Chocolate</b> · Haste</span>
+        <span class="puff"><b>Berry</b> · Speed</span>
+        <span class="puff"><b>Glow</b> · Night Vision</span>
+        <span class="puff"><b>Blaze</b> · Fire Resistance</span>
+      </div>
+      <p class="note">Puff three times fast and you cough. Lit cigars go out underwater.</p>
+    </div>
+
+    <div class="sheet">
+      <header>
+        <p class="eyebrow">Colonycraft · paid in Marks</p>
+        <h2>Colony price list</h2>
+      </header>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Building</th><th class="num">Price</th><th>Crew</th><th>Does</th></tr></thead>
+          <tbody>
+            <tr><th>Town Hall</th><td class="num money">₥2,500</td><td>1 mayor</td><td>Founds the colony, 65 × 65 claim</td></tr>
+            <tr><th>Residence</th><td class="num money">₥400</td><td class="dash">–</td><td>4 / 6 / 8 beds</td></tr>
+            <tr><th>Farm</th><td class="num money">₥800</td><td>2 / 3 / 4</td><td>Crops, pumpkins, melons</td></tr>
+            <tr><th>Lumber Camp</th><td class="num money">₥900</td><td>2 / 3 / 4</td><td>Logs, sticks, saplings, apples</td></tr>
+            <tr><th>Storehouse</th><td class="num money">₥500</td><td>1 / 1 / 2</td><td>Storage, optional autosell</td></tr>
+            <tr><th>Workshop</th><td class="num money">₥1,500</td><td>2 / 3 / 4</td><td>Ore to ingots, logs to planks</td></tr>
+            <tr><th>Mine</th><td class="num money">₥2,500</td><td>3 / 4 / 5</td><td>Cobble, ores, the odd diamond</td></tr>
+            <tr><th>Barracks</th><td class="num money">₥2,000</td><td>1 / 2 / 3 golems</td><td>Patrols the claim</td></tr>
+            <tr><th>Wall</th><td class="num money">₥300</td><td class="dash">–</td><td>9 long, snaps end to end</td></tr>
+            <tr><th>Gatehouse</th><td class="num money">₥1,200</td><td class="dash">–</td><td>Gates monsters can't open</td></tr>
+            <tr><th>Watchtower</th><td class="num money">₥1,800</td><td>1 / 2 / 3 archers</td><td>Shoots monsters within 24 blocks</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Wages every morning: <span class="money">₥3</span> per worker, ₥10 per archer, ₥15 per golem. Can't pay? Everyone strikes. Upgrades cost 1.5× (tier 2) and 3× (tier 3).</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>LIB Pack 1.0.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Havana, Mobile Home</span>
+    <span>Iron golems do not endorse the Burlap Sack.</span>
+  </footer>
+</div>
+
+<script>
+// Ingredient art: [short label, swatch colour]. Hover a slot for the full name.
+const I = {
+  gold_ingot: ["Au", "#e8b923"], obsidian: ["Obs", "#2a1b3d"], emerald: ["Em", "#17b85c"],
+  wool: ["Wool", "#e9e9e9"], glass_bottle: ["Btl", "#9fd3e6"], chest: ["Chst", "#a8742f"], boat: ["Boat", "#9b7340"], planks: ["Plk", "#b8925a"],
+  string: ["Str", "#d9d9d9"], leather: ["Lea", "#8b4f2b"],
+  iron_block: ["FeB", "#c9c9c9"], log: ["Log", "#6b4f2a"], dispenser: ["Disp", "#6f6f6f"], iron_ingot: ["Fe", "#bdbdbd"], gunpowder: ["Gun", "#5a5a5a"],
+  furnace_minecart: ["FMc", "#585858"], chest_minecart: ["CMc", "#8a6a3a"], redstone_block: ["RsB", "#b51d12"], rail: ["Rail", "#7d6a52"],
+  barrel: ["Brl", "#8d6236"], hay_block: ["Hay", "#c9a82b"],
+  glass: ["Gls", "#bfe3ee"], minecart: ["Mc", "#7b7b7b"], furnace: ["Frn", "#6a6a6a"],
+};
+const names = {
+  gold_ingot: "Gold Ingot", obsidian: "Obsidian", emerald: "Emerald", wool: "Any Wool", glass_bottle: "Glass Bottle", chest: "Chest",
+  boat: "Any Boat", planks: "Any Planks", string: "String", leather: "Leather", iron_block: "Block of Iron", log: "Any Log",
+  dispenser: "Dispenser", iron_ingot: "Iron Ingot", gunpowder: "Gunpowder", furnace_minecart: "Minecart with Furnace",
+  chest_minecart: "Minecart with Chest", redstone_block: "Block of Redstone", rail: "Rail", barrel: "Barrel", hay_block: "Hay Bale",
+  glass: "Glass", minecart: "Minecart", furnace: "Furnace",
+};
+// Lighter swatches need dark text.
+const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot"]);
+
+const MODS = [
+  { name: "Market", id: "market", colour: "#e8b923", tag: "Sell anything for Marks, buy it back at a markup, flex with pallets of cash.",
+    recipes: [{ name: "Market", pattern: ["GOG", "OEO", "GOG"], key: { G: "gold_ingot", O: "obsidian", E: "emerald" }, out: ["Mkt", "#c8961e"] }],
+    how: ["Right-click the Market block: <b>Sell</b>, <b>Buy</b>, <b>Luxury &amp; Vanity</b>",
+          "Buy price = sell price × 2 × rarity (1 / 1.5 / 2.5 / 4)",
+          "Withdraw cash as banknotes; right-click a note to deposit it",
+          "Luxury items (cash pallets, gold bars, Tycoon Trophy) do nothing but show off"],
+    cmds: ["/balance", "/pay", "/baltop", "/withdraw", "/worth", ["/market admin", true]] },
+  { name: "Colonycraft", id: "colonycraft", colour: "#b5523b", tag: "Found colonies, buy prefab buildings and let villagers gather for you.",
+    recipes: [], buy: "No recipe: buy a <b>Colony Charter</b> for <span class=\"money\">₥2,500</span> with <code>/colonycraft charter</code>. Rename it in an anvil to name the colony.",
+    how: ["Right-click the ground with the charter: a Town Hall goes up",
+          "Shop at the Town Hall's lectern for blueprints and upgrades",
+          "Click a spot once for the outline, again to build",
+          "Needs Market (it's in the pack)"],
+    cmds: ["/colonycraft", "/colonycraft charter", ["/colonycraft give", true], ["/colonycraft payday", true]] },
+  { name: "Ahoy", id: "ahoy", colour: "#3e8fc7", tag: "A two-masted sailing ship in a bottle. Captain + 8 passengers, two 54-slot holds, wind.",
+    recipes: [{ name: "Ship in a Bottle", pattern: ["WGW", "CBC", "PPP"], key: { W: "wool", G: "glass_bottle", C: "chest", B: "boat", P: "planks" }, out: ["Ship", "#3e8fc7"] }],
+    how: ["Right-click open water (about 7 × 20 blocks) to launch",
+          "Sailing with the wind is full speed, against it half",
+          "Nobody aboard gets hurt; drowned and guardians get zapped",
+          "Rename the bottle in an anvil to name your ship"],
+    cmds: ["/ahoy", ["/ahoy give", true]] },
+  { name: "Burlap Sack", id: "burlapsack", colour: "#a07a45", tag: "Bag villagers and wandering traders, let them out where you want them.",
+    recipes: [{ name: "Burlap Sack", pattern: [" S ", "L L", "LLL"], key: { S: "string", L: "leather" }, out: ["Sack", "#a07a45"] }],
+    how: ["Right-click a villager or wandering trader with the sack",
+          "Right-click a block to let them out. Trades and levels come along",
+          "Iron golems within 24 blocks will come for you",
+          "Captives charge you a bit more for a few days"],
+    cmds: ["/burlapsack", ["/burlapsack give", true]] },
+  { name: "Cannon", id: "cannon", colour: "#5c5c66", tag: "An aimable cannon you build, place and man. Blasts mobs, never your base.",
+    recipes: [
+      { name: "Cannon", pattern: ["III", "LDL", "L L"], key: { I: "iron_block", L: "log", D: "dispenser" }, out: ["Cnn", "#5c5c66"] },
+      { name: "Cannonball", shapeless: ["iron_ingot", "gunpowder"], out: ["Ball", "#3a3a3a"], count: 2 }],
+    how: ["Right-click the ground to place it, right-click it to man it",
+          "Look to aim, Space to fire. About 80 blocks at 45°",
+          "Creeper-sized blast that never breaks blocks",
+          "Friendly fire is on"],
+    cmds: ["/cannon", ["/cannon give", true]] },
+  { name: "Cargo Train", id: "cargotrain", colour: "#d9b51f", tag: "A self-driving locomotive and up to 4 wagons that shuttle between station chests.",
+    recipes: [
+      { name: "Cargo Train", shapeless: ["furnace_minecart", "chest_minecart", "redstone_block"], out: ["Trn", "#d9b51f"] },
+      { name: "Cargo Wagon", shapeless: ["chest_minecart", "iron_ingot"], out: ["Wgn", "#c69a2a"] },
+      { name: "Pickup Station", shapeless: ["chest", "rail"], out: ["Stn", "#a8742f"] }],
+    how: ["Right-click a rail (4+ in a row) with the train. Off it goes",
+          "Stations: chests named <b>Pickup</b>, <b>Drop-off</b> or <b>Swap Station</b> next to the track",
+          "Sneak + right-click a station (empty hand) to switch its mode",
+          "Keeps its chunks loaded while it runs"],
+    cmds: ["/train", ["/train give", true]] },
+  { name: "Havana", id: "havana", colour: "#7a4a24", tag: "Grow tobacco, cure it in a barrel, roll cigars and smoke them.",
+    recipes: [{ name: "Curing Barrel", shapeless: ["barrel", "hay_block"], out: ["Cure", "#8d6236"] }],
+    how: ["Or rename any barrel or chest with “Curing” or “Humidor” in it",
+          "Barrels keep curing while you're away",
+          "Roll at a crafting table while holding tobacco",
+          "See the tobacco road below"],
+    cmds: ["/havana", ["/havana give", true]] },
+  { name: "Mobile Home", id: "mobilehome", colour: "#3aa7a0", tag: "Drivable camper vans and tanks with 54 slots, a workbench and a force field.",
+    recipes: [
+      { name: "Camper Van", pattern: ["GGG", "ICI", "MFM"], key: { G: "glass", I: "iron_block", C: "chest", M: "minecart", F: "furnace" }, out: ["Van", "#3aa7a0"] },
+      { name: "Tank", pattern: ["IDI", "OCO", "MFM"], key: { I: "iron_block", D: "dispenser", O: "obsidian", C: "chest", M: "minecart", F: "furnace" }, out: ["Tank", "#4c6b35"] }],
+    how: ["Runs on anything a furnace burns. A lava bucket is about 30 min",
+          "Tank: turns on the spot, climbs 2-block walls, double fuel",
+          "Seated means safe: no damage, no drowning, monsters zapped",
+          "It floats. Nobody planned that"],
+    cmds: ["/mobilehome", ["/mobilehome give", true], ["/mobilehome refuel", true]] },
+];
+
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+function itemNode(key) {
+  const [label, colour] = I[key];
+  const d = el("div", "item", label);
+  d.style.background = colour;
+  if (lightInk.has(key)) { d.style.color = "#1d1d1f"; d.style.textShadow = "none"; }
+  return d;
+}
+function slot(key) {
+  const s = el("div", "slot");
+  if (key) { s.appendChild(itemNode(key)); s.title = names[key]; s.setAttribute("aria-label", names[key]); }
+  return s;
+}
+function recipeNode(r) {
+  const wrap = el("div", "recipe");
+  wrap.appendChild(el("div", "recipe-name", r.name + (r.shapeless ? ' <span class="note">· any shape</span>' : "")));
+  const craft = el("div", "craft");
+  const grid = el("div", "grid" + (r.shapeless ? " shapeless" : ""));
+  let used = [];
+  if (r.shapeless) {
+    grid.style.setProperty("--n", r.shapeless.length);
+    r.shapeless.forEach(k => { grid.appendChild(slot(k)); used.push(k); });
+  } else {
+    r.pattern.forEach(row => [...row].forEach(c => { const k = r.key[c]; grid.appendChild(slot(k)); if (k) used.push(k); }));
+  }
+  craft.appendChild(grid);
+  craft.appendChild(el("span", "arrow", "→"));
+  const res = el("div", "result");
+  const s = el("div", "slot count");
+  const it = el("div", "item", r.out[0]); it.style.background = r.out[1];
+  s.appendChild(it);
+  if (r.count) s.appendChild(el("b", null, r.count));
+  s.title = r.name;
+  res.appendChild(s);
+  craft.appendChild(res);
+  wrap.appendChild(craft);
+  const uniq = [...new Set(used)];
+  wrap.appendChild(el("p", "legend", uniq.map(k => `<b>${I[k][0]}</b> ${names[k]}`).join(" · ")));
+  return wrap;
+}
+
+const host = document.getElementById("mods");
+for (const m of MODS) {
+  const card = el("article", "card");
+  const head = el("header");
+  const h = el("h2", null, `<i style="background:${m.colour}"></i>${m.name}`);
+  head.appendChild(h);
+  head.appendChild(el("span", "id", m.id));
+  card.appendChild(head);
+  card.appendChild(el("p", "tag", m.tag));
+  if (m.recipes.length) {
+    const rs = el("div", "recipes");
+    m.recipes.forEach(r => rs.appendChild(recipeNode(r)));
+    card.appendChild(rs);
+  }
+  if (m.buy) card.appendChild(el("p", "note", m.buy));
+  const ul = el("ul");
+  m.how.forEach(t => ul.appendChild(el("li", null, t)));
+  card.appendChild(ul);
+  const cmds = el("div", "cmds");
+  m.cmds.forEach(c => { const [t, op] = Array.isArray(c) ? c : [c, false]; cmds.appendChild(el("span", "cmd" + (op ? " op" : ""), t)); });
+  card.appendChild(cmds);
+  host.appendChild(card);
+}
+</script>
