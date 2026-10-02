@@ -190,18 +190,28 @@ final class Crops {
 
 	/**
 	 * A tobacco plant knocked over by something other than a player (trampled farmland, water, a piston) drops its
-	 * vanilla loot: potatoes, or wheat seeds for the fern. Swap those for a tobacco seed as they spawn.
+	 * vanilla loot: potatoes, or wheat seeds for the fern. Swap those for a tobacco seed. Vanilla spawns the drops
+	 * before it removes the block, so look again at the end of the tick: by then a plant that broke is gone, and a
+	 * potato someone just threw onto a healthy plant is left alone.
 	 */
 	static void onEntityLoad(Entity entity, ServerLevel level) {
 		if (!(entity instanceof ItemEntity item) || !CROP_DROPS.contains(HavanaItems.id(item.getItem().getItem()))) {
 			return;
 		}
 		BlockPos pos = item.blockPosition();
-		for (BlockPos at : new BlockPos[] {pos, pos.below()}) {
-			if (HavanaStore.hasCrop(level, at) && !isPlant(level.getBlockState(at))) {
-				item.setItem(HavanaItems.seeds(1));
+		if (!HavanaStore.hasCrop(level, pos) && !HavanaStore.hasCrop(level, pos.below())) {
+			return;
+		}
+		HavanaMod.nextTick(() -> {
+			if (!item.isAlive() || !CROP_DROPS.contains(HavanaItems.id(item.getItem().getItem()))) {
 				return;
 			}
-		}
+			for (BlockPos at : new BlockPos[] {pos, pos.below()}) {
+				if (HavanaStore.hasCrop(level, at) && !isPlant(level.getBlockState(at))) {
+					item.setItem(HavanaItems.seeds(1));
+					return;
+				}
+			}
+		});
 	}
 }

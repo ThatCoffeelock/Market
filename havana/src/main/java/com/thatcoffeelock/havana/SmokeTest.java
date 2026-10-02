@@ -176,11 +176,15 @@ final class SmokeTest {
 		Cmd.setblock(level, WASHED, "minecraft:air");
 		Cmd.run(level, "summon minecraft:item " + Cmd.pos(WASHED.getX() + 0.5, WASHED.getY() + 0.2, WASHED.getZ() + 0.5)
 			+ " {Item:{id:\"minecraft:potato\",count:1}}");
+		Cmd.run(level, "summon minecraft:item " + Cmd.pos(KEPT.getX() + 0.5, KEPT.getY() + 0.2, KEPT.getZ() + 0.5)
+			+ " {Item:{id:\"minecraft:potato\",count:1}}");
 		HavanaMod.later(5, () -> step(server, () -> {
 			check(itemsAt(level, WASHED, s -> s.is(Items.POTATO)) == 0 && itemsAt(level, WASHED, HavanaItems::isSeeds) == 1,
 				"a potato dropped where a tobacco plant was turns into a tobacco seed");
 			check(itemsAt(level, TRAMPLED, s -> s.is(Items.POTATO) || s.is(Items.POISONOUS_POTATO)) == 0,
 				"a trampled tobacco plant doesn't drop potatoes");
+			check(itemsAt(level, KEPT, s -> s.is(Items.POTATO)) == 1 && itemsAt(level, KEPT, HavanaItems::isSeeds) == 0,
+				"a potato thrown onto a healthy tobacco plant stays a potato");
 			check(itemsAt(level, TRAMPLED, HavanaItems::isSeeds) >= 1, "a trampled tobacco plant drops a tobacco seed");
 			Crops.scan(server);
 			check(!HavanaStore.hasCrop(level, TRAMPLED) && !HavanaStore.hasCrop(level, WASHED), "plants that are gone are forgotten");
