@@ -74,7 +74,8 @@ jobs:
           kill "$PID" 2>/dev/null || true
           exec 3>&-
 
-          grep -A40 "Loading .* mods:" server.log || true
+          grep "Loading .* mods:" server.log || true
+          grep -E "(- |-- )(libpack|market|ahoy|burlapsack|cannon|cargotrain|colonycraft|havana|mobilehome) [0-9]" server.log || true
 
           failed=0
           if ! grep -q "Done (" server.log; then
