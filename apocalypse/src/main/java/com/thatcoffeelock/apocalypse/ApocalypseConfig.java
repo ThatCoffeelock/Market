@@ -20,8 +20,11 @@ public final class ApocalypseConfig {
 	public boolean hordes = true;
 	/** Seconds between hordes for each player at night. */
 	public int nightHordeSeconds = 75;
-	/** Seconds between hordes for each player during the day. 0 = no daytime hordes. */
-	public int dayHordeSeconds = 240;
+	/**
+	 * Seconds between hordes for each player during the day. 0 = no daytime hordes. Hordes follow vanilla
+	 * spawn rules, so in daylight they only find somewhere dark enough under thick cover; off by default.
+	 */
+	public int dayHordeSeconds = 0;
 	/** Smallest and largest horde on day 1. */
 	public int hordeSizeMin = 4;
 	public int hordeSizeMax = 8;

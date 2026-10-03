@@ -18,7 +18,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Only runs with -Dapocalypse.smokeTest=true (CI). Boots a real server and puts some hordes in a pen in the sky:
  * they must herd, merge, recruit, share a target, chew through glass, come to a bell, speed up on Horde Night,
- * and a fallen player must get back up.
+ * a fallen player must get back up, and nothing may spawn in the light.
  */
 final class SmokeTest {
 	private static final int Y = 200;
@@ -29,6 +29,7 @@ final class SmokeTest {
 	private static LivingEntity bait;
 	private static Vec3 bell;
 	private static double before;
+	private static final BlockPos DARK = new BlockPos(33, Y, 33);
 
 	private SmokeTest() {
 	}
@@ -66,6 +67,8 @@ final class SmokeTest {
 		Cmd.run(level, "fill " + -R + " " + Y + " " + R + " " + R + " " + (Y + 3) + " " + R + " minecraft:barrier");
 		Cmd.run(level, "fill " + -R + " " + Y + " " + -R + " " + -R + " " + (Y + 3) + " " + R + " minecraft:barrier");
 		Cmd.run(level, "fill " + R + " " + Y + " " + -R + " " + R + " " + (Y + 3) + " " + R + " minecraft:barrier");
+		// a sealed stone room next to the pen: pitch dark inside, so zombies may spawn there (until someone brings a torch)
+		Cmd.run(level, "fill 30 " + (Y - 1) + " 30 36 " + (Y + 3) + " 36 minecraft:stone hollow");
 
 		check(Doors.breakable(Blocks.OAK_DOOR.defaultBlockState()), "zombies chew oak doors");
 		check(Doors.breakable(Blocks.SPRUCE_TRAPDOOR.defaultBlockState()), "zombies chew trapdoors");
@@ -87,8 +90,8 @@ final class SmokeTest {
 		BlockPos ground = Hordes.ground(level, 5, 5, Y);
 		check(ground != null && ground.getY() == Y, "finds the floor of the pen (" + ground + ")");
 
-		first = Hordes.spawn(level, new BlockPos(-4, Y, 0), 6, false);
-		Hordes.Horde second = Hordes.spawn(level, new BlockPos(2, Y, 0), 3, false);
+		first = Hordes.spawn(level, new BlockPos(-4, Y, 0), 6, false, false);
+		Hordes.Horde second = Hordes.spawn(level, new BlockPos(2, Y, 0), 3, false, false);
 		check(first != null && first.size() == 6, "a horde of 6 rises (" + (first == null ? 0 : first.size()) + ")");
 		check(second != null && second.size() == 3, "a horde of 3 rises");
 		check(first.leaderMob() != null, "the horde has a leader");
@@ -116,6 +119,11 @@ final class SmokeTest {
 		check(census[1] >= 10, "one horde of at least 10 (" + census[1] + ")");
 		first = h;
 
+		check(!Undead.allowedAt(level, EntityTypes.ZOMBIE, new BlockPos(10, Y, -10)), "nothing spawns on a lit floor");
+		check(Hordes.spawn(level, new BlockPos(10, Y, -10), 4, false, true) == null, "no horde rises in the light");
+		check(Undead.allowedAt(level, EntityTypes.ZOMBIE, DARK), "zombies can spawn in a dark room");
+		Cmd.run(level, "setblock " + (DARK.getX() - 1) + " " + DARK.getY() + " " + (DARK.getZ() - 1) + " minecraft:torch");
+
 		bait = Undead.spawn(level, EntityTypes.VILLAGER, new BlockPos(-R + 3, Y, 0), 0f);
 		check(bait instanceof Mob, "a villager to chase");
 		((Mob) bait).setNoAi(true);
@@ -136,6 +144,8 @@ final class SmokeTest {
 			}
 		}
 		check(chasing == mobs.size(), "one saw the villager, so all of them did (" + chasing + "/" + mobs.size() + ")");
+
+		check(!Undead.allowedAt(level, EntityTypes.ZOMBIE, DARK), "one torch and they can't spawn in that room any more");
 
 		bait.discard();
 		for (Mob m : mobs) {

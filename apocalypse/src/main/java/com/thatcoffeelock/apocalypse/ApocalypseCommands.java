@@ -97,13 +97,13 @@ final class ApocalypseCommands {
 	private static int horde(CommandSourceStack source, int size) throws CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
 		ServerLevel level = (ServerLevel) player.level();
-		BlockPos spot = Hordes.spotNear(level, player);
+		BlockPos spot = Hordes.spotNear(level, player, null);
 		if (spot == null) {
 			source.sendFailure(Component.literal("Couldn't find solid ground nearby for them to stand on."));
 			return 0;
 		}
 		int n = size > 0 ? size : Hordes.size(level, HordeNight.active());
-		Hordes.Horde h = Hordes.spawn(level, spot, n, false);
+		Hordes.Horde h = Hordes.spawn(level, spot, n, false, false);
 		int spawned = h == null ? 0 : h.size();
 		source.sendSuccess(() -> Component.literal("Summoned a horde of " + spawned + " at " + spot.toShortString() + ". Good luck.")
 			.withStyle(ChatFormatting.DARK_RED), true);
@@ -119,7 +119,7 @@ final class ApocalypseCommands {
 			"§7Ring a §6bell§7 to lure every zombie within 64 blocks to it. That's how you herd them.",
 			"§7Every 7th night is §4Horde Night§7. You get a warning that morning.",
 			"§7Bites can §2infect§7 you. A §6golden apple§7 cures it. Die infected and you get back up, wearing your stuff.",
-			"§7In daylight only §fhusks§7 come: they don't burn.",
+			"§7Hordes follow vanilla spawn rules: they only rise in the §fdark§7. Light up your base and nothing spawns inside.",
 			"§f/apocalypse§7 shows the day, the next Horde Night and whether you're infected.",
 			"§7Ops: §f/apocalypse admin horde [size]|hordenight start|stop|infect|cure <player>|clear|reload"
 		};

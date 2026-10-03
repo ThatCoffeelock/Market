@@ -11,6 +11,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -50,6 +51,25 @@ final class Undead {
 		}
 		level.addFreshEntityWithPassengers(entity);
 		return entity;
+	}
+
+	/**
+	 * Would vanilla spawn this here at night? The same checks the natural spawner makes: block light 0,
+	 * a dark enough sky, a floor monsters can stand on, and room to stand. Light up your base and they stay out.
+	 */
+	static boolean allowedAt(ServerLevel level, EntityType<? extends Mob> type, BlockPos pos) {
+		if (!SpawnPlacements.isSpawnPositionOk(type, level, pos)
+			|| !SpawnPlacements.checkSpawnRules(type, level, EntitySpawnReason.NATURAL, pos, level.getRandom())) {
+			return false;
+		}
+		Mob probe = type.create(level, EntitySpawnReason.NATURAL);
+		if (probe == null) {
+			return false;
+		}
+		probe.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0f, 0f);
+		boolean ok = probe.checkSpawnRules(level, EntitySpawnReason.NATURAL) && probe.checkSpawnObstruction(level);
+		probe.discard();
+		return ok;
 	}
 
 	/** Paths a mob somewhere. Returns false if it can't find a way. */

@@ -389,9 +389,10 @@ final class Hordes {
 			if (size < 2) {
 				continue;
 			}
-			BlockPos spot = spotNear(level, p);
+			boolean daylight = !night && !hordeNight;
+			BlockPos spot = spotNear(level, p, daylight ? EntityTypes.HUSK : EntityTypes.ZOMBIE);
 			if (spot != null) {
-				Horde h = spawn(level, spot, size, !night && !hordeNight);
+				Horde h = spawn(level, spot, size, daylight, true);
 				if (h != null) {
 					ApocalypseMod.LOG.debug("A horde of {} shambles toward {} (day {})", h.size(), p.getName().getString(), day(level));
 				}
@@ -406,8 +407,11 @@ final class Hordes {
 		return hordeNight ? (int) Math.round(grown * cfg.hordeNightSize) : grown;
 	}
 
-	/** Somewhere on the ground, out of arm's reach but within earshot, at about the player's height. */
-	static @Nullable BlockPos spotNear(ServerLevel level, Entity around) {
+	/**
+	 * Somewhere on the ground, out of arm's reach but within earshot, at about the player's height.
+	 * With a type, only where vanilla would spawn one: dark, so never in your lit-up base.
+	 */
+	static @Nullable BlockPos spotNear(ServerLevel level, Entity around, @Nullable EntityType<? extends Mob> rulesFor) {
 		ApocalypseConfig cfg = ApocalypseConfig.get();
 		for (int i = 0; i < 16; i++) {
 			double angle = RANDOM.nextDouble() * Math.PI * 2;
@@ -415,7 +419,7 @@ final class Hordes {
 			int x = (int) Math.floor(around.getX() + Math.cos(angle) * dist);
 			int z = (int) Math.floor(around.getZ() + Math.sin(angle) * dist);
 			BlockPos pos = ground(level, x, z, around.getBlockY());
-			if (pos != null && Math.abs(pos.getY() - around.getBlockY()) <= 16) {
+			if (pos != null && Math.abs(pos.getY() - around.getBlockY()) <= 16 && (rulesFor == null || Undead.allowedAt(level, rulesFor, pos))) {
 				return pos;
 			}
 		}
@@ -440,8 +444,11 @@ final class Hordes {
 		return pos;
 	}
 
-	/** Spawns a horde around a spot. In daylight only husks come: they don't burn. */
-	static @Nullable Horde spawn(ServerLevel level, BlockPos center, int size, boolean daylight) {
+	/**
+	 * Spawns a horde around a spot. In daylight only husks come: they don't burn. Natural hordes follow
+	 * vanilla's spawn rules zombie by zombie, so none of them appear in the light; admin hordes skip that.
+	 */
+	static @Nullable Horde spawn(ServerLevel level, BlockPos center, int size, boolean daylight, boolean natural) {
 		Horde h = create(level);
 		for (int i = 0; i < size; i++) {
 			BlockPos at = center;
@@ -451,7 +458,11 @@ final class Hordes {
 					at = near;
 				}
 			}
-			Entity e = Undead.spawn(level, pick(daylight), at, RANDOM.nextFloat() * 360f);
+			EntityType<? extends Mob> type = pick(daylight);
+			if (natural && !Undead.allowedAt(level, type, at)) {
+				continue;
+			}
+			Entity e = Undead.spawn(level, type, at, RANDOM.nextFloat() * 360f);
 			if (e instanceof Mob mob) {
 				join(h, mob);
 			}
