@@ -162,7 +162,7 @@ final class Lights {
 				smashing++;
 				breaker = m;
 			} else if (m.getNavigation().isDone() || (now + m.getId()) % 3 == 0) {
-				Undead.walkTo(m, c.x, c.y, c.z, 1.1);
+				Undead.walkNear(m, c.x, c.y, c.z, 1.1);
 			}
 		}
 		if (breaker != null) {
@@ -241,7 +241,7 @@ final class Lights {
 				}
 			} else if (m.getNavigation().isDone() || (now + m.getId()) % 3 == 0) {
 				Vec3 c = Vec3.atBottomCenterOf(light);
-				Undead.walkTo(m, c.x, c.y, c.z, 1.0);
+				Undead.walkNear(m, c.x, c.y, c.z, 1.0);
 			}
 		}
 	}

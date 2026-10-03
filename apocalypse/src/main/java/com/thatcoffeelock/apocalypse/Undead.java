@@ -77,6 +77,11 @@ final class Undead {
 		return mob.getNavigation().moveTo(x, y, z, speed);
 	}
 
+	/** Paths a mob to within a block of a spot: for solid targets (a lantern) it can't stand inside. */
+	static boolean walkNear(Mob mob, double x, double y, double z, double speed) {
+		return mob.getNavigation().moveTo(x, y, z, 1, speed);
+	}
+
 	static boolean busy(Mob mob) {
 		LivingEntity target = mob.getTarget();
 		return target != null && target.isAlive();

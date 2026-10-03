@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -194,7 +195,22 @@ final class SmokeTest {
 			"torches and lanterns count as lights");
 		check(Lights.nearest(level, new BlockPos(0, Y, 0), 3, Set.of()) == null, "a glowstone floor underfoot is never a target");
 		first.goal = null; // done with the bell
-		next(level, 400, () -> lights(level));
+		waitFor(level, 40, () -> !level.getBlockState(TORCH).is(Blocks.TORCH) && !level.getBlockState(LANTERN).is(Blocks.LANTERN),
+			() -> lights(level));
+	}
+
+	/**
+	 * Checks once a second until the condition holds or maxSeconds run out, then moves on either way:
+	 * the next step's own checks say exactly what didn't happen.
+	 */
+	private static void waitFor(ServerLevel level, int maxSeconds, BooleanSupplier done, Step then) {
+		next(level, 20, () -> {
+			if (done.getAsBoolean() || maxSeconds <= 1) {
+				then.run();
+			} else {
+				waitFor(level, maxSeconds - 1, done, then);
+			}
+		});
 	}
 
 	private static void lights(ServerLevel level) {
