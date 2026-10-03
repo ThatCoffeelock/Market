@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -21,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Only runs with -Dapocalypse.smokeTest=true (CI). Boots a real server and puts some hordes in a pen in the sky:
  * they must herd, merge, recruit, share a target, chew through glass, come to a bell, speed up on Horde Night,
- * a fallen player must get back up, nothing may spawn in the light, they must smash the lights they can reach, and the sun must not burn them.
+ * a fallen player must get back up, nothing may spawn in the light, they must smash the lights they can reach, the sun must not burn them, and they must pyramid over a wall.
  */
 final class SmokeTest {
 	private static final int Y = 200;
@@ -33,6 +34,9 @@ final class SmokeTest {
 	private static Vec3 bell;
 	private static double before;
 	private static final BlockPos DARK = new BlockPos(33, Y, 33);
+	private static final int FORT_MIN = -17;
+	private static final int FORT_MAX = -11;
+	private static LivingEntity penned;
 	private static Mob control;
 	private static Mob sunny;
 	private static final BlockPos TORCH = new BlockPos(14, Y, -14);
@@ -69,12 +73,12 @@ final class SmokeTest {
 
 	/** A glowstone pen in the sky (lit, so nothing spawns in it by itself), two hordes and a straggler. */
 	private static void setup(ServerLevel level) {
-		Cmd.run(level, "fill " + -R + " " + Y + " " + -R + " " + R + " " + (Y + 6) + " " + R + " minecraft:air");
+		Cmd.run(level, "fill " + -R + " " + Y + " " + -R + " " + R + " " + (Y + 12) + " " + R + " minecraft:air");
 		Cmd.run(level, "fill " + -R + " " + (Y - 1) + " " + -R + " " + R + " " + (Y - 1) + " " + R + " minecraft:glowstone");
-		Cmd.run(level, "fill " + -R + " " + Y + " " + -R + " " + R + " " + (Y + 3) + " " + -R + " minecraft:barrier");
-		Cmd.run(level, "fill " + -R + " " + Y + " " + R + " " + R + " " + (Y + 3) + " " + R + " minecraft:barrier");
-		Cmd.run(level, "fill " + -R + " " + Y + " " + -R + " " + -R + " " + (Y + 3) + " " + R + " minecraft:barrier");
-		Cmd.run(level, "fill " + R + " " + Y + " " + -R + " " + R + " " + (Y + 3) + " " + R + " minecraft:barrier");
+		Cmd.run(level, "fill " + -R + " " + Y + " " + -R + " " + R + " " + (Y + 12) + " " + -R + " minecraft:barrier");
+		Cmd.run(level, "fill " + -R + " " + Y + " " + R + " " + R + " " + (Y + 12) + " " + R + " minecraft:barrier");
+		Cmd.run(level, "fill " + -R + " " + Y + " " + -R + " " + -R + " " + (Y + 12) + " " + R + " minecraft:barrier");
+		Cmd.run(level, "fill " + R + " " + Y + " " + -R + " " + R + " " + (Y + 12) + " " + R + " minecraft:barrier");
 		// a sealed stone room next to the pen: pitch dark inside, so zombies may spawn there (until someone brings a torch)
 		Cmd.run(level, "fill 30 " + (Y - 1) + " 30 36 " + (Y + 3) + " 36 minecraft:stone hollow");
 
@@ -248,8 +252,54 @@ final class SmokeTest {
 		check(sunny.isAlive() && !sunny.isOnFire(), "a zombie stands in the noon sun and doesn't burn");
 		check(sunny.getHealth() >= sunny.getMaxHealth(), "not even a little (" + sunny.getHealth() + "/" + sunny.getMaxHealth() + ")");
 		check(control.isAlive() && !control.isOnFire(), "the control zombie stopped burning too");
+		check(first.leaderMob() != null, "the horde still has a leader at noon");
+
+		// pyramids: the geometry first, on real blocks
+		Cmd.run(level, "fill -19 " + Y + " 16 -19 " + (Y + 2) + " 16 minecraft:stone");      // a 3-high wall east of (-20, 16)
+		Cmd.run(level, "setblock -19 " + Y + " 18 minecraft:stone");                          // a 1-high step east of (-20, 18)
+		Cmd.run(level, "fill -19 " + Y + " 20 -19 " + (Y + 7) + " 20 minecraft:stone");      // an 8-high wall east of (-20, 20)
+		check(Pyramids.wallHeight(level, new BlockPos(-20, Y, 16), Direction.EAST, 6) == 3, "a 3-high wall can be pyramided");
+		check(Pyramids.needed(3) == 6 && Pyramids.needed(5) == 12, "it takes 6 zombies for 3 high, 12 for 5");
+		check(Pyramids.wallHeight(level, new BlockPos(-20, Y, 18), Direction.EAST, 6) < 0, "a 1-high step isn't a wall (they just jump it)");
+		check(Pyramids.wallHeight(level, new BlockPos(-20, Y, 20), Direction.EAST, 6) < 0, "an 8-high wall is too tall");
+		Cmd.run(level, "setblock -20 " + (Y + 3) + " 16 minecraft:stone");                   // an overhang over the zombie's side
+		check(Pyramids.wallHeight(level, new BlockPos(-20, Y, 16), Direction.EAST, 6) < 0, "an overhang stops the pyramid");
+
+		// then for real: a walled pen with a villager inside, a 2-high wall (3 zombies' worth), and the horde outside
+		Cmd.run(level, "fill " + FORT_MIN + " " + Y + " " + FORT_MIN + " " + FORT_MAX + " " + (Y + 1) + " " + FORT_MAX + " minecraft:stone");
+		Cmd.run(level, "fill " + (FORT_MIN + 1) + " " + Y + " " + (FORT_MIN + 1) + " " + (FORT_MAX - 1) + " " + (Y + 1) + " " + (FORT_MAX - 1) + " minecraft:air");
+		int mid = (FORT_MIN + FORT_MAX) / 2;
+		penned = Undead.spawn(level, EntityTypes.VILLAGER, new BlockPos(mid, Y, mid), 0f);
+		check(penned instanceof Mob, "a villager behind a wall");
+		((Mob) penned).setNoAi(true);
+		Cmd.run(level, "effect give " + penned.getUUID() + " minecraft:resistance 120 4 true");
+		for (Mob m : members(level, first)) {
+			m.setTarget(penned);
+		}
+		waitFor(level, 45, () -> overTheWall(level) != null, () -> pyramid(level));
+	}
+
+	/** A horde zombie on top of the fort wall or inside it. */
+	private static Mob overTheWall(ServerLevel level) {
+		for (Mob m : members(level, first)) {
+			if (!m.isPassenger() && m.getX() >= FORT_MIN && m.getX() < FORT_MAX + 1 && m.getZ() >= FORT_MIN && m.getZ() < FORT_MAX + 1) {
+				return m;
+			}
+		}
+		return null;
+	}
+
+	private static void pyramid(ServerLevel level) {
+		Mob over = overTheWall(level);
+		check(over != null, "the horde piled up and got over a 2-high wall");
+		ApocalypseMod.LOG.info("[smoke] a {} got over the wall at {}", Undead.typeId(over), over.blockPosition().toShortString());
+		penned.discard();
+		Pyramids.disbandAll(first);
+		for (Mob m : members(level, first)) {
+			m.setTarget(null);
+		}
 		Mob leader = first.leaderMob();
-		check(leader != null, "the horde still has a leader at noon");
+		check(leader != null, "the horde still has a leader after the pyramid");
 
 		HordeNight.force(level.getServer());
 		check(HordeNight.active(), "Horde Night can be started");

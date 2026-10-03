@@ -50,6 +50,8 @@ final class Hordes {
 		@Nullable BlockPos light;
 		int lightSince;
 		final Set<Long> ignoredLights = new HashSet<>();
+		/** Pyramids it's building against walls. */
+		final List<Pyramids.Pile> piles = new ArrayList<>();
 		/** Where each member stood a second ago, to tell who's stuck at a door. */
 		final Map<UUID, Vec3> lastPos = new HashMap<>();
 
@@ -235,8 +237,12 @@ final class Hordes {
 				Doors.chew(h, mobs, target);
 			}
 			Lights.onTheWay(h, mobs, target, now);
+			Pyramids.climb(h, mobs, target, now);
 			remember(h, mobs);
 			return;
+		}
+		if (!h.piles.isEmpty()) {
+			Pyramids.disbandAll(h); // lost them: climb down
 		}
 		remember(h, mobs);
 

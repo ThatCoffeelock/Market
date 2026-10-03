@@ -50,6 +50,16 @@ public final class ApocalypseConfig {
 	/** Horde members track targets this far (vanilla zombies: 35). */
 	public double hordeFollowRange = 48;
 
+	// ---- pyramids
+	/** Horde zombies stuck at a wall pile onto each other and climb over it. */
+	public boolean pyramids = true;
+	/** Zombies it takes per block of wall above the first: a 3-high wall needs 6. */
+	public int pyramidZombiesPerBlock = 3;
+	/** The tallest wall they can pyramid over... */
+	public int pyramidMaxHeight = 6;
+	/** ...plus this on Horde Night. */
+	public int hordeNightPyramidBonus = 3;
+
 	// ---- lights
 	/** Zombies smash torches, lanterns and other lights they can reach. Idle hordes go looking for them. */
 	public boolean smashLights = true;
@@ -131,6 +141,9 @@ public final class ApocalypseConfig {
 		cfg.infectionChance = Math.max(0, Math.min(1, cfg.infectionChance));
 		cfg.infectionMinutes = Math.max(1, cfg.infectionMinutes);
 		cfg.breakSeconds = Math.max(1, cfg.breakSeconds);
+		cfg.pyramidZombiesPerBlock = Math.max(1, cfg.pyramidZombiesPerBlock);
+		cfg.pyramidMaxHeight = Math.max(2, cfg.pyramidMaxHeight);
+		cfg.hordeNightPyramidBonus = Math.max(0, cfg.hordeNightPyramidBonus);
 		cfg.lightSearchRange = Math.max(1, Math.min(32, cfg.lightSearchRange));
 		cfg.lightGiveUpSeconds = Math.max(5, cfg.lightGiveUpSeconds);
 		current = cfg;
