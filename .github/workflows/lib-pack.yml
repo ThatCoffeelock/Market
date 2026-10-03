@@ -24,10 +24,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       # Market first: Colonycraft compiles against its jar.
-      - name: Build all nine mods
+      - name: Build all ten mods
         run: |
           set -o pipefail
-          for dir in . ahoy burlap-sack cannon cargo-train colonycraft flintlock havana mobile-home; do
+          for dir in . ahoy burlap-sack cannon cargo-train colonycraft flintlock havana mobile-home skills; do
             echo "::group::Build $dir"
             (cd "$dir" && ./gradlew build -x test) 2>&1 | tee -a build.log
             echo "::endgroup::"
@@ -75,7 +75,7 @@ jobs:
           exec 3>&-
 
           grep "Loading .* mods:" server.log || true
-          grep -E "(- |-- )(libpack|market|ahoy|burlapsack|cannon|cargotrain|colonycraft|flintlock|havana|mobilehome) [0-9]" server.log || true
+          grep -E "(- |-- )(libpack|market|ahoy|burlapsack|cannon|cargotrain|colonycraft|flintlock|havana|mobilehome|skills) [0-9]" server.log || true
 
           failed=0
           if ! grep -q "Done (" server.log; then
@@ -83,7 +83,7 @@ jobs:
             failed=1
           fi
           # Fabric lists nested mods under their parent: "|-- market 1.0.0+mc26.3".
-          for id in libpack market ahoy burlapsack cannon cargotrain colonycraft flintlock havana mobilehome; do
+          for id in libpack market ahoy burlapsack cannon cargotrain colonycraft flintlock havana mobilehome skills; do
             if ! grep -qE "(- |-- )$id [0-9]" server.log; then
               echo "::error::Mod '$id' wasn't loaded from the pack"
               failed=1
@@ -127,7 +127,7 @@ jobs:
           prerelease: true
           make_latest: false
           body: |
-            Latest green build of the LIB Pack: all nine mods (Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home) in one jar, for Minecraft 26.3 (Fabric, server-side).
+            Latest green build of the LIB Pack: all ten mods (Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Skills) in one jar, for Minecraft 26.3 (Fabric, server-side).
             Download the .jar below and put it in your server's mods/ folder together with Fabric API. Remove the separate mod jars if you had them.
             Built from ${{ github.sha }}.
           files: lib-pack/build/libs/lib-pack-*.jar

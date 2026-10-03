@@ -6,6 +6,7 @@ import com.thatcoffeelock.market.MarketData;
 import com.thatcoffeelock.market.MarketMod;
 import com.thatcoffeelock.market.Money;
 import com.thatcoffeelock.market.PriceBook;
+import com.thatcoffeelock.market.SkillsHook;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -133,6 +134,7 @@ public final class SellMenu extends MarketMenu {
 			nope();
 			viewer.sendSystemMessage(Component.literal("Nothing in there the market wants to buy.").withStyle(ChatFormatting.RED));
 		} else {
+			total = SkillsHook.sell(viewer, total);
 			MarketData.deposit(viewer, total);
 			kaching();
 			viewer.sendSystemMessage(Component.literal("Sold " + items + " item(s) for ").withStyle(ChatFormatting.GREEN)

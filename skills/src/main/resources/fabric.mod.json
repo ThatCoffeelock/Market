@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "skills",
+	"version": "${version}",
+	"name": "Skills",
+	"description": "Elder Scrolls style skills: use a skill to level it, every 10 levels earns a perk point. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.skills.SkillsMod"]
+	},
+	"mixins": ["skills.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

@@ -9,6 +9,7 @@ import com.thatcoffeelock.market.MarketItems;
 import com.thatcoffeelock.market.MarketMod;
 import com.thatcoffeelock.market.Money;
 import com.thatcoffeelock.market.PriceBook;
+import com.thatcoffeelock.market.SkillsHook;
 import com.thatcoffeelock.market.Vanity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -152,7 +153,7 @@ public final class BuyMenu extends MarketMenu {
 		if (unit <= 0 || amount <= 0) {
 			return;
 		}
-		long cost = unit * amount;
+		long cost = SkillsHook.buy(viewer, unit * amount, Math.max(0, PriceBook.unitSell(item)) * amount);
 		if (!MarketData.withdraw(viewer, cost)) {
 			nope();
 			viewer.sendSystemMessage(Component.literal("You need ").withStyle(ChatFormatting.RED)
