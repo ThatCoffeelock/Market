@@ -14,6 +14,7 @@ It's **server-side only**. Players join with a plain vanilla client. It is **not
 | **They hunt by sound** | Breaking blocks, fighting and sprinting draw in nearby zombies. Sneaking doesn't |
 | **Bells** | Ringing a bell lures **every zombie within 64 blocks** to it for 40 seconds. Ring one on the far side of town, then go loot the other side. That's how you herd a horde |
 | **Doors** | Horde zombies stuck at a door while they can see you chew through **wooden doors, trapdoors, fence gates and glass**. Every extra zombie at the same door makes it faster. Iron and copper hold |
+| **Your base** | `/apocalypse base set [radius]` claims a circle around you (48 blocks by default, up to 96). **No zombies spawn inside**: no hordes, and natural zombie spawns are cancelled. They can still walk in from outside, so a siege is still a siege. You can't claim one with zombies within 24 blocks: it's a home, not a panic button |
 | **Horde Night** | Every **7th night**. You get a warning that morning. Hordes come three times as often, they're 75% bigger and 20% faster, and bites are twice as likely to infect |
 | **Infection** | A zombie bite has a 12% chance to infect you. Over 20 minutes you get hunger, then weakness and nausea, then slowness and mining fatigue, and then you **turn**. A **golden apple cures it**. A totem of undying burns it out of you |
 | **Rising** | Die infected, or get killed by a zombie, and a zombie with your name gets up where you fell. It picks up loot, so it'll put your diamond armour on. Go get your stuff back |
@@ -28,6 +29,9 @@ Put **Fabric API** and **`apocalypse-<version>.jar`** in your server's `mods/` f
 |---|---|---|
 | `/apocalypse` | Everyone | Day count, the next Horde Night, hordes nearby, and whether you're infected |
 | `/apocalypse help` | Everyone | How it all works |
+| `/apocalypse base` | Everyone | Where your base is, and whether you're in it |
+| `/apocalypse base set [radius]` | Everyone | Claims your base where you stand (one per player; setting it again moves it) |
+| `/apocalypse base remove` | Everyone | Abandons it |
 | `/apocalypse admin horde [size]` | Ops | Summons a horde near you |
 | `/apocalypse admin hordenight start\|stop` | Ops | Horde Night right now (at least 5 minutes), or calls it off |
 | `/apocalypse admin infect\|cure <player>` | Ops | Bites or cures someone |
@@ -44,6 +48,7 @@ Created on first start. The main ones:
 | `hordeSizeMin` / `hordeSizeMax` / `hordeGrowthPerDay` / `hordeSizeCap` | 4 / 8 / 0.5 / 24 | How big hordes are, and how fast they grow |
 | `maxZombiesNearPlayer` | 40 | No new hordes past this many zombies within 64 blocks (70 on Horde Night) |
 | `scentRange` / `shareAggroRange` / `joinRange` / `maxHordeSize` | 80 / 32 / 10 / 40 | Herding |
+| `baseRadius` / `maxBaseRadius` / `baseClearRange` | 48 / 96 / 24 | Bases |
 | `hordeNightEvery` | 7 | 0 turns Horde Night off |
 | `noise`, `bellRadius`, `bellSeconds` | true, 64, 40 | Sound and bells |
 | `infection`, `infectionChance`, `infectionMinutes` | true, 0.12, 20 | Bites |
@@ -54,5 +59,6 @@ Created on first start. The main ones:
 
 - Days count time survived (game time), so sleeping doesn't skip ahead to Horde Night, and it doesn't skip Horde Night either. You can still sleep through it. Coward.
 - Hordes roam the surface around you. Caves are relatively safe. Relatively.
+- Bases are saved in the world folder as `apocalypse-bases.json`. Named zombies (like a risen player) are never removed from a base: go get your stuff back.
 - Horde zombies aren't persistent: they despawn like any other monster once you're far away. Risen players are persistent, so your gear doesn't vanish.
-- CI builds the mod, then boots a real dedicated server. In a glowstone pen in the sky it spawns two hordes and a straggler, then checks that they merge and recruit, that one sighting turns the whole horde, that three zombies get through a window faster than one, that a bell pulls the horde across the pen, that Horde Night speeds them up, and that a fallen player gets back up.
+- CI builds the mod, then boots a real dedicated server. In a glowstone pen in the sky it spawns two hordes and a straggler, then checks that they merge and recruit, that one sighting turns the whole horde, that three zombies get through a window faster than one, that a bell pulls the horde across the pen, that Horde Night speeds them up, that a fallen player gets back up, and that zombies appearing inside a base vanish while the one outside stays.

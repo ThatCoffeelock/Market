@@ -422,10 +422,10 @@ final class Hordes {
 		return null;
 	}
 
-	/** The surface at (x, z), if it's loaded, dry, solid and has room for a zombie. */
+	/** The surface at (x, z), if it's loaded, dry, solid, outside every base and has room for a zombie. */
 	static @Nullable BlockPos ground(ServerLevel level, int x, int z, int nearY) {
 		BlockPos probe = new BlockPos(x, nearY, z);
-		if (!level.isLoaded(probe)) {
+		if (!level.isLoaded(probe) || Bases.protects(level, probe)) {
 			return null;
 		}
 		int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);

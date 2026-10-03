@@ -13,6 +13,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.Level;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -59,8 +61,23 @@ final class ApocalypseCommands {
 				return 1;
 			}));
 
+		LiteralArgumentBuilder<CommandSourceStack> base = literal("base")
+			.executes(ctx -> baseInfo(ctx.getSource()))
+			.then(literal("set")
+				.executes(ctx -> setBase(ctx.getSource(), ApocalypseConfig.get().baseRadius))
+				.then(argument("radius", IntegerArgumentType.integer(8, 1024))
+					.executes(ctx -> setBase(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "radius")))))
+			.then(literal("remove").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				boolean removed = Bases.remove(ctx.getSource().getServer(), player.getUUID());
+				ctx.getSource().sendSystemMessage(Component.literal(removed ? "Base abandoned. The dead are welcome again." : "You don't have a base.")
+					.withStyle(removed ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
+				return removed ? 1 : 0;
+			}));
+
 		dispatcher.register(literal("apocalypse")
 			.executes(ctx -> status(ctx.getSource()))
+			.then(base)
 			.then(literal("help").executes(ctx -> {
 				help(ctx.getSource());
 				return 1;
@@ -94,6 +111,53 @@ final class ApocalypseCommands {
 		return 1;
 	}
 
+	private static int baseInfo(CommandSourceStack source) throws CommandSyntaxException {
+		ServerPlayer player = source.getPlayerOrException();
+		Bases.Base mine = Bases.of(player.getUUID());
+		if (mine == null) {
+			source.sendSystemMessage(Component.literal("§7You don't have a base. Stand in the middle of it and use §f/apocalypse base set [radius]§7. "
+				+ "No zombies spawn inside (radius " + ApocalypseConfig.get().baseRadius + " by default, up to " + ApocalypseConfig.get().maxBaseRadius + ")."));
+		} else {
+			double dx = player.getX() - (mine.x + 0.5);
+			double dz = player.getZ() - (mine.z + 0.5);
+			int away = (int) Math.round(Math.sqrt(dx * dx + dz * dz));
+			source.sendSystemMessage(Component.literal("§aYour base: §f" + mine.x + " " + mine.y + " " + mine.z + "§a, radius §f" + mine.radius
+				+ "§a. " + (away <= mine.radius ? "You're inside." : "You're " + (away - mine.radius) + " blocks outside it.")));
+		}
+		Bases.Base here = Bases.at(player.level(), player.getX(), player.getZ());
+		if (here != null && here != mine) {
+			source.sendSystemMessage(Component.literal("§7You're standing in §f" + here.name + "§7's base."));
+		}
+		return 1;
+	}
+
+	private static int setBase(CommandSourceStack source, int radius) throws CommandSyntaxException {
+		ServerPlayer player = source.getPlayerOrException();
+		ApocalypseConfig cfg = ApocalypseConfig.get();
+		ServerLevel level = (ServerLevel) player.level();
+		if (level.dimension() != Level.OVERWORLD) {
+			source.sendFailure(Component.literal("Bases only work in the overworld. That's where the zombies are."));
+			return 0;
+		}
+		if (radius > cfg.maxBaseRadius) {
+			source.sendFailure(Component.literal("That's a kingdom, not a base. The biggest allowed is " + cfg.maxBaseRadius + "."));
+			return 0;
+		}
+		if (cfg.baseClearRange > 0) {
+			int near = level.getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(cfg.baseClearRange), Undead::isZombie).size();
+			if (near > 0) {
+				source.sendFailure(Component.literal("Not with " + near + " zombie" + (near == 1 ? "" : "s") + " within " + cfg.baseClearRange
+					+ " blocks. Deal with them first: a base is a home, not a panic button."));
+				return 0;
+			}
+		}
+		Bases.Base base = Bases.set(source.getServer(), player.getUUID(), player.getName().getString(), player.blockPosition(), radius);
+		source.sendSystemMessage(Component.literal("⌂ Base claimed: ").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD)
+			.append(Component.literal(base.radius + " blocks around " + base.x + " " + base.y + " " + base.z
+				+ ". No zombies spawn here. They can still walk in, so keep the doors shut.").withStyle(ChatFormatting.GREEN)));
+		return 1;
+	}
+
 	private static int horde(CommandSourceStack source, int size) throws CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
 		ServerLevel level = (ServerLevel) player.level();
@@ -120,6 +184,7 @@ final class ApocalypseCommands {
 			"§7Every 7th night is §4Horde Night§7. You get a warning that morning.",
 			"§7Bites can §2infect§7 you. A §6golden apple§7 cures it. Die infected and you get back up, wearing your stuff.",
 			"§7In daylight only §fhusks§7 come: they don't burn.",
+			"§f/apocalypse base set [radius]§7 claims your base: no zombies spawn inside. They can still walk in.",
 			"§f/apocalypse§7 shows the day, the next Horde Night and whether you're infected.",
 			"§7Ops: §f/apocalypse admin horde [size]|hordenight start|stop|infect|cure <player>|clear|reload"
 		};
