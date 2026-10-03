@@ -143,8 +143,92 @@ final class SmokeTest {
 	private static void cleanup(ServerLevel level) {
 		check(countParts(level) == displaysBefore, "picking up removes every entity (" + countParts(level) + " left, expected " + displaysBefore + ")");
 		check(Cannons.all().isEmpty(), "no cannons left registered");
-		CannonMod.LOG.info("CANNON SMOKE TEST PASSED");
-		level.getServer().halt(false);
+		mountedCannon(level);
+	}
+
+	/** A cannon mounted on something else (Ahoy's ships), through CannonApi. */
+	private static void mountedCannon(ServerLevel level) {
+		MinecraftServer server = level.getServer();
+		int before = countParts(level);
+		CannonApi.Crew crew = new CannonApi.Crew() {
+			@Override
+			public void dismounted(net.minecraft.server.level.ServerPlayer gunner) {
+			}
+
+			@Override
+			public boolean takeBall(net.minecraft.server.level.ServerPlayer gunner) {
+				return true;
+			}
+
+			@Override
+			public int countBalls(net.minecraft.server.level.ServerPlayer gunner) {
+				return 7;
+			}
+		};
+		CannonApi.Mount mount = CannonApi.mount(level, 0.5, 100, 0.5, 90f, "owner", "SmokeTest", crew);
+		check(mount != null, "a cannon can be mounted through the API");
+		check(mount.entity().getPassengers().stream().noneMatch(e -> e instanceof Interaction), "a mounted cannon has no hitbox: its ship is what you click");
+		check(mount.entity().getPassengers().size() == Cannon.FRAME.size() + Cannon.BARREL.size(), "... but all of its model");
+		check(mount.entity().hasAttached(CannonMod.MOUNTED), "it's marked as mounted");
+		Cannon cannon = Cannons.all().get(0);
+		for (int i = 0; i < cannon.barrel.length; i++) {
+			check(cannon.barrel[i] instanceof Display.BlockDisplay, "mounted barrel part " + i + " found and marked");
+		}
+
+		mount.moveTo(5.5, 101, 3.5, 180f);
+		mount.tick();
+		check(Math.abs(mount.entity().getX() - 5.5) < 0.01 && Math.abs(mount.entity().getY() - 101) < 0.01, "moveTo puts the cannon there");
+		check(Math.abs(mount.entity().getYRot() - 180f) < 0.01, "an unmanned cannon turns to its resting heading");
+		check(cannon.root.getPassengers().stream().allMatch(e -> e.getYRot() == cannon.root.getYRot()), "the model turned with it");
+		check(cannon.seat != null && !cannon.seat.isRemoved(), "the gunner's seat exists");
+		double[] seat = Cannon.toWorld(cannon.root.getX(), cannon.root.getZ(), cannon.root.getYRot(), 0, Cannon.SEAT_Z);
+		check(Math.abs(cannon.seat.getX() - seat[0]) < 0.01 && Math.abs(cannon.seat.getZ() - seat[1]) < 0.01, "the seat follows the cannon");
+
+		check(mount.fire(null) && mount.reloadTicks() == Cannon.RELOAD_TICKS, "it fires and starts reloading");
+		for (int i = 0; i < 3; i++) {
+			Cannons.tick();
+		}
+		check(mount.reloadTicks() == Cannon.RELOAD_TICKS, "Cannon itself doesn't tick a mounted cannon");
+		mount.tick();
+		check(mount.reloadTicks() == Cannon.RELOAD_TICKS - 1, "its owner does");
+		Cannonball.clear();
+
+		mount.remove();
+		check(mount.isRemoved() && Cannons.all().isEmpty(), "taking it down unregisters it");
+		CannonMod.later(3, () -> step(server, () -> {
+			check(countParts(level) == before, "taking it down removes every entity (" + countParts(level) + " left, expected " + before + ")");
+			leftover(level, before);
+		}));
+	}
+
+	/** A mounted cannon that turns up after a restart, with nothing to carry it, is removed. */
+	private static void leftover(ServerLevel level, int before) {
+		MinecraftServer server = level.getServer();
+		CannonApi.Mount mount = CannonApi.mount(level, 0.5, 100, 0.5, 0f, "owner", "SmokeTest", new CannonApi.Crew() {
+			@Override
+			public void dismounted(net.minecraft.server.level.ServerPlayer gunner) {
+			}
+
+			@Override
+			public boolean takeBall(net.minecraft.server.level.ServerPlayer gunner) {
+				return false;
+			}
+
+			@Override
+			public int countBalls(net.minecraft.server.level.ServerPlayer gunner) {
+				return 0;
+			}
+		});
+		check(mount != null && countParts(level) > before, "another mounted cannon");
+		Cannons.all().get(0).unload(); // the server restarted: the entity was saved, nothing registers it
+		check(Cannons.all().isEmpty(), "it's no longer registered");
+		Cannons.onLoad(mount.entity(), level); // ... and it loads again
+		CannonMod.later(3, () -> step(server, () -> {
+			check(mount.entity().isRemoved(), "a mounted cannon with no ship is removed when it loads");
+			check(countParts(level) == before, "and so are all of its parts (" + countParts(level) + " left, expected " + before + ")");
+			CannonMod.LOG.info("CANNON SMOKE TEST PASSED");
+			server.halt(false);
+		}));
 	}
 
 	private static void fail(MinecraftServer server, Throwable t) {

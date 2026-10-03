@@ -31,6 +31,16 @@ final class AhoyCommands {
 				ShipMenu.open(player, ship);
 				return 1;
 			}))
+			.then(literal("guns").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				Ship ship = Ships.shipOf(player);
+				if (ship == null || ship.gunDeck == null) {
+					ctx.getSource().sendFailure(Component.literal(ship == null ? "You're not aboard a ship." : "This server has no Cannon mod, so no gun ports."));
+					return 0;
+				}
+				GunMenu.open(player, ship);
+				return 1;
+			}))
 			.then(literal("give").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				Bottle.give(player, Bottle.empty());
@@ -49,7 +59,8 @@ final class AhoyCommands {
 			"§7Sailing: §fW/S§7 sails up/down, §fA/D§7 rudder, §fSpace§7 bell, §fShift§7 go ashore.",
 			"§7Cargo: two holds of 54 slots, in the menu. Bottle the ship up to take it with you.",
 			"§7The wind matters: sail with it for full speed, against it for half.",
-			"§aAt sea, nobody aboard can be hurt, and sea monsters get zapped away."
+			"§7Guns: with the Cannon mod, four gun ports on deck take Cannons (menu, Gun deck). Man one from there; balls come from your pockets, then the holds (/ahoy guns).",
+				"§aAt sea, nobody aboard can be hurt, and sea monsters get zapped away."
 		};
 		for (String line : lines) {
 			source.sendSystemMessage(Component.literal(line));

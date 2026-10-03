@@ -157,6 +157,11 @@ final class ShipMenu extends ChestMenu {
 				});
 			});
 		}
+		if (ship.gunDeck != null) {
+			button(14, icon(Items.IRON_BLOCK, t("Gun deck", ChatFormatting.RED, ChatFormatting.BOLD),
+				t("Four gun ports: slot cannons in, man them.", ChatFormatting.GRAY),
+				t("Cannons: " + gunCount() + " / " + ShipData.GUNS, ChatFormatting.GRAY)), () -> AhoyMod.nextTick(() -> GunMenu.open(viewer, ship)));
+		}
 		button(26, icon(Items.BARRIER, t("Close", ChatFormatting.RED)), () -> AhoyMod.nextTick(viewer::closeContainer));
 		extraButtons();
 	}
@@ -179,6 +184,14 @@ final class ShipMenu extends ChestMenu {
 				AhoyMod.LOG.warn("A ship menu button from another mod failed", e);
 			}
 		}
+	}
+
+	private int gunCount() {
+		int n = 0;
+		for (int i = 0; i < ShipData.GUNS; i++) {
+			n += ship.gunDeck.accepts(ship.data.guns.getItem(i)) ? 1 : 0;
+		}
+		return n;
 	}
 
 	private void cargo(int bay) {

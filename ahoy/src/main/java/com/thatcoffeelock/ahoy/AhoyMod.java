@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,6 +36,8 @@ public final class AhoyMod implements ModInitializer {
 	/** Marks seats and hitboxes, so strays (e.g. saved during a crash) get cleaned up on load. */
 	public static final AttachmentType<Boolean> MARKER = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "marker"), builder -> builder.persistent(Codec.BOOL));
+
+	private static final boolean CANNON = FabricLoader.getInstance().isModLoaded("cannon");
 
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();
@@ -97,6 +100,11 @@ public final class AhoyMod implements ModInitializer {
 
 		CommandRegistrationCallback.EVENT.register(AhoyCommands::register);
 		LOG.info("Ahoy loaded. All hands on deck.");
+	}
+
+	/** Is the Cannon mod installed? Then ships have gun ports. */
+	public static boolean hasCannon() {
+		return CANNON;
 	}
 
 	/** Server ticks since the mod started. */

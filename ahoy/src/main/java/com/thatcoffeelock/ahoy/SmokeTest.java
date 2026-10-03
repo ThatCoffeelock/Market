@@ -2,6 +2,7 @@ package com.thatcoffeelock.ahoy;
 
 import java.util.UUID;
 
+import com.thatcoffeelock.cannon.CannonItems;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -81,10 +82,37 @@ final class SmokeTest {
 		// the ship makes its seats and hitboxes on its first ticks
 		AhoyMod.later(20, () -> step(level.getServer(), () -> {
 			aboard(level);
+			if (ship.gunDeck == null) {
+				throw new IllegalStateException("Smoke check failed: the Cannon mod should be loaded, so the ship should have a gun deck");
+			}
+			ship.data.guns.setItem(0, CannonItems.cannon());
+			ship.data.guns.setItem(3, CannonItems.cannon());
+			ship.data.guns.setItem(1, new ItemStack(Items.STICK)); // not a cannon: must not be mounted
+			AhoyMod.later(10, () -> step(level.getServer(), () -> gunsMounted(level)));
+		}));
+	}
+
+	/** Cannons slotted into the gun ports get built, sit where the ports are, and can be taken out again. */
+	private static void gunsMounted(ServerLevel level) {
+		GunDeck deck = ship.gunDeck;
+		check(deck.mounted(0) && deck.mounted(3), "cannons slotted into ports 0 and 3 were built");
+		check(!deck.mounted(1) && !deck.mounted(2), "a stick and an empty port get no cannon");
+		check(deck.gunner(0) == null && deck.gunners().isEmpty(), "nobody is manning them yet");
+		check(portDistance(0) < 0.5 && portDistance(3) < 0.5, "they stand on their ports (" + portDistance(0) + ")");
+		ship.data.guns.setItem(3, ItemStack.EMPTY);
+		AhoyMod.later(5, () -> step(level.getServer(), () -> {
+			check(!deck.mounted(3) && deck.mounted(0), "taking a cannon out of its port takes it down, the other stays");
 			startZ = ship.root.getZ();
 			ship.testControls = new Ship.Controls(true, false, false, false, false);
 			AhoyMod.later(80, () -> step(level.getServer(), () -> sailed(level)));
 		}));
+	}
+
+	private static double portDistance(int port) {
+		ShipModel.GunPort p = ShipModel.GUN_PORTS.get(port);
+		double[] w = Ship.toWorld(ship.root.getX(), ship.root.getZ(), ship.root.getYRot(), p.x(), p.z());
+		var at = ship.gunDeck.where(port);
+		return at == null ? 999 : Math.hypot(at.x - w[0], Math.hypot(at.y - (ship.root.getY() + ShipModel.DECK_Y), at.z - w[1]));
 	}
 
 	/**
@@ -150,6 +178,7 @@ final class SmokeTest {
 		double moved = ship.root.getZ() - startZ;
 		check(moved > 2, "ship sailed forward (" + String.format("%.2f", moved) + " blocks)");
 		check(ship.markerCount() >= ShipModel.HITBOX_Z.length, "hitboxes follow the ship");
+		check(portDistance(0) < 1.0, "the cannon sailed along with the ship (" + portDistance(0) + ")");
 		ship.testControls = new Ship.Controls(false, false, true, false, false);
 		AhoyMod.later(30, () -> step(level.getServer(), () -> turned(level)));
 	}
@@ -171,6 +200,7 @@ final class SmokeTest {
 		ShipData back = Bottle.savedData(bottle, level);
 		check(back != null && back.cargoA.getItem(0).is(Items.DIAMOND) && back.cargoA.getItem(0).getCount() == 3, "cargo survives the bottle");
 		check(back.name.equals(ship.data.name), "name survives the bottle (" + back.name + ")");
+		check(CannonItems.isCannon(back.guns.getItem(0)), "the slotted cannon survives the bottle");
 		AhoyMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
 	}
 

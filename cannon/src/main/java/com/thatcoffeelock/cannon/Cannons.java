@@ -71,7 +71,9 @@ public final class Cannons {
 	// ---------------------------------------------------------------- lifecycle
 
 	static void onLoad(Entity entity, ServerLevel level) {
-		if (entity.hasAttached(CannonMod.DATA)) {
+		if (entity.hasAttached(CannonMod.MOUNTED)) {
+			ORPHANS.add(entity); // its ship rebuilds it; one that turns up by itself is a leftover
+		} else if (entity.hasAttached(CannonMod.DATA)) {
 			PENDING.add(entity);
 		} else if (entity.hasAttached(CannonMod.SEAT) && !BY_SEAT.containsKey(entity.getUUID())) {
 			ORPHANS.add(entity);
@@ -104,15 +106,18 @@ public final class Cannons {
 			List<Entity> orphans = new ArrayList<>(ORPHANS);
 			ORPHANS.clear();
 			for (Entity orphan : orphans) {
-				if (!orphan.isRemoved() && !BY_SEAT.containsKey(orphan.getUUID()) && !Cannonball.isFlying(orphan)) {
+				if (!orphan.isRemoved() && !BY_SEAT.containsKey(orphan.getUUID()) && !BY_ROOT.containsKey(orphan.getUUID())
+					&& !Cannonball.isFlying(orphan)) {
+					List<Entity> parts = orphan.hasAttached(CannonMod.MOUNTED) ? new ArrayList<>(orphan.getPassengers()) : List.of();
 					orphan.ejectPassengers();
+					parts.forEach(Entity::discard);
 					orphan.discard();
 				}
 			}
 		}
 		for (Cannon cannon : all()) {
-			if (cannon.isRemoved()) {
-				continue;
+			if (cannon.isRemoved() || cannon.crew != null) {
+				continue; // a mounted cannon is ticked by whatever carries it
 			}
 			try {
 				cannon.tick();
@@ -146,22 +151,33 @@ public final class Cannons {
 
 	/** Builds a cannon. Returns null if the summon failed. */
 	static @Nullable Cannon spawn(ServerLevel level, CannonData data, double x, double y, double z, float yaw) {
+		return spawn(level, data, x, y, z, yaw, null);
+	}
+
+	/** Builds a cannon, or one for a crew to mount on something (no hitbox, and the crew ticks it). */
+	static @Nullable Cannon spawn(ServerLevel level, CannonData data, double x, double y, double z, float yaw, @Nullable CannonApi.Crew crew) {
+		boolean mounted = crew != null;
 		UUID id = UUID.randomUUID();
-		Cmd.run(level, Cannon.summonCommand(id, x, y, z, yaw, data.elevation));
+		Cmd.run(level, Cannon.summonCommand(id, x, y, z, yaw, data.elevation, !mounted));
 		Entity root = level.getEntity(id);
 		if (root == null) {
 			CannonMod.LOG.error("Could not summon a cannon at {} {} {}", x, y, z);
 			return null;
 		}
-		// passengers come out in the order they were summoned: hitbox, frame, then barrel
+		// passengers come out in the order they were summoned: hitbox (if any), frame, then barrel
 		List<Entity> parts = root.getPassengers();
-		int first = 1 + Cannon.FRAME.size();
+		int first = (mounted ? 0 : 1) + Cannon.FRAME.size();
 		for (int i = 0; i < Cannon.BARREL.size() && first + i < parts.size(); i++) {
 			parts.get(first + i).setAttached(CannonMod.BARREL_PART, i);
 		}
 		root.setAttached(CannonMod.DATA, data);
+		if (mounted) {
+			root.setAttached(CannonMod.MOUNTED, true);
+		}
 		PENDING.remove(root);
-		return register(level, root);
+		Cannon cannon = register(level, root);
+		cannon.crew = crew;
+		return cannon;
 	}
 
 	/** Takes the cannon apart and returns it as an item. */

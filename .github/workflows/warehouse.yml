@@ -5,6 +5,7 @@ on:
     paths:
       - 'warehouse/**'
       - 'ahoy/**'
+      - 'cannon/**'
       - 'cargo-train/**'
       - '.github/workflows/warehouse.yml'
   pull_request:
@@ -39,6 +40,7 @@ jobs:
       - name: Build Ahoy and Cargo Train (Warehouse docks ships and unloads trains)
         working-directory: .
         run: |
+          (cd cannon && ./gradlew build -x test)
           (cd ahoy && ./gradlew build -x test)
           (cd cargo-train && ./gradlew build -x test)
 

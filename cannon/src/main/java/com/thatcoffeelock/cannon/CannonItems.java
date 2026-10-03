@@ -77,7 +77,7 @@ public final class CannonItems {
 		return CANNONBALL.equals(kind(stack));
 	}
 
-	static int countCannonballs(Player player) {
+	public static int countCannonballs(Player player) {
 		Inventory inventory = player.getInventory();
 		int n = 0;
 		for (int i = 0; i < inventory.getContainerSize(); i++) {
@@ -90,7 +90,7 @@ public final class CannonItems {
 	}
 
 	/** Takes one cannonball out of the player's inventory. False if they have none. */
-	static boolean takeCannonball(Player player) {
+	public static boolean takeCannonball(Player player) {
 		Inventory inventory = player.getInventory();
 		for (int i = 0; i < inventory.getContainerSize(); i++) {
 			ItemStack stack = inventory.getItem(i);

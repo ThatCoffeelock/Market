@@ -27,7 +27,7 @@ jobs:
       - name: Build all thirteen mods
         run: |
           set -o pipefail
-          for dir in . ahoy burlap-sack cannon cargo-train colonycraft flintlock havana mobile-home warehouse skills hamlets overenchant; do
+          for dir in . cannon ahoy burlap-sack cargo-train colonycraft flintlock havana mobile-home warehouse skills hamlets overenchant; do
             echo "::group::Build $dir"
             (cd "$dir" && ./gradlew build -x test) 2>&1 | tee -a build.log
             echo "::endgroup::"

@@ -78,6 +78,11 @@ public final class Cannon {
 	final ServerLevel level;
 	final Entity root;
 	final CannonData data;
+	/**
+	 * Set when the cannon is mounted on something else (a ship, see {@link CannonApi}): that something moves it, ticks it
+	 * and supplies the ammunition, and the cannon has no hitbox of its own.
+	 */
+	@Nullable CannonApi.Crew crew;
 	final Entity[] barrel = new Entity[BARREL.size()];
 	@Nullable Entity seat;
 	@Nullable UUID gunner;
@@ -161,13 +166,20 @@ public final class Cannon {
 	}
 
 	static String summonCommand(UUID id, double x, double y, double z, float yaw, float elevation) {
+		return summonCommand(id, x, y, z, yaw, elevation, true);
+	}
+
+	/** {@code hitbox} false for a mounted cannon: whatever carries it is what you click. */
+	static String summonCommand(UUID id, double x, double y, double z, float yaw, float elevation, boolean hitbox) {
 		String rot = "Rotation:[" + Cmd.f(yaw) + "f,0f]";
 		StringBuilder cmd = new StringBuilder("summon minecraft:item_display ").append(Cmd.pos(x, y, z)).append(" {")
 			.append(Cmd.uuidNbt(id)).append(",Tags:[\"").append(ROOT_TAG).append("\"],").append(rot).append(",teleport_duration:2,Passengers:[");
-		cmd.append("{id:\"minecraft:interaction\",width:").append(Cmd.f(HITBOX_WIDTH)).append("f,height:").append(Cmd.f(HITBOX_HEIGHT))
-			.append("f,response:1b,Tags:[\"").append(PART_TAG).append("\",\"").append(HITBOX_TAG).append("\"]}");
+		if (hitbox) {
+			cmd.append("{id:\"minecraft:interaction\",width:").append(Cmd.f(HITBOX_WIDTH)).append("f,height:").append(Cmd.f(HITBOX_HEIGHT))
+				.append("f,response:1b,Tags:[\"").append(PART_TAG).append("\",\"").append(HITBOX_TAG).append("\"]}");
+		}
 		for (Part part : FRAME) {
-			cmd.append(",{id:\"minecraft:block_display\",block_state:\"").append(part.block()).append("\",Tags:[\"").append(PART_TAG)
+			cmd.append(hitbox || part != FRAME.get(0) ? "," : "").append("{id:\"minecraft:block_display\",block_state:\"").append(part.block()).append("\",Tags:[\"").append(PART_TAG)
 				.append("\"],").append(rot).append(",teleport_duration:2,transformation:")
 				.append(transformation(0, part.x(), part.y(), part.z(), part.sx(), part.sy(), part.sz())).append("}");
 		}
@@ -200,6 +212,9 @@ public final class Cannon {
 		}
 		age++;
 		ensureSeat();
+		if (crew != null) {
+			placeSeat();
+		}
 		updateGunner();
 		if (reload > 0) {
 			reload--;
@@ -260,9 +275,10 @@ public final class Cannon {
 			Cmd.sound(level, "minecraft:block.dispenser.fail", root.getX(), root.getY() + 1, root.getZ(), 0.6f, 1.4f);
 			return;
 		}
-		if (!player.isCreative() && !CannonItems.takeCannonball(player)) {
+		if (!player.isCreative() && !(crew != null ? crew.takeBall(player) : CannonItems.takeCannonball(player))) {
 			Cmd.sound(level, "minecraft:block.dispenser.fail", root.getX(), root.getY() + 1, root.getZ(), 0.8f, 0.8f);
-			player.sendSystemMessage(Component.literal("*click* Out of cannonballs. Craft some: 1 iron ingot + 1 gunpowder = 2 balls.")
+			player.sendSystemMessage(Component.literal("*click* Out of cannonballs. "
+				+ (crew != null ? "Put some in the cargo hold, or in your pockets." : "Craft some: 1 iron ingot + 1 gunpowder = 2 balls."))
 				.withStyle(ChatFormatting.YELLOW));
 			reload = 10; // so holding space doesn't spam the chat
 			return;
@@ -301,7 +317,7 @@ public final class Cannon {
 		if (player.isCreative()) {
 			line.append(Component.literal("∞").withStyle(ChatFormatting.YELLOW));
 		} else {
-			int balls = CannonItems.countCannonballs(player);
+			int balls = crew != null ? crew.countBalls(player) : CannonItems.countCannonballs(player);
 			line.append(Component.literal(String.valueOf(balls)).withStyle(balls > 0 ? ChatFormatting.WHITE : ChatFormatting.RED));
 		}
 		if (reload > 0) {
@@ -346,7 +362,19 @@ public final class Cannon {
 		}
 	}
 
-	private void placeSeat() {
+	/** Turns the whole cannon to face this way, for when nobody's aiming it. */
+	void face(float yaw) {
+		if (Math.abs(Mth.wrapDegrees(yaw - root.getYRot())) < 0.01f) {
+			return;
+		}
+		root.setYRot(yaw);
+		for (Entity part : root.getPassengers()) {
+			part.setYRot(yaw);
+		}
+		placeSeat();
+	}
+
+	void placeSeat() {
 		if (seat == null) {
 			return;
 		}
@@ -369,7 +397,7 @@ public final class Cannon {
 			gunner = null;
 			ServerPlayer player = level.getServer().getPlayerList().getPlayer(gone);
 			if (player != null) {
-				stepOut(player);
+				leave(player);
 			}
 		}
 		if (now != null && gunner == null) {
@@ -403,6 +431,15 @@ public final class Cannon {
 		return true;
 	}
 
+	/** The gunner got off: a mounted cannon's owner decides where they go, a free-standing one puts them beside it. */
+	private void leave(ServerPlayer player) {
+		if (crew != null) {
+			crew.dismounted(player);
+		} else {
+			stepOut(player);
+		}
+	}
+
 	/** Called when the gunner gets off: put them next to the cannon instead of inside the carriage. */
 	private void stepOut(ServerPlayer player) {
 		if (seat == null || player.isRemoved() || player.isDeadOrDying() || player.getVehicle() != null || player.level() != level
@@ -428,7 +465,7 @@ public final class Cannon {
 		if (player != null) {
 			player.stopRiding();
 			gunner = null;
-			stepOut(player);
+			leave(player);
 		}
 	}
 

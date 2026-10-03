@@ -37,6 +37,13 @@ public final class CannonMod implements ModInitializer {
 	public static final AttachmentType<Boolean> BALL = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "ball"), builder -> builder.persistent(Codec.BOOL));
 
+	/**
+	 * Marks the root of a cannon that was mounted on something else (a ship). Whatever mounted it rebuilds it when it
+	 * loads, so one that turns up on its own after a restart is removed.
+	 */
+	public static final AttachmentType<Boolean> MOUNTED = AttachmentRegistry.create(
+		Identifier.fromNamespaceAndPath(MOD_ID, "mounted"), builder -> builder.persistent(Codec.BOOL));
+
 	/** Which barrel part (index into {@link Cannon#BARREL}) a display is, so the barrel can be found again after a reload. */
 	public static final AttachmentType<Integer> BARREL_PART = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "barrel_part"), builder -> builder.persistent(Codec.INT));

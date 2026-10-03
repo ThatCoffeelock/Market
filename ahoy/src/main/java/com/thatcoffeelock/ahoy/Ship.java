@@ -47,6 +47,8 @@ public final class Ship implements AhoyApi.ShipView {
 	private final Entity[] seats = new Entity[ShipModel.SPOTS.size()];
 	private final UUID[] riders = new UUID[ShipModel.SPOTS.size()];
 	private final Entity[] hitboxes = new Entity[ShipModel.HITBOX_Z.length];
+	/** The cannons, when the Cannon mod is installed. */
+	final @Nullable GunDeck gunDeck = AhoyMod.hasCannon() ? CannonLink.deck(this) : null;
 
 	double speed;
 	private int age;
@@ -193,6 +195,9 @@ public final class Ship implements AhoyApi.ShipView {
 			sail(controls);
 		}
 		placeSeatsAndHitboxes();
+		if (gunDeck != null) {
+			gunDeck.tick();
+		}
 
 		if (controls.jump() && !lastJump && bellCooldown <= 0) {
 			ringBell();
@@ -398,6 +403,9 @@ public final class Ship implements AhoyApi.ShipView {
 	}
 
 	boolean hasRiders() {
+		if (gunDeck != null && !gunDeck.gunners().isEmpty()) {
+			return true;
+		}
 		for (UUID rider : riders) {
 			if (rider != null) {
 				return true;
@@ -451,8 +459,11 @@ public final class Ship implements AhoyApi.ShipView {
 			if (riders[i] != null && !riders[i].equals(now)) {
 				UUID gone = riders[i];
 				riders[i] = null;
-				Ships.forgetRider(gone, this);
 				ServerPlayer player = level.getServer().getPlayerList().getPlayer(gone);
+				if (player != null && gunDeck != null && gunDeck.isManning(player)) {
+					continue; // stepped up to a cannon, still aboard
+				}
+				Ships.forgetRider(gone, this);
 				if (player != null && !player.isDeadOrDying() && player.getVehicle() == null && player.level() == level
 					&& seats[i] != null && player.distanceToSqr(seats[i]) < 16) {
 					goAshore(player, i);
@@ -469,7 +480,7 @@ public final class Ship implements AhoyApi.ShipView {
 	 * Someone stood up. Put them on dry land next to the ship if there is some close by,
 	 * otherwise in the water alongside.
 	 */
-	private void goAshore(ServerPlayer player, int index) {
+	void goAshore(ServerPlayer player, int index) {
 		ShipModel.Spot s = ShipModel.SPOTS.get(index);
 		double side = s.x() >= 0 ? 1 : -1;
 		double[][] tries = {{side * 4.5, s.z()}, {-side * 4.5, s.z()}, {0, 11.5}, {0, -9.5}, {side * 5.5, s.z()}, {-side * 5.5, s.z()}};
@@ -505,6 +516,12 @@ public final class Ship implements AhoyApi.ShipView {
 				player.setAirSupply(player.getMaxAirSupply());
 			}
 		}
+		if (gunDeck != null) {
+			for (ServerPlayer gunner : gunDeck.gunners()) {
+				gunner.clearFire();
+				gunner.setAirSupply(gunner.getMaxAirSupply());
+			}
+		}
 	}
 
 	/** Drowned, guardians, phantoms...: shoved away from the ship and they forget who was aboard. */
@@ -531,6 +548,9 @@ public final class Ship implements AhoyApi.ShipView {
 
 	/** Ship → bottle item, with name and cargo inside. Everyone aboard goes ashore first. */
 	ItemStack bottleUp() {
+		if (gunDeck != null) {
+			gunDeck.shutdown(true);
+		}
 		for (int i = 0; i < seats.length; i++) {
 			ServerPlayer p = rider(i);
 			if (p != null) {
@@ -544,6 +564,7 @@ public final class Ship implements AhoyApi.ShipView {
 		remove();
 		data.cargoA.clearContent();
 		data.cargoB.clearContent();
+		data.guns.clearContent();
 		return bottle;
 	}
 
@@ -551,6 +572,9 @@ public final class Ship implements AhoyApi.ShipView {
 	void remove() {
 		if (removed) {
 			return;
+		}
+		if (gunDeck != null) {
+			gunDeck.shutdown(true);
 		}
 		removed = true;
 		for (int i = 0; i < seats.length; i++) {
@@ -572,6 +596,9 @@ public final class Ship implements AhoyApi.ShipView {
 	void unload() {
 		if (removed) {
 			return;
+		}
+		if (gunDeck != null) {
+			gunDeck.shutdown(false);
 		}
 		removed = true;
 		for (int i = 0; i < seats.length; i++) {

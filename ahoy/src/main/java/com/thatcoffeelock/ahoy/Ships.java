@@ -75,7 +75,10 @@ public final class Ships {
 
 	static @Nullable Ship shipOf(Entity entity) {
 		Ship ship = RIDERS.get(entity.getUUID());
-		if (ship == null || ship.isRemoved() || entity.getVehicle() == null || BY_MARKER.get(entity.getVehicle().getUUID()) != ship) {
+		if (ship == null || ship.isRemoved() || entity.getVehicle() == null) {
+			return null;
+		}
+		if (BY_MARKER.get(entity.getVehicle().getUUID()) != ship && (ship.gunDeck == null || !ship.gunDeck.isManning(entity))) {
 			return null;
 		}
 		return ship;

@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'ahoy/**'
+      - 'cannon/**'
       - '.github/workflows/ahoy.yml'
   pull_request:
     paths:
@@ -31,6 +32,10 @@ jobs:
           java-version: 25
 
       - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Cannon (ships get gun ports when it's installed)
+        working-directory: .
+        run: (cd cannon && ./gradlew build -x test)
 
       - name: Build
         run: |

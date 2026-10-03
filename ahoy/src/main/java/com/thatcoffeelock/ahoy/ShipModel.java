@@ -26,6 +26,17 @@ public final class ShipModel {
 		new Spot("Bow (port)", 0.9, 1.35, 5), new Spot("Bow (starboard)", -0.9, 1.35, 5),
 		new Spot("Quarterdeck (port)", 1, 2.7, -6.5), new Spot("Quarterdeck (starboard)", -1, 2.7, -6.5));
 
+	/** A place on deck for a cannon. It points out to the side: its resting heading is the ship's plus {@code yaw}. */
+	public record GunPort(String name, double x, double z, float yaw) {
+	}
+
+	/** Four gun ports, two a side, on the open deck. Port is +x (left when facing the bow). */
+	public static final List<GunPort> GUN_PORTS = List.of(
+		new GunPort("Port gun (bow)", 1.95, 4.9, -90f), new GunPort("Port gun (waist)", 1.95, 2.5, -90f),
+		new GunPort("Starboard gun (bow)", -1.95, 4.9, 90f), new GunPort("Starboard gun (waist)", -1.95, 2.5, 90f));
+	/** Height of the deck above the water surface. */
+	public static final double DECK_Y = 1.27;
+
 	/** Clickable hitboxes along the ship (z positions), each 7 wide. */
 	public static final double[] HITBOX_Z = {-5, 0.5, 6};
 	/** Collision squares along the hull (z centres), each 6.4 wide. */

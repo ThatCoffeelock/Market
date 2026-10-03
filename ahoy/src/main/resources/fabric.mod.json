@@ -17,5 +17,11 @@
 		"minecraft": "~${minecraft_version}",
 		"java": ">=25",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"cannon": ">=1.1.0"
+	},
+	"breaks": {
+		"cannon": "<1.1.0"
 	}
 }
