@@ -96,7 +96,9 @@ final class SmokeTest {
 			check(Undead.isZombie(m), "horde member " + Undead.typeId(m) + " is a zombie");
 			check(Undead.boosted(m), "horde members are faster");
 			AttributeInstance range = m.getAttribute(Attributes.FOLLOW_RANGE);
-			check(range != null && range.getValue() >= ApocalypseConfig.get().hordeFollowRange - 0.01, "horde members track from further away");
+			// vanilla's random spawn bonus can nudge it either way, so: our modifier is on, and it's well past vanilla's 35
+			check(range != null && range.getModifier(Undead.HORDE_RANGE) != null && range.getValue() > 40,
+				"horde members track from further away (" + (range == null ? 0 : Math.round(range.getValue())) + " blocks)");
 		}
 		Mob loose = Undead.spawn(level, EntityTypes.ZOMBIE, new BlockPos(-2, Y, 4), 0f);
 		check(loose != null && Hordes.of(loose) == null, "a straggler shambles about on its own");
