@@ -38,6 +38,7 @@ jobs:
         run: (cd cannon && ./gradlew build -x test)
 
       - name: Build
+        id: build
         run: |
           set -o pipefail
           ./gradlew build 2>&1 | tee build.log
@@ -61,8 +62,8 @@ jobs:
             exit 1
           fi
 
-      - name: API dump (diagnostics on failure)
-        if: failure()
+      - name: API dump (diagnostics on a compile failure)
+        if: failure() && steps.build.outcome == 'failure'
         run: bash scripts/api-dump.sh || true
 
       - name: Compile errors (summary)

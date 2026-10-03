@@ -119,17 +119,20 @@ final class SmokeTest {
 			String why = deck.lieDown(player, 0);
 			check(why != null && !player.isSleeping(), "nobody sleeps in the daytime (" + why + ")");
 			Cmd.run(level, "time set midnight");
-			why = deck.lieDown(player, 0);
-			check(why == null, "lying down at night works (" + why + ")");
-			check(player.isSleeping() && player.getVehicle() != null, "the player is asleep, riding the bunk");
-			check(Ships.shipOf(player) == ship && deck.isSleeping(player), "the sleeper counts as aboard");
-			check(deck.lieDown(player, 0) != null, "a second lie-down is refused");
-			deck.wake(player, true);
-			check(!player.isSleeping() && !deck.isSleeping(player), "waking up works");
-			Cmd.run(level, "time set day");
-			startZ = ship.root.getZ();
-			ship.testControls = new Ship.Controls(true, false, false, false, false);
-			AhoyMod.later(80, () -> step(level.getServer(), () -> sailed(level)));
+			// the sky only darkens on the next ticks
+			AhoyMod.later(5, () -> step(level.getServer(), () -> {
+				String lay = deck.lieDown(player, 0);
+				check(lay == null, "lying down at night works (" + lay + ")");
+				check(player.isSleeping() && player.getVehicle() != null, "the player is asleep, riding the bunk");
+				check(Ships.shipOf(player) == ship && deck.isSleeping(player), "the sleeper counts as aboard");
+				check(deck.lieDown(player, 0) != null, "a second lie-down is refused");
+				deck.wake(player, true);
+				check(!player.isSleeping() && !deck.isSleeping(player), "waking up works");
+				Cmd.run(level, "time set day");
+				startZ = ship.root.getZ();
+				ship.testControls = new Ship.Controls(true, false, false, false, false);
+				AhoyMod.later(80, () -> step(level.getServer(), () -> sailed(level)));
+			}));
 		}));
 	}
 
