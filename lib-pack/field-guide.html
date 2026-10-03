@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.6.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.7.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -314,7 +314,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.6.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
+    <span>LIB Pack 1.7.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -368,8 +368,9 @@ const MODS = [
           "Rename the bottle in an anvil to name your ship",
           "Aboard, right-click works like ashore: fish, shoot, throw, eat. Empty hand opens the menu",
           "Moor near a Warehouse <b>Loading Dock</b> to unload and load",
-          "Menu → <b>Gun deck</b>: four gun ports take Cannons; man them from the menu"],
-    cmds: ["/ahoy", "/ahoy menu", "/ahoy guns", ["/ahoy give", true]] },
+          "Menu → <b>Gun deck</b>: four gun ports take Cannons; man them from the menu",
+          "Menu → <b>Bunks</b>: slot beds into two berths and sleep aboard at night (anchored)"],
+    cmds: ["/ahoy", "/ahoy menu", "/ahoy guns", "/ahoy bunks", ["/ahoy give", true]] },
   { name: "Burlap Sack", id: "burlapsack", colour: "#a07a45", tag: "Bag villagers and wandering traders, let them out where you want them.",
     recipes: [{ name: "Burlap Sack", pattern: [" S ", "L L", "LLL"], key: { S: "string", L: "leather" }, out: ["Sack", "#a07a45"] }],
     how: ["Right-click a villager or wandering trader with the sack",

@@ -52,6 +52,7 @@ Menu → **Bunks** (or `/ahoy bunks`): two berths on the foredeck take **beds**.
 - Sleeping works at night or in a thunderstorm, like vanilla, and when everyone is asleep the night is skipped.
 - Sleep while the ship is at rest. Rough water (the ship drifting more than a few blocks) wakes you.
 - Shift gets you up, back to the seat you came from. Beds travel in the Ship in a Bottle with the cargo.
+- Not yet seen in a real game: the CI's fake player can't sleep or ride, so it only checks that the bed is drawn and that a refused attempt cleans up after itself. If a night in the bunk ever goes wrong, `/ahoy bunks` and a report is all it takes to fix it.
 - How it works: the game only lets you sleep next to a real bed block, so a sleeper gets a small hidden bed in the sky above the ship while their body rests on the bunk. It is removed when they wake up.
 
 ## Loading Docks

@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -56,6 +56,7 @@ MODS = [
          "Right-click the ship to board. The owner takes the wheel; friends get the benches.",
          "Sail with <b>W/S</b>, steer with <b>A/D</b>, ring the bell with <b>Space</b>. <b>Shift</b> to get off.",
          "Menu → <b>Gun deck</b>: slot Cannons into the four gun ports, then man one from the same menu.",
+         "Menu → <b>Bunks</b>: slot a bed into one of the two berths on the foredeck, then lie down at night. Sleep while anchored; Shift gets you up.",
          "Done sailing? Open the menu and choose <b>Bottle it up</b>. Name, cargo and cannons stay inside."],
   tips=["Sailing with the wind is full speed, against it half speed.",
         "Nobody aboard can be hurt, and drowned, guardians and phantoms get zapped.",
