@@ -1,0 +1,47 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "equipment",
+	"pattern": [
+		"I  ",
+		" I ",
+		" FP"
+	],
+	"key": {
+		"I": "minecraft:iron_ingot",
+		"F": "minecraft:flint",
+		"P": "#minecraft:planks"
+	},
+	"result": {
+		"id": "minecraft:carrot_on_a_stick",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"flintlock": "musket"
+			},
+			"!minecraft:max_damage": {},
+			"!minecraft:damage": {},
+			"minecraft:item_model": "minecraft:crossbow",
+			"minecraft:item_name": {
+				"text": "Musket",
+				"color": "gold"
+			},
+			"minecraft:lore": [
+				{
+					"text": "Empty. Right-click to reload (1 Paper Cartridge).",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Damage 18 · Reload 4s",
+					"color": "dark_gray",
+					"italic": false
+				},
+				{
+					"text": "Point the long end at the problem.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

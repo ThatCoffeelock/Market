@@ -1,0 +1,36 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "equipment",
+	"ingredients": [
+		"minecraft:paper",
+		"minecraft:gunpowder",
+		"minecraft:flint",
+		"minecraft:gravel"
+	],
+	"result": {
+		"id": "minecraft:paper",
+		"count": 2,
+		"components": {
+			"minecraft:custom_data": {
+				"flintlock": "scattershot"
+			},
+			"minecraft:item_model": "minecraft:bundle",
+			"minecraft:item_name": {
+				"text": "Scattershot",
+				"color": "gray"
+			},
+			"minecraft:lore": [
+				{
+					"text": "A pouch of powder, gravel and bad intentions.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "For the Blunderbuss.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

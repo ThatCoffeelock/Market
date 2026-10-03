@@ -1,0 +1,25 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_flint": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {
+				"items": [
+					{
+						"items": "minecraft:flint"
+					}
+				]
+			}
+		}
+	},
+	"requirements": [
+		[
+			"has_flint"
+		]
+	],
+	"rewards": {
+		"recipes": [
+			"flintlock:pistol"
+		]
+	}
+}

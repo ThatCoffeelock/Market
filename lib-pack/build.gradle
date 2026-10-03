@@ -22,6 +22,7 @@ def bundled = [
 	cannon     : '../cannon',
 	cargotrain : '../cargo-train',
 	colonycraft: '../colonycraft',
+	flintlock  : '../flintlock',
 	havana     : '../havana',
 	mobilehome : '../mobile-home',
 ]
@@ -63,7 +64,7 @@ def writeModJson = tasks.register('writeModJson') {
 			id           : 'libpack',
 			version      : modVersion,
 			name         : 'LIB Pack',
-			description  : 'All of thatcoffeelock\'s mods in one jar: Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Havana and Mobile Home. Server-side: vanilla clients can join.',
+			description  : 'All of thatcoffeelock\'s mods in one jar: Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana and Mobile Home. Server-side: vanilla clients can join.',
 			authors      : ['thatcoffeelock'],
 			contact      : [sources: 'https://github.com/thatcoffeelock/market'],
 			environment  : '*',

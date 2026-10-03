@@ -1,0 +1,46 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "equipment",
+	"pattern": [
+		"IF",
+		" P"
+	],
+	"key": {
+		"I": "minecraft:iron_ingot",
+		"F": "minecraft:flint",
+		"P": "#minecraft:planks"
+	},
+	"result": {
+		"id": "minecraft:carrot_on_a_stick",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"flintlock": "pistol"
+			},
+			"!minecraft:max_damage": {},
+			"!minecraft:damage": {},
+			"minecraft:item_model": "minecraft:crossbow",
+			"minecraft:item_name": {
+				"text": "Flintlock Pistol",
+				"color": "yellow"
+			},
+			"minecraft:lore": [
+				{
+					"text": "Empty. Right-click to reload (1 Paper Cartridge).",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Damage 9 · Reload 2s",
+					"color": "dark_gray",
+					"italic": false
+				},
+				{
+					"text": "Small, loud, and rude.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

@@ -1,0 +1,47 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "equipment",
+	"pattern": [
+		"C  ",
+		" C ",
+		" FP"
+	],
+	"key": {
+		"C": "minecraft:copper_ingot",
+		"F": "minecraft:flint",
+		"P": "#minecraft:planks"
+	},
+	"result": {
+		"id": "minecraft:carrot_on_a_stick",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"flintlock": "blunderbuss"
+			},
+			"!minecraft:max_damage": {},
+			"!minecraft:damage": {},
+			"minecraft:item_model": "minecraft:crossbow",
+			"minecraft:item_name": {
+				"text": "Blunderbuss",
+				"color": "red"
+			},
+			"minecraft:lore": [
+				{
+					"text": "Empty. Right-click to reload (1 Scattershot).",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Damage 8 × 2.5 · Reload 3s · Huge knockback",
+					"color": "dark_gray",
+					"italic": false
+				},
+				{
+					"text": "Aiming is optional. Bracing is not.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

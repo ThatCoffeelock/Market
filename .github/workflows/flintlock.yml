@@ -1,0 +1,97 @@
+name: Flintlock
+
+on:
+  push:
+    paths:
+      - 'flintlock/**'
+      - '.github/workflows/flintlock.yml'
+  pull_request:
+    paths:
+      - 'flintlock/**'
+      - '.github/workflows/flintlock.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: flintlock
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: |
+          set -o pipefail
+          ./gradlew build 2>&1 | tee build.log
+
+      - name: Smoke test (boot a dedicated server, shoot three villagers with three guns)
+        run: |
+          mkdir -p run/smoke
+          echo "eula=true" > run/smoke/eula.txt
+          timeout 900 ./gradlew runSmoke --stacktrace 2>&1 | tee smoke.log || true
+          grep -E "\[smoke\]|Flintlock" smoke.log || true
+          if grep -q "Serialization errors" smoke.log; then
+            echo "::error::Vanilla rejected some entity data"
+            grep -A1 "Serialization errors" smoke.log | head -20
+            exit 1
+          fi
+          if grep -iE "(couldn't|failed to) (parse|load).*flintlock:" smoke.log; then
+            echo "::error::A Flintlock recipe or advancement failed to load"
+            exit 1
+          fi
+          if grep -q "FLINTLOCK SMOKE TEST PASSED" smoke.log; then
+            echo "Smoke test passed"
+          else
+            echo "::error::Smoke test did not pass"
+            grep -nE "ERROR|Exception|FAILED|Caused by|Mixin|Smoke check" smoke.log | head -80 || true
+            exit 1
+          fi
+
+      - name: API dump (diagnostics on failure)
+        if: failure()
+        run: bash scripts/api-dump.sh || true
+
+      - name: Compile errors (summary)
+        if: failure()
+        run: |
+          grep -A4 -E "error:" build.log | head -300 || true
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: flintlock-mod
+          path: |
+            flintlock/build/libs/*.jar
+            !flintlock/build/libs/*-sources.jar
+
+      # A plain download link (no zip, no GitHub login needed on a public repo):
+      # the Releases page always has the jar from the latest green build.
+      - name: Publish jar to the "flintlock-latest" release
+        if: success() && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: flintlock-latest
+          name: Flintlock (latest build)
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          body: |
+            Latest green build of Flintlock (pistols, muskets and blunderbusses) for Minecraft 26.3 (Fabric, server-side).
+            Download the .jar below and put it in your server's mods/ folder together with Fabric API.
+            Built from ${{ github.sha }}.
+          files: |
+            flintlock/build/libs/flintlock-*.jar
+            !flintlock/build/libs/*-sources.jar

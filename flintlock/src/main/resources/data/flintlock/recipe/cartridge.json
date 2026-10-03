@@ -1,0 +1,35 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "equipment",
+	"ingredients": [
+		"minecraft:paper",
+		"minecraft:gunpowder",
+		"minecraft:iron_nugget"
+	],
+	"result": {
+		"id": "minecraft:paper",
+		"count": 4,
+		"components": {
+			"minecraft:custom_data": {
+				"flintlock": "cartridge"
+			},
+			"minecraft:item_model": "minecraft:white_candle",
+			"minecraft:item_name": {
+				"text": "Paper Cartridge",
+				"color": "white"
+			},
+			"minecraft:lore": [
+				{
+					"text": "Powder and a lead ball, wrapped in paper.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "For the Flintlock Pistol and the Musket.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}
