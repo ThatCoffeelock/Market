@@ -36,6 +36,15 @@ Rename the bottle in an anvil to name your ship. Ops can use `/ahoy give`.
 | Everything else | Aboard, right-click does what it does ashore: **fish, shoot, throw, eat, drink**, use blocks and mobs in reach (a chest on the pier, a villager on the dock). The menu only opens when your hand is empty and there's nothing else to do |
 | Put it away | Menu → **Bottle it up** (owner only). The name and cargo stay inside the bottle |
 
+## Gun deck
+
+With the [Cannon](../cannon/README.md) mod installed (1.1.0 or newer), the ship has **four gun ports** on deck, two a side. Open the menu, choose **Gun deck**, and click a port with a Cannon on your cursor to slot it in; click a slotted cannon with an empty cursor to take it out. The button under a port sits you behind that cannon (you must be aboard), and you aim and fire it like a normal one. Cannons ride along with the ship and point out to the side until someone aims them.
+
+- Cannonballs come from the gunner's pockets first, then from the ship's cargo holds.
+- Getting off a cannon puts you back in the seat you came from.
+- The slotted cannons travel in the Ship in a Bottle with the cargo. On a locked ship only the owner gets at the guns.
+- `/ahoy guns` opens the gun deck from a seat.
+
 ## Loading Docks
 
 With the [Warehouse](../warehouse/README.md) mod installed, moor within 16 blocks of a **Loading Dock** and the captain's menu gets a **Loading Dock** button: unload all the cargo into the warehouses ashore, or browse a warehouse and load its stock straight into the holds.
@@ -47,4 +56,4 @@ Other mods can find ships, reach their holds and add buttons to the captain's me
 - The ship stops when it hits land or blocks, and it only moves on water.
 - When nobody is at the wheel, the ship slowly drifts to a stop and stays put.
 - The ship's click hitbox surrounds the deck, so the game thinks a passenger is always pointing at the ship, and never uses what's in their hand while pointing at one. The server works around that: it finds what the passenger is really pointing at and does what vanilla would have done. Left-clicking (attacking, mining) from a seat still isn't passed through.
-- CI builds the mod, then launches a ship in a test harbour on a real server. A fake passenger casts and reels a fishing rod, draws a bow, milks a cow and opens a crafting table from a seat, and only gets the ship's menu with an empty hand. Then it sails, turns, rams the harbour wall (and stops), bottles the ship up and checks that the name and cargo survive and that nothing is left behind.
+- CI builds Cannon first (the gun ports talk to it), then the mod, then launches a ship in a test harbour on a real server. A fake passenger casts and reels a fishing rod, draws a bow, milks a cow and opens a crafting table from a seat, and only gets the ship's menu with an empty hand. Then it slots cannons into the gun ports (they must stand on their ports, a stick gets none, one comes out again), sails with them aboard, turns, rams the harbour wall (and stops), bottles the ship up and checks that the name and cargo survive and that nothing is left behind.

@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.5.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.6.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -314,7 +314,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.5.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
+    <span>LIB Pack 1.6.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -367,8 +367,9 @@ const MODS = [
           "Nobody aboard gets hurt; drowned and guardians get zapped",
           "Rename the bottle in an anvil to name your ship",
           "Aboard, right-click works like ashore: fish, shoot, throw, eat. Empty hand opens the menu",
-          "Moor near a Warehouse <b>Loading Dock</b> to unload and load"],
-    cmds: ["/ahoy", "/ahoy menu", ["/ahoy give", true]] },
+          "Moor near a Warehouse <b>Loading Dock</b> to unload and load",
+          "Menu → <b>Gun deck</b>: four gun ports take Cannons; man them from the menu"],
+    cmds: ["/ahoy", "/ahoy menu", "/ahoy guns", ["/ahoy give", true]] },
   { name: "Burlap Sack", id: "burlapsack", colour: "#a07a45", tag: "Bag villagers and wandering traders, let them out where you want them.",
     recipes: [{ name: "Burlap Sack", pattern: [" S ", "L L", "LLL"], key: { S: "string", L: "leather" }, out: ["Sack", "#a07a45"] }],
     how: ["Right-click a villager or wandering trader with the sack",
@@ -383,7 +384,8 @@ const MODS = [
     how: ["Right-click the ground to place it, right-click it to man it",
           "Look to aim, Space to fire. About 80 blocks at 45°",
           "Creeper-sized blast that never breaks blocks",
-          "Friendly fire is on"],
+          "Friendly fire is on",
+          "Slot cannons into a ship's gun ports from its menu"],
     cmds: ["/cannon", ["/cannon give", true]] },
   { name: "Cargo Train", id: "cargotrain", colour: "#d9b51f", tag: "A self-driving locomotive and up to 4 wagons that shuttle between station chests.",
     recipes: [

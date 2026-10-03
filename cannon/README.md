@@ -39,6 +39,10 @@ While you're manning it, the action bar shows the elevation, the estimated range
 
 **Friendly fire is on.** If you fire at the wall right in front of you, you'll be standing in the explosion. That's between you and your respawn point.
 
+## On a ship
+
+With [Ahoy](../ahoy/README.md) 1.3.0 or newer, ships have four gun ports. Slot cannons into them from the ship's menu (Gun deck) and man them from there. Ammo comes from the gunner's pockets, then the ship's holds. Other mods can mount cannons through `CannonApi`.
+
 ## Commands
 
 - `/cannon`: help and recipes
