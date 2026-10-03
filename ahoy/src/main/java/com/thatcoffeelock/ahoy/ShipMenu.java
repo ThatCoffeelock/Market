@@ -162,6 +162,8 @@ final class ShipMenu extends ChestMenu {
 				t("Four gun ports: slot cannons in, man them.", ChatFormatting.GRAY),
 				t("Cannons: " + gunCount() + " / " + ShipData.GUNS, ChatFormatting.GRAY)), () -> AhoyMod.nextTick(() -> GunMenu.open(viewer, ship)));
 		}
+		button(16, icon(Items.RED_BED, t("Bunks", ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD),
+			t("Two berths on the foredeck: slot beds in, sleep at night.", ChatFormatting.GRAY)), () -> AhoyMod.nextTick(() -> BunkMenu.open(viewer, ship)));
 		button(26, icon(Items.BARRIER, t("Close", ChatFormatting.RED)), () -> AhoyMod.nextTick(viewer::closeContainer));
 		extraButtons();
 	}

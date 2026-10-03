@@ -34,6 +34,11 @@ public final class ShipModel {
 	public static final List<GunPort> GUN_PORTS = List.of(
 		new GunPort("Port gun (bow)", 1.95, 4.9, -90f), new GunPort("Port gun (waist)", 1.95, 2.5, -90f),
 		new GunPort("Starboard gun (bow)", -1.95, 4.9, 90f), new GunPort("Starboard gun (waist)", -1.95, 2.5, 90f));
+	/** A bunk on the foredeck: a bed slotted in here is drawn lying along the ship, head to the bow. */
+	public record Bunk(String name, double x, double z) {
+	}
+
+	public static final List<Bunk> BUNKS = List.of(new Bunk("Port bunk", 0.65, 7.0), new Bunk("Starboard bunk", -0.65, 7.0));
 	/** Height of the deck above the water surface. */
 	public static final double DECK_Y = 1.27;
 

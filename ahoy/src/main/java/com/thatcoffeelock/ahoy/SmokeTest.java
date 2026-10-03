@@ -102,6 +102,31 @@ final class SmokeTest {
 		ship.data.guns.setItem(3, ItemStack.EMPTY);
 		AhoyMod.later(5, () -> step(level.getServer(), () -> {
 			check(!deck.mounted(3) && deck.mounted(0), "taking a cannon out of its port takes it down, the other stays");
+			bunks(level);
+		}));
+	}
+
+	/** Beds slotted into bunks get drawn; a player can lie down at night (with a hidden bed for the game) and get up again. */
+	private static void bunks(ServerLevel level) {
+		ship.data.bunks.setItem(0, new ItemStack(Items.BLUE_BED));
+		ship.data.bunks.setItem(1, new ItemStack(Items.STICK)); // not a bed
+		AhoyMod.later(5, () -> step(level.getServer(), () -> {
+			BunkDeck deck = ship.bunkDeck;
+			check(deck.drawn(0) && !deck.drawn(1), "a bed slotted into a bunk is drawn, a stick isn't");
+			FakePlayer player = FakePlayer.get(level);
+			player.setPos(ship.root.getX(), ship.root.getY() + 1.0, ship.root.getZ());
+			Cmd.run(level, "time set day");
+			String why = deck.lieDown(player, 0);
+			check(why != null && !player.isSleeping(), "nobody sleeps in the daytime (" + why + ")");
+			Cmd.run(level, "time set midnight");
+			why = deck.lieDown(player, 0);
+			check(why == null, "lying down at night works (" + why + ")");
+			check(player.isSleeping() && player.getVehicle() != null, "the player is asleep, riding the bunk");
+			check(Ships.shipOf(player) == ship && deck.isSleeping(player), "the sleeper counts as aboard");
+			check(deck.lieDown(player, 0) != null, "a second lie-down is refused");
+			deck.wake(player, true);
+			check(!player.isSleeping() && !deck.isSleeping(player), "waking up works");
+			Cmd.run(level, "time set day");
 			startZ = ship.root.getZ();
 			ship.testControls = new Ship.Controls(true, false, false, false, false);
 			AhoyMod.later(80, () -> step(level.getServer(), () -> sailed(level)));
@@ -201,6 +226,7 @@ final class SmokeTest {
 		check(back != null && back.cargoA.getItem(0).is(Items.DIAMOND) && back.cargoA.getItem(0).getCount() == 3, "cargo survives the bottle");
 		check(back.name.equals(ship.data.name), "name survives the bottle (" + back.name + ")");
 		check(CannonItems.isCannon(back.guns.getItem(0)), "the slotted cannon survives the bottle");
+		check(back.bunks.getItem(0).is(Items.BLUE_BED), "the slotted bed survives the bottle");
 		AhoyMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
 	}
 

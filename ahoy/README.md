@@ -45,6 +45,15 @@ With the [Cannon](../cannon/README.md) mod installed (1.1.0 or newer), the ship 
 - The slotted cannons travel in the Ship in a Bottle with the cargo. On a locked ship only the owner gets at the guns.
 - `/ahoy guns` opens the gun deck from a seat.
 
+## Bunks
+
+Menu → **Bunks** (or `/ahoy bunks`): two berths on the foredeck take **beds**. Click a bunk with a bed on your cursor to slot it in (it's drawn on deck in the bed's colour), click it with an empty cursor to take it out, and press **Lie down** to sleep in it.
+
+- Sleeping works at night or in a thunderstorm, like vanilla, and when everyone is asleep the night is skipped.
+- Sleep while the ship is at rest. Rough water (the ship drifting more than a few blocks) wakes you.
+- Shift gets you up, back to the seat you came from. Beds travel in the Ship in a Bottle with the cargo.
+- How it works: the game only lets you sleep next to a real bed block, so a sleeper gets a small hidden bed in the sky above the ship while their body rests on the bunk. It is removed when they wake up.
+
 ## Loading Docks
 
 With the [Warehouse](../warehouse/README.md) mod installed, moor within 16 blocks of a **Loading Dock** and the captain's menu gets a **Loading Dock** button: unload all the cargo into the warehouses ashore, or browse a warehouse and load its stock straight into the holds.

@@ -155,7 +155,9 @@ public final class Ships {
 
 	static void onDisconnect(ServerPlayer player) {
 		LAST_CLICK.remove(player.getUUID());
-		if (shipOf(player) != null) {
+		Ship ship = shipOf(player);
+		if (ship != null) {
+			ship.bunkDeck.wake(player, false);
 			player.stopRiding();
 		}
 	}

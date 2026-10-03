@@ -41,6 +41,16 @@ final class AhoyCommands {
 				GunMenu.open(player, ship);
 				return 1;
 			}))
+			.then(literal("bunks").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				Ship ship = Ships.shipOf(player);
+				if (ship == null) {
+					ctx.getSource().sendFailure(Component.literal("You're not aboard a ship."));
+					return 0;
+				}
+				BunkMenu.open(player, ship);
+				return 1;
+			}))
 			.then(literal("give").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				Bottle.give(player, Bottle.empty());
@@ -60,6 +70,7 @@ final class AhoyCommands {
 			"§7Cargo: two holds of 54 slots, in the menu. Bottle the ship up to take it with you.",
 			"§7The wind matters: sail with it for full speed, against it for half.",
 			"§7Guns: with the Cannon mod, four gun ports on deck take Cannons (menu, Gun deck). Man one from there; balls come from your pockets, then the holds (/ahoy guns).",
+				"§7Bunks: menu, Bunks. Slot a bed into one of the two berths on the foredeck and lie down in it at night (§f/ahoy bunks§7). Sleep while anchored; Shift gets you up.",
 				"§aAt sea, nobody aboard can be hurt, and sea monsters get zapped away."
 		};
 		for (String line : lines) {

@@ -32,7 +32,8 @@ public final class ShipData {
 		Codec.DOUBLE.optionalFieldOf("surface", 63.0).forGetter(d -> d.surface),
 		Slot.CODEC.listOf().optionalFieldOf("cargo_a", List.of()).forGetter(d -> slots(d.cargoA)),
 		Slot.CODEC.listOf().optionalFieldOf("cargo_b", List.of()).forGetter(d -> slots(d.cargoB)),
-		Slot.CODEC.listOf().optionalFieldOf("guns", List.of()).forGetter(d -> slots(d.guns))
+		Slot.CODEC.listOf().optionalFieldOf("guns", List.of()).forGetter(d -> slots(d.guns)),
+		Slot.CODEC.listOf().optionalFieldOf("bunks", List.of()).forGetter(d -> slots(d.bunks))
 	).apply(i, ShipData::new));
 
 	private static final String[] NAMES = {
@@ -48,6 +49,8 @@ public final class ShipData {
 	public final SimpleContainer cargoA = new SimpleContainer(BAY);
 	public final SimpleContainer cargoB = new SimpleContainer(BAY);
 	public final SimpleContainer guns = new SimpleContainer(GUNS);
+	/** Bunks: beds slotted into the foredeck, to sleep in. */
+	public final SimpleContainer bunks = new SimpleContainer(ShipModel.BUNKS.size());
 
 	public ShipData() {
 		this.name = NAMES[(int) (Math.random() * NAMES.length)];
@@ -55,7 +58,7 @@ public final class ShipData {
 		this.ownerName = "";
 	}
 
-	private ShipData(String name, String owner, String ownerName, boolean locked, double surface, List<Slot> a, List<Slot> b, List<Slot> guns) {
+	private ShipData(String name, String owner, String ownerName, boolean locked, double surface, List<Slot> a, List<Slot> b, List<Slot> guns, List<Slot> bunks) {
 		this.name = name.isEmpty() ? NAMES[0] : name;
 		this.owner = owner;
 		this.ownerName = ownerName;
@@ -64,6 +67,7 @@ public final class ShipData {
 		fill(cargoA, a);
 		fill(cargoB, b);
 		fill(this.guns, guns);
+		fill(this.bunks, bunks);
 	}
 
 	private static void fill(SimpleContainer container, List<Slot> slots) {
