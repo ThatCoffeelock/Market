@@ -74,7 +74,7 @@ public final class GunItems {
 		}
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 		if (loaded) {
-			stack.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(new ItemStack(Items.ARROW)));
+			stack.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.ofNonEmpty(List.of(new ItemStack(Items.ARROW))));
 		} else {
 			stack.remove(DataComponents.CHARGED_PROJECTILES);
 		}
