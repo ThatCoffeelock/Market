@@ -35,6 +35,12 @@ Rename the bottle in an anvil to name your ship. Ops can use `/ahoy give`.
 | Menu | Right-click while aboard, or sneak + right-click from outside: cargo, switch seat, lock, bell, bottle it up |
 | Put it away | Menu → **Bottle it up** (owner only). The name and cargo stay inside the bottle |
 
+## Loading Docks
+
+With the [Warehouse](../warehouse/README.md) mod installed, moor within 16 blocks of a **Loading Dock** and the captain's menu gets a **Loading Dock** button: unload all the cargo into the warehouses ashore, or browse a warehouse and load its stock straight into the holds.
+
+Other mods can find ships, reach their holds and add buttons to the captain's menu through `AhoyApi`.
+
 ## Notes
 
 - The ship stops when it hits land or blocks, and it only moves on water.

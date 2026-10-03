@@ -38,7 +38,7 @@ Ops can also use `/train give train`, `/train give wagon` and `/train give stati
 | Station | What the train does there |
 |---|---|
 | **Pickup Station** | Loads everything in the chest into the wagon (as much as fits) |
-| **Drop-off Station** | Unloads the wagon into the chest (as much as fits) |
+| **Drop-off Station** | Unloads the wagon into the chest (as much as fits). If the chest touches a [Warehouse](../warehouse/README.md), the cargo goes straight onto its shelves first, no 27-slot limit |
 | **Swap Station** | Unloads its cargo into the chest, then loads whatever was in the chest before |
 
 **Sneak + right-click a station with an empty hand** to switch it to the next mode. The chest's name changes with it, so you can always see what it is when you open it.
@@ -76,6 +76,8 @@ A typical setup: a **Pickup Station** at your mine and a **Drop-off Station** at
 - `/train give station [pickup|dropoff|swap]` (op): get a station chest
 
 ## Notes
+
+- Other mods can put storage behind a Drop-off Station through `CargoTrainApi` (that's how the Warehouse does it).
 
 - The train item is a glowing furnace minecart. Custom data keeps it apart from the real thing, so a plain furnace minecart still works normally.
 - Only single chests count: each half of a double chest is its own station (27 slots).

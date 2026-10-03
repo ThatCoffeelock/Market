@@ -1,6 +1,7 @@
 package com.thatcoffeelock.ahoy;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.ChatFormatting;
@@ -12,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -20,6 +22,7 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -27,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * displays as passengers, plus invisible seats and click hitboxes that we move along every tick.
  * No blocks are ever placed, so it's light on the server.
  */
-public final class Ship {
+public final class Ship implements AhoyApi.ShipView {
 	public record Controls(boolean forward, boolean back, boolean left, boolean right, boolean jump) {
 		static final Controls NONE = new Controls(false, false, false, false, false);
 
@@ -69,6 +72,38 @@ public final class Ship {
 
 	boolean mayCommand(Player player) {
 		return !data.locked || isOwner(player) || player.isCreative();
+	}
+
+	// ---------------------------------------------------------------- what other mods see (AhoyApi)
+
+	@Override
+	public String name() {
+		return data.name;
+	}
+
+	@Override
+	public ServerLevel level() {
+		return level;
+	}
+
+	@Override
+	public Vec3 position() {
+		return root.position();
+	}
+
+	@Override
+	public List<Container> holds() {
+		return List.of(data.cargoA, data.cargoB);
+	}
+
+	@Override
+	public boolean mayUse(Player player) {
+		return mayCommand(player);
+	}
+
+	@Override
+	public boolean isGone() {
+		return isRemoved();
 	}
 
 	// ---------------------------------------------------------------- geometry

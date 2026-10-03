@@ -66,6 +66,8 @@ final class SmokeTest {
 		int parts = ship.root.getPassengers().size();
 		check(parts == ShipModel.parts().size() + 2, "ship model has " + parts + " parts (light!)");
 		check(ship.root.getAttached(AhoyMod.DATA) == data, "ship data attached");
+		check(AhoyApi.shipsNear(level, ship.root.position(), 4).contains(ship), "other mods can find the ship (AhoyApi)");
+		check(ship.holds().size() == 2 && ship.holds().get(0).getItem(0).is(Items.DIAMOND), "other mods can reach the cargo holds");
 
 		startZ = ship.root.getZ();
 		ship.testControls = new Ship.Controls(true, false, false, false, false);

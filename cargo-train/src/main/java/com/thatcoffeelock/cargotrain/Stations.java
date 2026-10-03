@@ -225,6 +225,32 @@ final class Stations {
 		return moved;
 	}
 
+	/** Unloads into whatever another mod put behind this Drop-off Station (see {@link CargoTrainApi}), front wagon first. */
+	static int unloadBehind(ServerLevel level, BlockPos station, List<? extends Container> wagons) {
+		CargoTrainApi.Intake intake = CargoTrainApi.intakeBehind(level, station);
+		if (intake == null) {
+			return 0;
+		}
+		int moved = 0;
+		for (Container wagon : wagons) {
+			int before = moved;
+			for (int i = 0; i < wagon.getContainerSize(); i++) {
+				ItemStack stack = wagon.getItem(i);
+				if (stack.isEmpty()) {
+					continue;
+				}
+				moved += Math.max(0, intake.accept(stack));
+				if (stack.isEmpty()) {
+					wagon.setItem(i, ItemStack.EMPTY);
+				}
+			}
+			if (moved > before) {
+				wagon.setChanged();
+			}
+		}
+		return moved;
+	}
+
 	/** The train stops at a station: load, unload or swap. Nothing is ever lost; the last resort is dropping it on top. */
 	static @Nullable Visit serve(ServerLevel level, BlockPos pos, List<? extends Container> wagons) {
 		Mode mode = modeAt(level, pos);
@@ -234,7 +260,7 @@ final class Stations {
 		}
 		return switch (mode) {
 			case PICKUP -> new Visit(pos, mode, load(chest, wagons), 0);
-			case DROPOFF -> new Visit(pos, mode, 0, unload(wagons, chest));
+			case DROPOFF -> new Visit(pos, mode, 0, unloadBehind(level, pos, wagons) + unload(wagons, chest));
 			case SWAP -> {
 				List<ItemStack> outgoing = new ArrayList<>();
 				for (int i = 0; i < chest.getContainerSize(); i++) {

@@ -1,0 +1,24 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:barrel",
+		"minecraft:chest",
+		"minecraft:iron_ingot",
+		"minecraft:iron_ingot"
+	],
+	"result": {
+		"id": "minecraft:barrel",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"warehouse_rack": true},
+			"minecraft:item_name": {"text": "Storage Rack", "color": "aqua"},
+			"minecraft:lore": [
+				{"text": "Adds room to the warehouse it touches.", "color": "gray", "italic": false},
+				{"text": "Place it against a Warehouse Core or another rack.", "color": "gray", "italic": false},
+				{"text": "Hoppers can feed it; it passes everything on.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

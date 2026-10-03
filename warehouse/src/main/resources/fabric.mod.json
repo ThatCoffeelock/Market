@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "warehouse",
+	"version": "${version}",
+	"name": "Warehouse",
+	"description": "Build warehouses that hold tens of thousands of items: a core plus storage racks, sorted tabs, search, specialist warehouses, hopper and intake-chest input, Cargo Train drop-off and Loading Docks for Ahoy ships. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.warehouse.WarehouseMod"]
+	},
+	"mixins": ["warehouse.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"ahoy": ">=1.1.0",
+		"cargotrain": ">=1.1.0"
+	},
+	"breaks": {
+		"ahoy": "<1.1.0",
+		"cargotrain": "<1.1.0"
+	}
+}
