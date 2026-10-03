@@ -21,6 +21,8 @@ Get the jar from this repo's **Releases** page (the `flintlock-latest` pre-relea
 | Accuracy | Decent | Dead straight | It's a cone |
 | Range | ~45 blocks | ~100 blocks | ~12 blocks, weaker with distance |
 | Knockback | A nudge | A shove | **Sends things flying**, and kicks you backwards |
+| Durability | 200 shots | 150 shots | 120 shots |
+| Repair with | Iron Ingot | Iron Ingot | Copper Ingot |
 
 For comparison, a fully drawn bow does about 6 and a netherite sword does 8.
 
@@ -45,6 +47,9 @@ Ops can also use `/flintlock give pistol|musket|blunderbuss` and `/flintlock giv
 | Reload | Right-click with an empty gun. A bar fills up in the action bar. **Keep holding that gun** until it's done: switch away and the reload is interrupted (the ammo is only used up at the end) |
 | Fire | Right-click with a loaded gun |
 | Check | A loaded gun looks like a loaded crossbow and says "Loaded" on its tooltip |
+| Repair | In an anvil, with the metal its barrel is made of (iron, or copper for the blunderbuss) |
+
+Every shot costs one point of durability. **Unbreaking** and **Mending** work on guns (put them on with an anvil and a book), and a gun that breaks fires its last shot first. Guns made before durability was added get it the next time they're loaded.
 
 A gun stays loaded until you fire it. So you can load four pistols before a fight and swap between them, like a proper pirate. Holding right-click fires, reloads, fires again, and so on.
 
@@ -58,5 +63,5 @@ A gun stays loaded until you fire it. So you can load four pistols before a figh
 
 ## Notes
 
-- The guns are carrots on a stick with their durability removed, and they look like crossbows. The ammo is paper that looks like a candle (cartridges) or a bundle (scattershot). Custom data keeps them apart from the real thing, so vanilla clients can show them.
-- CI (`.github/workflows/flintlock.yml`) builds the mod, then boots a real dedicated server. It checks every item and that each recipe makes the same item as `/flintlock give`. Then it lines up three villagers on a shooting range and shoots each one with a different gun. It checks the musket took 18 health off, the pistol 9, and that the blunderbuss pellets added up and sent their villager flying further than the other two. Last, it fires into the floor and checks the ball stops there.
+- The guns are carrots on a stick with their own durability, and they look like crossbows. The ammo is paper that looks like a candle (cartridges) or a bundle (scattershot). Custom data keeps them apart from the real thing, so vanilla clients can show them.
+- CI (`.github/workflows/flintlock.yml`) builds the mod, then boots a real dedicated server. It checks every item (durability, anvil repair, wear, and that old guns without durability get it), and that each recipe makes the same item as `/flintlock give`. Then it lines up three villagers on a shooting range and shoots each one with a different gun. It checks the musket took 18 health off, the pistol 9, and that the blunderbuss pellets added up and sent their villager flying further than the other two. Last, it fires into the floor and checks the ball stops there.

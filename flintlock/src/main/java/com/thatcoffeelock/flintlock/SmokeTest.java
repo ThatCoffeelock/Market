@@ -8,9 +8,11 @@ import java.util.UUID;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Repairable;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +64,17 @@ final class SmokeTest {
 			check(GunItems.gunOf(stack) == gun, gun.id + " is recognised");
 			check(stack.is(Items.CARROT_ON_A_STICK), gun.id + " is a carrot on a stick to vanilla clients");
 			check(stack.getMaxStackSize() == 1, gun.id + " doesn't stack");
-			check(!stack.isDamageableItem(), gun.id + " has no durability bar");
+			check(stack.isDamageableItem() && stack.getMaxDamage() == gun.durability, gun.id + " lasts " + gun.durability + " shots");
+			Repairable repairable = stack.get(DataComponents.REPAIRABLE);
+			check(repairable != null && repairable.isValidRepairItem(new ItemStack(gun.repairItem)), gun.id + " is repaired with " + gun.repairItem);
+			check(!repairable.isValidRepairItem(new ItemStack(Items.DIAMOND)), gun.id + " isn't repaired with diamonds");
+			stack.hurtAndBreak(1, level, (ServerPlayer) null, item -> { });
+			check(stack.getDamageValue() == 1, gun.id + " wears down");
+			ItemStack old = GunItems.gun(gun);
+			old.remove(DataComponents.MAX_DAMAGE);
+			old.remove(DataComponents.REPAIRABLE);
+			GunItems.setLoaded(old, gun, true);
+			check(old.getMaxDamage() == gun.durability && old.has(DataComponents.REPAIRABLE), gun.id + " made before durability gets it when loaded");
 			check(stack.get(DataComponents.ITEM_MODEL) != null, gun.id + " looks like a crossbow");
 			check(!GunItems.isLoaded(stack), gun.id + " comes unloaded");
 			check(!stack.has(DataComponents.CHARGED_PROJECTILES), gun.id + " looks unloaded");
@@ -80,7 +92,9 @@ final class SmokeTest {
 		for (Gun gun : Gun.values()) {
 			String recipe = resource("/data/flintlock/recipe/" + gun.id + ".json");
 			check(recipe.contains("\"" + gun.title + "\"") && recipe.contains(GunItems.stats(gun)) && recipe.contains(gun.blurb)
-				&& recipe.contains("reload (1 " + gun.ammo.title + ")"), gun.id + " recipe makes the same item as /flintlock give");
+				&& recipe.contains("reload (1 " + gun.ammo.title + ")") && recipe.contains("\"minecraft:max_damage\": " + gun.durability)
+				&& recipe.contains("\"items\": \"" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(gun.repairItem) + "\""),
+				gun.id + " recipe makes the same item as /flintlock give");
 		}
 		for (Gun.Ammo ammo : Gun.Ammo.values()) {
 			String recipe = resource("/data/flintlock/recipe/" + ammo.id + ".json");
