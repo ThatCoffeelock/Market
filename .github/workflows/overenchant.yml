@@ -52,7 +52,7 @@ jobs:
             echo "::error::A Overenchant data file failed to load"
             exit 1
           fi
-          if grep -q "FLINTLOCK SMOKE TEST PASSED" smoke.log; then
+          if grep -q "OVERENCHANT SMOKE TEST PASSED" smoke.log; then
             echo "Smoke test passed"
           else
             echo "::error::Smoke test did not pass"
