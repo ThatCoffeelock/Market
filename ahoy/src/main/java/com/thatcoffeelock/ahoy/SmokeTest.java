@@ -108,7 +108,7 @@ final class SmokeTest {
 
 	/** Beds slotted into bunks get drawn; a player can lie down at night (with a hidden bed for the game) and get up again. */
 	private static void bunks(ServerLevel level) {
-		ship.data.bunks.setItem(0, new ItemStack(Items.BLUE_BED));
+		ship.data.bunks.setItem(0, new ItemStack(Items.BED.blue()));
 		ship.data.bunks.setItem(1, new ItemStack(Items.STICK)); // not a bed
 		AhoyMod.later(5, () -> step(level.getServer(), () -> {
 			BunkDeck deck = ship.bunkDeck;
@@ -226,7 +226,7 @@ final class SmokeTest {
 		check(back != null && back.cargoA.getItem(0).is(Items.DIAMOND) && back.cargoA.getItem(0).getCount() == 3, "cargo survives the bottle");
 		check(back.name.equals(ship.data.name), "name survives the bottle (" + back.name + ")");
 		check(CannonItems.isCannon(back.guns.getItem(0)), "the slotted cannon survives the bottle");
-		check(back.bunks.getItem(0).is(Items.BLUE_BED), "the slotted bed survives the bottle");
+		check(back.bunks.getItem(0).is(Items.BED.blue()), "the slotted bed survives the bottle");
 		AhoyMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
 	}
 

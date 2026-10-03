@@ -71,7 +71,7 @@ final class BunkMenu extends ChestMenu {
 				box.setItem(BUNK_SLOTS[bunk], shown);
 				ServerPlayer in = ship.bunkDeck.sleeperIn(bunk);
 				boolean busy = in != null && in != viewer;
-				box.setItem(BUNK_SLOTS[bunk] + 9, icon(Items.RED_BED,
+				box.setItem(BUNK_SLOTS[bunk] + 9, icon(Items.BED.red(),
 					t(busy ? in.getName().getString() + " is asleep here" : "Lie down", ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD),
 					t(ship.level.isBrightOutside() ? "Too bright to sleep" : "Good night", ChatFormatting.GRAY)));
 			} else {

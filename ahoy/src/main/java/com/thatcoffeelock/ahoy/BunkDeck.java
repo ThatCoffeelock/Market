@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.AbstractBedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +74,7 @@ final class BunkDeck {
 	private static String colour(ItemStack stack) {
 		String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
 		String colour = id.substring(0, id.length() - "_bed".length());
-		return COLOURS.contains(colour) ? colour : "red";
+		return COLOURS.contains(colour) ? colour : "yellow"; // the straw bed
 	}
 
 	// ---------------------------------------------------------------- drawing the bunks
@@ -200,9 +200,9 @@ final class BunkDeck {
 		Direction facing = Direction.fromYRot(ship.root.getYRot());
 		BlockPos foot = BlockPos.containing(w[0], ship.root.getY() + 24, w[1]);
 		BlockPos head = foot.relative(facing);
-		BlockState bed = Blocks.RED_BED.defaultBlockState().setValue(BedBlock.FACING, facing);
-		ship.level.setBlock(foot, bed.setValue(BedBlock.PART, BedPart.FOOT), 2);
-		ship.level.setBlock(head, bed.setValue(BedBlock.PART, BedPart.HEAD), 2);
+		BlockState bed = Blocks.STRAW_BED.defaultBlockState().setValue(AbstractBedBlock.FACING, facing);
+		ship.level.setBlock(foot, bed.setValue(AbstractBedBlock.PART, BedPart.FOOT), 2);
+		ship.level.setBlock(head, bed.setValue(AbstractBedBlock.PART, BedPart.HEAD), 2);
 
 		if (player.getVehicle() != null) {
 			player.stopRiding();
