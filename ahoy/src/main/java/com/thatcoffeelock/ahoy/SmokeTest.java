@@ -78,11 +78,13 @@ final class SmokeTest {
 		check(AhoyApi.shipsNear(level, ship.root.position(), 4).contains(ship), "other mods can find the ship (AhoyApi)");
 		check(ship.holds().size() == 2 && ship.holds().get(0).getItem(0).is(Items.DIAMOND), "other mods can reach the cargo holds");
 
-		aboard(level);
-
-		startZ = ship.root.getZ();
-		ship.testControls = new Ship.Controls(true, false, false, false, false);
-		AhoyMod.later(80, () -> step(level.getServer(), () -> sailed(level)));
+		// the ship makes its seats and hitboxes on its first ticks
+		AhoyMod.later(20, () -> step(level.getServer(), () -> {
+			aboard(level);
+			startZ = ship.root.getZ();
+			ship.testControls = new Ship.Controls(true, false, false, false, false);
+			AhoyMod.later(80, () -> step(level.getServer(), () -> sailed(level)));
+		}));
 	}
 
 	/**
