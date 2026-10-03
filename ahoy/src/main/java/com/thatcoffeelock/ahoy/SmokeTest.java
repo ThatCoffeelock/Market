@@ -10,10 +10,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Interaction;
-import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -105,45 +105,44 @@ final class SmokeTest {
 		check(inside, "the passenger's eyes are inside the ship's click hitbox (that's why right-click used to open the menu)");
 
 		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.FISHING_ROD));
-		Ships.useThrough(player, ship);
-		check(player.fishing != null, "a passenger can cast a fishing rod");
-		check(player.containerMenu == player.inventoryMenu, "... without the ship's menu popping up");
-		Ships.useThrough(player, ship);
-		check(player.fishing == null, "... and can reel it in again");
+		Ships.Used used = Ships.useThrough(player, ship);
+		check(used == Ships.Used.ITEM && player.fishing != null, "a passenger can cast a fishing rod, without the menu (" + used + ")");
+		used = Ships.useThrough(player, ship);
+		check(used == Ships.Used.ITEM && player.fishing == null, "... and can reel it in again (" + used + ")");
 
 		player.getInventory().add(new ItemStack(Items.ARROW, 8));
 		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BOW));
-		Ships.useThrough(player, ship);
-		check(player.isUsingItem(), "a passenger can draw a bow");
-		check(player.containerMenu == player.inventoryMenu, "... without the ship's menu popping up");
+		used = Ships.useThrough(player, ship);
+		check(used == Ships.Used.ITEM && player.isUsingItem(), "a passenger can draw a bow, without the menu (" + used + ")");
 		player.stopUsingItem();
 
-		// something in front of them: a cow at arm's length, a crafting table in mid-air
+		// something in front of them: a cow at arm's length, a note block in mid-air
 		player.setXRot(0);
 		UUID cowId = UUID.randomUUID();
 		Cmd.run(level, "summon minecraft:cow " + Cmd.pos(eye.x, eye.y - 0.7, eye.z + 2) + " {" + Cmd.uuidNbt(cowId) + ",NoAI:1b,NoGravity:1b,PersistenceRequired:1b}");
 		check(level.getEntity(cowId) != null, "a cow was summoned in front of the passenger");
 		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BUCKET));
-		Ships.useThrough(player, ship);
-		check(player.getMainHandItem().is(Items.MILK_BUCKET), "a passenger can milk a cow in front of them (they have " + player.getMainHandItem() + ")");
+		used = Ships.useThrough(player, ship);
+		check(used == Ships.Used.MOB && player.getMainHandItem().is(Items.MILK_BUCKET), "a passenger can milk a cow in front of them (" + used + ", they have " + player.getMainHandItem() + ")");
 		level.getEntity(cowId).discard();
 
-		BlockPos table = BlockPos.containing(eye.x, eye.y, eye.z + 2);
-		level.setBlockAndUpdate(table, Blocks.CRAFTING_TABLE.defaultBlockState());
+		BlockPos note = BlockPos.containing(eye.x, eye.y, eye.z + 2);
+		level.setBlockAndUpdate(note, Blocks.NOTE_BLOCK.defaultBlockState());
+		int before = level.getBlockState(note).getValue(BlockStateProperties.NOTE);
 		player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-		Ships.useThrough(player, ship);
-		check(player.containerMenu instanceof CraftingMenu, "a passenger can use a block in front of them (menu: " + player.containerMenu.getClass().getSimpleName() + ")");
-		player.closeContainer();
-		level.setBlockAndUpdate(table, Blocks.AIR.defaultBlockState());
+		used = Ships.useThrough(player, ship);
+		int after = level.getBlockState(note).getValue(BlockStateProperties.NOTE);
+		check(used == Ships.Used.BLOCK && after != before, "a passenger can use a block in front of them (" + used + ", note " + before + " to " + after + ")");
+		level.setBlockAndUpdate(note, Blocks.AIR.defaultBlockState());
 
-		// nothing there, empty hand: now it's the ship's menu
+		// nothing there: an empty hand opens the ship's menu, a stick doesn't
 		player.setXRot(-40);
-		Ships.useThrough(player, ship);
-		check(player.containerMenu instanceof ShipMenu, "an empty hand and nothing in front opens the ship's menu");
+		used = Ships.useThrough(player, ship);
+		check(used == Ships.Used.MENU, "an empty hand and nothing in front opens the ship's menu (" + used + ")");
 		player.closeContainer();
 		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
-		Ships.useThrough(player, ship);
-		check(player.containerMenu == player.inventoryMenu, "a stick in hand doesn't open the menu");
+		used = Ships.useThrough(player, ship);
+		check(used == Ships.Used.NOTHING, "a stick in hand doesn't open the menu (" + used + ")");
 		player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 	}
 

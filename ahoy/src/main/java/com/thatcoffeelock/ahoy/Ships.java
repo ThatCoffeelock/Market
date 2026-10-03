@@ -275,7 +275,7 @@ public final class Ships {
 	 * hand (fish, shoot, throw, eat, drink), main hand first. If none of that does anything and their hand is empty,
 	 * it's the ship's menu.
 	 */
-	static void useThrough(ServerPlayer player, Ship ship) {
+	static Used useThrough(ServerPlayer player, Ship ship) {
 		ServerLevel level = (ServerLevel) player.level();
 		Vec3 eye = player.getEyePosition();
 		Vec3 look = player.getLookAngle();
@@ -292,21 +292,37 @@ public final class Ships {
 				Entity target = entity.getEntity();
 				// 26.3 folded "interact at a point" and "interact" into one call; the point is relative to the mob
 				if (player.interactOn(target, hand, entity.getLocation().subtract(target.position())).consumesAction()) {
-					return;
+					return Used.MOB;
 				}
 			} else if (block != null) {
 				InteractionResult result = player.gameMode.useItemOn(player, level, held, hand, block);
 				if (result.consumesAction() || result == InteractionResult.FAIL) {
-					return;
+					return Used.BLOCK;
 				}
 			}
 			if (!held.isEmpty() && player.gameMode.useItem(player, level, held, hand).consumesAction()) {
-				return;
+				return Used.ITEM;
 			}
 		}
 		if (player.getMainHandItem().isEmpty()) {
 			ShipMenu.open(player, ship);
+			return Used.MENU;
 		}
+		return Used.NOTHING;
+	}
+
+	/** What a passenger's right-click ended up doing. */
+	enum Used {
+		/** Something in the world: a lever, a chest, a crafting table. */
+		BLOCK,
+		/** A mob: milking a cow, trading with a villager. */
+		MOB,
+		/** The item in their hand: a fishing rod, a bow, a snowball. */
+		ITEM,
+		/** Nothing else to do with an empty hand, so the ship's menu. */
+		MENU,
+		/** Nothing happened. */
+		NOTHING
 	}
 
 	/** The nearest thing a player could interact with along their line of sight, not counting the ship itself. */
