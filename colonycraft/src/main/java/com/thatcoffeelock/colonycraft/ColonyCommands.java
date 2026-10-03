@@ -62,6 +62,7 @@ final class ColonyCommands {
 			"§7Every morning your workers are paid from your balance and everything they gather goes to your storehouses.",
 			"§7Storehouses can auto-sell to the Market. §cNo wages, no work.",
 			"§7Catch illagers: beat one below 40% health, right-click with §fShackles§7, lock them in a §fCellblock§7.",
+			"§7Then ransom them (the offer grows daily), or execute them, in the cell or in public on a §fScaffold§7.",
 			"§7Found as many colonies as you can afford."
 		};
 		for (String line : lines) {

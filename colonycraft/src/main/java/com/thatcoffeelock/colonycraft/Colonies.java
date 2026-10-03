@@ -121,6 +121,7 @@ public final class Colonies {
 			finish(job); // don't leave half-built houses behind
 		}
 		JOBS.clear();
+		Prison.stop();
 		save();
 		server = null;
 		PENDING.clear();
@@ -137,6 +138,7 @@ public final class Colonies {
 
 	static void tick(MinecraftServer s) {
 		ticks++;
+		Prison.tick();
 		if (!JOBS.isEmpty()) {
 			BuildJob job = JOBS.get(0);
 			int end = Math.min(job.positions.size(), job.next + 48);
@@ -540,6 +542,7 @@ public final class Colonies {
 			case WATCHTOWER -> "Archer";
 			case WALL, GATEHOUSE -> "Sentry";
 			case CELLBLOCK -> "Jailer";
+			case SCAFFOLD -> "Executioner";
 		};
 	}
 

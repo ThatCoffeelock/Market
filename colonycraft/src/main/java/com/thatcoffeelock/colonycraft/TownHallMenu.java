@@ -160,10 +160,11 @@ final class TownHallMenu extends ChestMenu {
 			shopButton(19 + i, FORTIFICATIONS[i]);
 		}
 
-		button(23, icon(Items.IRON_BARS, t("Law and order", ChatFormatting.AQUA, ChatFormatting.BOLD),
+		button(22, icon(Items.IRON_BARS, t("Law and order", ChatFormatting.AQUA, ChatFormatting.BOLD),
 			List.of(t("Lock up the illagers you catch.", ChatFormatting.GRAY), t("Beat one down, shackle them, put the", ChatFormatting.GRAY),
-				t("shackles in a cell's holding block.", ChatFormatting.GRAY))), null);
-		shopButton(24, BuildingType.CELLBLOCK);
+				t("shackles in a cell's holding block.", ChatFormatting.GRAY), t("Then ransom them, or make a show of it.", ChatFormatting.GRAY))), null);
+		shopButton(23, BuildingType.CELLBLOCK);
+		shopButton(24, BuildingType.SCAFFOLD);
 		shacklesButton(25);
 
 		button(26, icon(Items.OAK_SIGN, t("Your buildings (below)", ChatFormatting.AQUA, ChatFormatting.BOLD),
@@ -256,6 +257,12 @@ final class TownHallMenu extends ChestMenu {
 		});
 	}
 
+	/** "2×", "2.5×". */
+	private static String factor(int tier) {
+		double f = Prison.publicFactor(tier);
+		return (f == Math.floor(f) ? String.valueOf((int) f) : String.valueOf(f)) + "×";
+	}
+
 	private static String describe(BuildingType type) {
 		return switch (type) {
 			case TOWN_HALL -> "Found another colony somewhere else.";
@@ -269,7 +276,8 @@ final class TownHallMenu extends ChestMenu {
 			case WATCHTOWER -> "Archers on top shoot monsters up to 24 blocks away.";
 			case WALL -> "9 blocks of thick wall with a walkway on top.";
 			case GATEHOUSE -> "A way through the wall. You can open the gates, monsters can't.";
-			case CELLBLOCK -> "Cells for the illagers you catch. Lock them up, or execute them for a bounty.";
+			case CELLBLOCK -> "Cells for the illagers you catch. Lock them up, ransom them, or execute them for a bounty.";
+			case SCAFFOLD -> "Public executions on the square: " + factor(1) + " the bounty, and the whole server is invited.";
 		};
 	}
 
@@ -374,6 +382,7 @@ final class TownHallMenu extends ChestMenu {
 			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
 			case WALL, GATEHOUSE -> "Rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
 			case CELLBLOCK -> BuildingType.cells(next) + " cells: two more get unbricked.";
+			case SCAFFOLD -> "Bigger crowds: public executions pay " + factor(next) + " the bounty.";
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}

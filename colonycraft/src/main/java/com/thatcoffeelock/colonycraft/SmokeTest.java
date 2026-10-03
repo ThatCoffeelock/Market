@@ -24,8 +24,9 @@ import net.minecraft.world.phys.AABB;
  * Only runs with -Dcolonycraft.smokeTest=true (CI). Boots a real server (with the Market mod), checks
  * every design, founds a colony, builds one of everything, runs paydays (normal, autosell, strike),
  * kills and replaces a worker, saves and reloads, builds a fortified line (walls, gatehouse, watchtower)
- * and a barracks, lets the archers shoot at a husk, catches a vindicator and puts them through the cellblock
- * (locked up, moved, executed), repairs and upgrades, then demolishes it all again.
+ * and a barracks, lets the archers shoot at a husk, catches illagers and puts them through the cellblock
+ * (locked up, moved, executed, ransomed, executed in public on the scaffold), repairs and upgrades, then
+ * demolishes it all again.
  */
 final class SmokeTest {
 	private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-00000000c01a");
@@ -245,7 +246,9 @@ final class SmokeTest {
 	}
 
 	private static Colony.Building cellblock;
+	private static Colony.Building scaffold;
 	private static UUID convict;
+	private static UUID condemned;
 
 	/** A cellblock: a vindicator gets beaten, shackled, locked up, saved, moved to another cell and executed. */
 	private static void prison(ServerLevel level) {
@@ -317,13 +320,58 @@ final class SmokeTest {
 			"executing a vindicator pays a bounty of " + Bank.format(bounty));
 		check(cellblock.prisoners.isEmpty(), "the cell is free again");
 
+		// ransom: the offer grows by a quarter of the bounty a day, up to 2.5 times
+		check(Prison.ransomValue("minecraft:pillager", 0) == Bank.cents(25), "a fresh pillager's ransom is the bounty");
+		check(Prison.ransomValue("minecraft:pillager", 2) == Bank.cents(37.5), "two days later it's half as much again");
+		check(Prison.ransomValue("minecraft:pillager", 100) == Bank.cents(62.5), "and it tops out at 2.5 times the bounty");
+		check(Prison.lockUp(level, cellblock, 0, catchOne(level, "minecraft:pillager")) == null, "a pillager is locked up");
+		UUID hostage = cellblock.prisoners.get(0).id();
+		before = Bank.balance(OWNER);
+		long ransom = Prison.ransom(level, cellblock, 0);
+		check(ransom == Bank.cents(25) && Bank.balance(OWNER) - before == ransom, "the illagers paid a ransom of " + Bank.format(ransom));
+		check(level.getEntity(hostage) == null && cellblock.prisoners.isEmpty(), "the envoy took the pillager home");
+
+		// a public execution needs a scaffold, and pays double
+		check(Prison.whyNotPublic(level, colony) != null, "no scaffold, no public execution");
+		scaffold = Colonies.construct(level, colony, BuildingType.SCAFFOLD, new BlockPos(24, 99, 0), 0, Bank.cents(BuildingType.SCAFFOLD.price), true);
+		off = Colonies.damaged(level, scaffold);
+		check(off == 0, "the scaffold was built as designed (" + off + " blocks off)");
+		check(level.getBlockState(scaffold.world(new BlockPos(0, 5, 2))).is(Blocks.BELL), "the scaffold has its bell");
+		check(Prison.lockUp(level, cellblock, 1, catchOne(level, "minecraft:evoker")) == null, "an evoker is locked up");
+		condemned = cellblock.prisoners.get(1).id();
+		check(Prison.whyNotPublic(level, colony) == null, "the scaffold is ready");
+		before = Bank.balance(OWNER);
+		long paid = Prison.publicExecution(level, cellblock, 1);
+		check(paid == Bank.cents(200) && Bank.balance(OWNER) - before == paid, "a public execution of an evoker pays twice the bounty ("
+			+ Bank.format(paid) + ")");
+		check(cellblock.prisoners.isEmpty(), "the evoker left their cell");
+		check(Prison.busy(scaffold) && Prison.whyNotPublic(level, colony) != null, "one show at a time");
+		Entity evoker = level.getEntity(condemned);
+		BlockPos stage = scaffold.world(BuildingType.SCAFFOLD_SPOT);
+		check(evoker != null && evoker.distanceToSqr(stage.getX() + 0.5, stage.getY(), stage.getZ() + 0.5) < 0.5, "the evoker stands on the scaffold");
+		check(Prison.isPrisoner(evoker) && evoker instanceof Mob m2 && m2.isNoAi(), "and can't cast anything up there");
+
 		// upgrading unbricks two more cells (checked once the builders are done)
 		Colonies.upgrade(level, cellblock, 0);
+	}
+
+	/** Summons an illager, beats them down and shackles them. */
+	private static ItemStack catchOne(ServerLevel level, String type) {
+		UUID id = UUID.randomUUID();
+		Cmd.run(level, "summon " + type + " 24.5 100 -20.5 {" + Cmd.uuidNbt(id) + ",PersistenceRequired:1b}");
+		check(level.getEntity(id) instanceof LivingEntity, "a " + type + " showed up");
+		LivingEntity illager = (LivingEntity) level.getEntity(id);
+		illager.setHealth(illager.getMaxHealth() * 0.3f);
+		check(Prison.weakEnough(illager), "the " + type + " is beaten down");
+		return Prison.capture(illager);
 	}
 
 	private static void afterVolley(ServerLevel level) {
 		Entity dead = level.getEntity(convict);
 		check(dead == null || !dead.isAlive(), "the executed prisoner is dead");
+		Entity evoker = level.getEntity(condemned);
+		check(evoker == null || !evoker.isAlive(), "the crowd got its public execution");
+		check(!Prison.busy(scaffold), "and the scaffold is free again");
 		BlockPos spot = cellblock.world(BuildingType.cellSpot(1));
 		int drops = level.getEntities((Entity) null, new AABB(spot).inflate(4), e -> Prison.typeId(e).equals("minecraft:item")).size();
 		check(drops == 0, "nothing dropped at the execution (" + drops + " items)");

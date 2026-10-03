@@ -24,20 +24,23 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A cell's holding block: a 3-row chest screen. The middle slot is the lock. Put full shackles in and the
- * prisoner appears in the cell; take them out and the prisoner goes back into the shackles. The red
- * button executes whoever's inside, for a bounty.
+ * prisoner appears in the cell; take them out and the prisoner goes back into the shackles. The buttons
+ * ransom whoever's inside, execute them in the cell for the bounty, or send them to the scaffold for more.
  */
 final class HoldingMenu extends ChestMenu {
 	private static final int SIZE = 27;
 	private static final int LOCK = 13;
+	private static final int RANSOM = 11;
 	private static final int EXECUTE = 15;
+	private static final int PUBLIC = 16;
 	private static final int CLOSE = 22;
 
 	private final ServerPlayer viewer;
 	private final Colony.Building cellblock;
 	private final int cell;
 	private final SimpleContainer box;
-	private boolean confirm;
+	/** The button that's been clicked once and waits for the second click, or -1. */
+	private int confirm = -1;
 
 	static void open(ServerPlayer player, Colony.Building cellblock, int cell) {
 		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new HoldingMenu(id, player, cellblock, cell),
@@ -105,10 +108,32 @@ final class HoldingMenu extends ChestMenu {
 			held.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 			box.setItem(LOCK, held);
 			long bounty = Bank.cents(Prison.BOUNTY.getOrDefault(p.type(), 0.0));
-			box.setItem(EXECUTE, icon(confirm ? Items.WITHER_SKELETON_SKULL : Items.IRON_AXE,
-				t(confirm ? "Click again to execute" : "Execute", ChatFormatting.RED, ChatFormatting.BOLD),
-				List.of(t("Bounty: " + Bank.format(bounty), ChatFormatting.GOLD), t("Nothing drops. You get your", ChatFormatting.GRAY),
-					t("shackles back, empty.", ChatFormatting.GRAY))));
+			long now = level().getGameTime();
+			long ransom = Prison.ransomValue(p.type(), Prison.daysHeld(p, now));
+			long max = Prison.ransomValue(p.type(), Long.MAX_VALUE / Colonies.DAY);
+			box.setItem(RANSOM, icon(confirm == RANSOM ? Items.EMERALD_BLOCK : Items.EMERALD,
+				t(confirm == RANSOM ? "Click again to accept the ransom" : "Ransom", ChatFormatting.GREEN, ChatFormatting.BOLD),
+				List.of(t("The illagers offer " + Bank.format(ransom) + " today.", ChatFormatting.GOLD),
+					t("Their offer grows every day you hold them,", ChatFormatting.GRAY),
+					t("up to " + Bank.format(max) + ". Meanwhile they eat.", ChatFormatting.GRAY),
+					t("An envoy takes them home. They're gone for good.", ChatFormatting.DARK_GRAY))));
+			box.setItem(EXECUTE, icon(confirm == EXECUTE ? Items.WITHER_SKELETON_SKULL : Items.IRON_AXE,
+				t(confirm == EXECUTE ? "Click again to execute" : "Execute in the cell", ChatFormatting.RED, ChatFormatting.BOLD),
+				List.of(t("Bounty: " + Bank.format(bounty), ChatFormatting.GOLD), t("Quick and quiet. Nothing drops.", ChatFormatting.GRAY),
+					t("You get your shackles back, empty.", ChatFormatting.GRAY))));
+			String why = Prison.whyNotPublic(level(), cellblock.colony);
+			Colony.Building scaffold = Prison.scaffold(cellblock.colony);
+			List<Component> lore = new ArrayList<>();
+			if (why == null && scaffold != null) {
+				lore.add(t("Bounty and ticket sales: " + Bank.format(Bank.cents(Prison.BOUNTY.getOrDefault(p.type(), 0.0)
+					* Prison.publicFactor(scaffold.tier))), ChatFormatting.GOLD));
+				lore.add(t("Up the scaffold, the whole server is told,", ChatFormatting.GRAY));
+				lore.add(t("the bell tolls, the crowd cheers.", ChatFormatting.GRAY));
+			} else {
+				lore.add(t(why == null ? "No scaffold." : why, ChatFormatting.RED));
+			}
+			box.setItem(PUBLIC, icon(confirm == PUBLIC ? Items.BELL : Items.WITHER_SKELETON_SKULL,
+				t(confirm == PUBLIC ? "Click again: to the scaffold!" : "Public execution", ChatFormatting.DARK_RED, ChatFormatting.BOLD), lore));
 		}
 		box.setItem(CLOSE, icon(Items.BARRIER, t("Close", ChatFormatting.RED), List.of()));
 	}
@@ -122,19 +147,24 @@ final class HoldingMenu extends ChestMenu {
 			return;
 		}
 		taken.run();
-		confirm = false;
+		confirm = -1;
+	}
+
+	/** Buttons that do something drastic need a second click. True when this is it. */
+	private boolean confirmed(int button) {
+		if (confirm != button) {
+			confirm = button;
+			return false;
+		}
+		confirm = -1;
+		return true;
 	}
 
 	private void execute() {
 		Prison.Prisoner p = inmate();
-		if (p == null) {
+		if (p == null || !confirmed(EXECUTE)) {
 			return;
 		}
-		if (!confirm) {
-			confirm = true;
-			return;
-		}
-		confirm = false;
 		long bounty = Prison.execute(level(), cellblock, cell);
 		if (bounty < 0) {
 			nope("Nobody to execute here.");
@@ -144,6 +174,45 @@ final class HoldingMenu extends ChestMenu {
 		viewer.sendSystemMessage(Component.literal("Justice is served. ").withStyle(ChatFormatting.DARK_RED)
 			.append(Component.literal(p.name() + Prison.epitaph(p.type()) + " Bounty: ").withStyle(ChatFormatting.GRAY))
 			.append(Bank.text(bounty)));
+	}
+
+	private void ransom() {
+		Prison.Prisoner p = inmate();
+		if (p == null || !confirmed(RANSOM)) {
+			return;
+		}
+		long paid = Prison.ransom(level(), cellblock, cell);
+		if (paid < 0) {
+			nope("Nobody to ransom here.");
+			return;
+		}
+		Blueprints.give(viewer, Prison.emptyShackles());
+		viewer.sendSystemMessage(Component.literal("An illager envoy rides in under a white flag, counts out ").withStyle(ChatFormatting.GREEN)
+			.append(Bank.text(paid)).append(Component.literal(" and takes " + p.name() + " home. Pleasure doing business.")
+				.withStyle(ChatFormatting.GREEN)));
+	}
+
+	private void publicExecution() {
+		Prison.Prisoner p = inmate();
+		if (p == null) {
+			return;
+		}
+		String why = Prison.whyNotPublic(level(), cellblock.colony);
+		if (why != null) {
+			nope(why);
+			return;
+		}
+		if (!confirmed(PUBLIC)) {
+			return;
+		}
+		long paid = Prison.publicExecution(level(), cellblock, cell);
+		if (paid < 0) {
+			nope("The show can't go on right now.");
+			return;
+		}
+		Blueprints.give(viewer, Prison.emptyShackles());
+		viewer.sendSystemMessage(Component.literal(p.name() + " is marched up the scaffold. Bounty and ticket sales: ").withStyle(ChatFormatting.GOLD)
+			.append(Bank.text(paid)));
 	}
 
 	private void nope(String why) {
@@ -169,7 +238,7 @@ final class HoldingMenu extends ChestMenu {
 						} else {
 							setCarried(out);
 						}
-						confirm = false;
+						confirm = -1;
 					}
 				}
 			} else if (!carried.isEmpty()) {
@@ -177,6 +246,10 @@ final class HoldingMenu extends ChestMenu {
 			}
 		} else if (slotId == EXECUTE && click) {
 			execute();
+		} else if (slotId == RANSOM && click) {
+			ransom();
+		} else if (slotId == PUBLIC && click) {
+			publicExecution();
 		} else if (slotId == CLOSE && click) {
 			ColonycraftMod.nextTick(viewer::closeContainer);
 		} else if (slotId >= SIZE && slotId < slots.size() && clickType == ContainerInput.QUICK_MOVE) {

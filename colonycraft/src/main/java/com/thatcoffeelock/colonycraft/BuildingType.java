@@ -36,7 +36,8 @@ public enum BuildingType {
 	WATCHTOWER("watchtower", "Watchtower", Items.CROSSBOW, 1800, 3, 3, 16, new int[] {1, 2, 3}, new int[] {1, 2, 3}, 10, true, BuildingType::watchtower),
 	WALL("wall", "Wall", Items.STONE_BRICK_WALL, 300, 4, 2, 8, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::wall),
 	GATEHOUSE("gatehouse", "Gatehouse", Items.SPRUCE_FENCE_GATE, 1200, 3, 3, 9, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::gatehouse),
-	CELLBLOCK("cellblock", "Cellblock", Items.IRON_BARS, 2200, 5, 6, 18, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 5, false, BuildingType::cellblock);
+	CELLBLOCK("cellblock", "Cellblock", Items.IRON_BARS, 2200, 5, 6, 18, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 5, false, BuildingType::cellblock),
+	SCAFFOLD("scaffold", "Scaffold", Items.WITHER_SKELETON_SKULL, 1200, 3, 3, 7, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, false, BuildingType::scaffold);
 
 	public static final int MAX_TIER = 3;
 
@@ -142,9 +143,13 @@ public enum BuildingType {
 			case RESIDENCE, MINE, WORKSHOP -> new BlockPos(0, 1, -1);
 			case BARRACKS -> new BlockPos(0, 1, -2);
 			case WALL -> new BlockPos(0, 6, 0);
+			case SCAFFOLD -> SCAFFOLD_SPOT;
 			default -> new BlockPos(0, 1, 0);
 		};
 	}
+
+	/** Where the condemned stands on the scaffold, facing the crowd. */
+	public static final BlockPos SCAFFOLD_SPOT = new BlockPos(0, 3, 0);
 
 	/** The Town Hall's service counter (right-click to open the Town Hall). */
 	public static final BlockPos COUNTER = new BlockPos(0, 1, 2);
@@ -743,6 +748,50 @@ public enum BuildingType {
 		p.set(0, 14, -5, "minecraft:glass_pane");
 		p.set(0, 12, 6, "minecraft:glass_pane");
 		p.set(0, 18, -5, "minecraft:lightning_rod");
+	}
+
+	/**
+	 * The scaffold (schavot) that stood on every Dutch market square: a stone-and-brick platform up a flight of
+	 * steps, a dark oak railing, a gallows beam with the bell that tolls the countdown, and the headsman's block.
+	 */
+	private static void scaffold(Plan p) {
+		p.fill(-3, 0, -3, 3, 0, 3, PAVING);
+		p.set(0, 0, -3, "minecraft:smooth_quartz");
+		// the platform: a stone footing, a sandstone edge, planks on top, steps up the front
+		p.fill(-2, 1, -2, 2, 1, 2, PLINTH);
+		p.rect(-2, -2, 2, 2, 2, TRIM);
+		p.fill(-1, 2, -1, 1, 2, 1, "minecraft:dark_oak_planks");
+		for (int x = -1; x <= 1; x++) {
+			p.stairs(x, 1, -3, TRIM_STAIRS, "south", false);
+		}
+		// a railing with a gap for the steps
+		for (int x = -2; x <= 2; x++) {
+			p.set(x, 3, 2, "minecraft:dark_oak_fence");
+			if (x != 0) {
+				p.set(x, 3, -2, "minecraft:dark_oak_fence");
+			}
+		}
+		for (int z = -1; z <= 1; z++) {
+			p.set(-2, 3, z, "minecraft:dark_oak_fence");
+			p.set(2, 3, z, "minecraft:dark_oak_fence");
+		}
+		// the gallows beam at the back, with the bell, and the headsman's block in front of it
+		p.fill(-2, 3, 2, -2, 6, 2, "minecraft:dark_oak_log[axis=y]");
+		p.fill(2, 3, 2, 2, 6, 2, "minecraft:dark_oak_log[axis=y]");
+		p.fill(-1, 6, 2, 1, 6, 2, "minecraft:dark_oak_log[axis=x]");
+		p.set(0, 7, 2, TRIM_CAP);
+		p.set(0, 5, 2, "minecraft:bell[attachment=ceiling,facing=north]");
+		p.set(0, 3, 1, "minecraft:stripped_dark_oak_log[axis=x]");
+		// lamps on the front corners, banner poles at the back
+		for (int x : new int[] {-3, 3}) {
+			p.set(x, 1, -3, RAIL);
+			p.set(x, 2, -3, "minecraft:lantern[hanging=false]");
+			p.fill(x, 1, 3, x, 4, 3, "minecraft:dark_oak_fence");
+			p.set(x, 5, 3, "minecraft:lantern[hanging=false]");
+		}
+		for (int x : new int[] {-2, 2}) {
+			p.set(x, 5, 1, "minecraft:red_wall_banner[facing=north]"); // on the gallows posts
+		}
 	}
 
 	/** A brick townhouse in the same style: a little gable over the door, a mansard with dormers, a chimney. */

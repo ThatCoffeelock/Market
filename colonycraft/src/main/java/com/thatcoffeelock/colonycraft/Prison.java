@@ -2,6 +2,7 @@ package com.thatcoffeelock.colonycraft;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -36,6 +37,9 @@ import org.jetbrains.annotations.Nullable;
  * into a burlap sack), and put the shackles into a cell's holding block: the prisoner appears in the cell
  * and stands there, harmless, until you take them out again or execute them for a bounty.
  *
+ * Instead of executing them in the cell you can ransom them back to the illagers (the longer you've held them,
+ * the more they pay) or execute them publicly on the colony's scaffold, which pays double or more.
+ *
  * Prisoners are the real mob with NoAI: they don't move, fight, cast spells or join raids, and they're
  * invulnerable so the colony's guards can't do the executioner's job for free.
  */
@@ -52,6 +56,13 @@ public final class Prison {
 		"minecraft:vindicator", 40.0,
 		"minecraft:illusioner", 80.0,
 		"minecraft:evoker", 100.0);
+
+	/** Each full day in a cell adds this share of the bounty to the ransom the illagers pay... */
+	public static final double RANSOM_PER_DAY = 0.25;
+	/** ...up to this many times the bounty. */
+	public static final double RANSOM_CAP = 2.5;
+	/** How long the crowd gets to gather before a public execution, in ticks. */
+	public static final int SHOW_TICKS = 120;
 
 	/** One prisoner: who they are and since when (game time) they've been inside. */
 	public record Prisoner(UUID id, String name, String type, long since) {
@@ -83,6 +94,26 @@ public final class Prison {
 		" is behind bars. The cobweb is included at no extra charge.",
 	};
 
+	/** A public execution in progress: the condemned stands on the scaffold while the bell counts down. */
+	private static final class Show {
+		final ServerLevel level;
+		final Colony.Building scaffold;
+		final UUID id;
+		final String name;
+		final String type;
+		int left = SHOW_TICKS;
+
+		Show(ServerLevel level, Colony.Building scaffold, UUID id, String name, String type) {
+			this.level = level;
+			this.scaffold = scaffold;
+			this.id = id;
+			this.name = name;
+			this.type = type;
+		}
+	}
+
+	private static final List<Show> SHOWS = new ArrayList<>();
+
 	/** Prisoners by their UUID, to the cellblock they're held in. */
 	private static final Map<UUID, Colony.Building> HELD = new HashMap<>();
 	private static final Random RANDOM = new Random();
@@ -105,6 +136,7 @@ public final class Prison {
 
 	static void forget() {
 		HELD.clear();
+		SHOWS.clear();
 	}
 
 	static boolean isHeld(UUID id) {
@@ -445,6 +477,153 @@ public final class Prison {
 			Bank.credit(b.colony.owner, b.colony.ownerName, bounty);
 		}
 		return bounty;
+	}
+
+	// ---------------------------------------------------------------- ransom
+
+	/** Full days this prisoner has been inside. */
+	static long daysHeld(Prisoner p, long now) {
+		return Math.max(0, now - p.since()) / Colonies.DAY;
+	}
+
+	/** What the illagers pay to get this prisoner back today: the bounty, plus a quarter of it per day held, up to 2.5 times. */
+	static long ransomValue(String type, long days) {
+		double factor = Math.min(RANSOM_CAP, 1 + RANSOM_PER_DAY * days);
+		return Bank.cents(BOUNTY.getOrDefault(type, 0.0) * factor);
+	}
+
+	/**
+	 * An illager envoy pays the ransom and takes the prisoner home (they leave the world, so the same illager can't
+	 * be caught and ransomed over and over). Returns what was paid, or -1 if the cell was empty.
+	 */
+	static long ransom(ServerLevel level, Colony.Building b, int cell) {
+		Prisoner p = inmate(level, b, cell);
+		Entity prisoner = p == null ? null : level.getEntity(p.id());
+		if (prisoner == null) {
+			return -1;
+		}
+		long paid = ransomValue(p.type(), daysHeld(p, level.getGameTime()));
+		free(b, cell);
+		Cmd.sound(level, "minecraft:entity.evoker.celebrate", prisoner.getX(), prisoner.getY(), prisoner.getZ(), 1f, 1f);
+		Cmd.sound(level, "minecraft:block.iron_door.open", prisoner.getX(), prisoner.getY(), prisoner.getZ(), 1f, 0.8f);
+		Cmd.particles(level, "minecraft:poof", prisoner.getX(), prisoner.getY() + 1, prisoner.getZ(), 0.3, 0.02, 20);
+		prisoner.discard();
+		Bank.credit(b.colony.owner, b.colony.ownerName, paid);
+		return paid;
+	}
+
+	// ---------------------------------------------------------------- public execution
+
+	/** How much a public execution pays compared to the plain bounty, by scaffold tier: 2, 2.5, then 3 times. */
+	static double publicFactor(int tier) {
+		return 1.5 + 0.5 * Math.max(1, Math.min(BuildingType.MAX_TIER, tier));
+	}
+
+	static boolean busy(Colony.Building scaffold) {
+		for (Show show : SHOWS) {
+			if (show.scaffold == scaffold) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** The colony's best scaffold that's free right now, or null. */
+	static @Nullable Colony.Building scaffold(Colony c) {
+		Colony.Building best = null;
+		for (Colony.Building b : c.buildings) {
+			if (b.type == BuildingType.SCAFFOLD && !busy(b) && (best == null || b.tier > best.tier)) {
+				best = b;
+			}
+		}
+		return best;
+	}
+
+	/** Why this cellblock's prisoners can't be executed in public right now, or null if they can. */
+	static @Nullable String whyNotPublic(ServerLevel level, Colony c) {
+		boolean any = false;
+		for (Colony.Building b : c.buildings) {
+			any |= b.type == BuildingType.SCAFFOLD;
+		}
+		if (!any) {
+			return "Build a Scaffold first. Justice wants an audience.";
+		}
+		Colony.Building scaffold = scaffold(c);
+		if (scaffold == null) {
+			return "The scaffold is busy. Wait your turn.";
+		}
+		if (!level.isPositionEntityTicking(scaffold.world(BuildingType.SCAFFOLD_SPOT))) {
+			return "The scaffold is too far away. Get a bit closer to it.";
+		}
+		return null;
+	}
+
+	/**
+	 * Marches the prisoner up the scaffold and announces it to the whole server. The bell counts down, and then
+	 * the crowd gets what it came for. Pays the bounty times the scaffold's factor (bounty plus ticket sales)
+	 * right away. Returns what was paid, or -1 if it can't happen.
+	 */
+	static long publicExecution(ServerLevel level, Colony.Building b, int cell) {
+		Prisoner p = inmate(level, b, cell);
+		Entity prisoner = p == null ? null : level.getEntity(p.id());
+		if (prisoner == null || whyNotPublic(level, b.colony) != null) {
+			return -1;
+		}
+		Colony.Building scaffold = scaffold(b.colony);
+		free(b, cell);
+		BlockPos spot = scaffold.world(BuildingType.SCAFFOLD_SPOT);
+		BlockPos front = scaffold.world(BuildingType.SCAFFOLD_SPOT.offset(0, 0, -1)).subtract(spot);
+		float yaw = (float) Math.toDegrees(Math.atan2(-front.getX(), front.getZ()));
+		Cmd.run(level, "tp " + p.id() + " " + Cmd.pos(spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5) + " " + Cmd.f(yaw) + " 0");
+		prisoner.setYHeadRot(yaw);
+		prisoner.setCustomName(Component.literal(p.name()).withStyle(ChatFormatting.DARK_RED));
+		SHOWS.add(new Show(level, scaffold, p.id(), p.name(), p.type()));
+		long paid = Bank.cents(BOUNTY.getOrDefault(p.type(), 0.0) * publicFactor(scaffold.tier));
+		Bank.credit(b.colony.owner, b.colony.ownerName, paid);
+		level.getServer().getPlayerList().broadcastSystemMessage(Component.literal("Hear ye! ").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+			.append(Component.literal(p.name() + " faces justice on the scaffold of " + b.colony.name + " ("
+				+ spot.getX() + ", " + spot.getY() + ", " + spot.getZ() + "). Bring the kids.").withStyle(ChatFormatting.YELLOW)), false);
+		Cmd.sound(level, "minecraft:block.bell.use", spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5, 2f, 0.7f);
+		return paid;
+	}
+
+	/** Every tick: the bell tolls the countdown of every public execution, and the ones whose time is up happen. */
+	static void tick() {
+		for (Iterator<Show> it = SHOWS.iterator(); it.hasNext(); ) {
+			Show show = it.next();
+			show.left--;
+			BlockPos spot = show.scaffold.world(BuildingType.SCAFFOLD_SPOT);
+			if (show.left > 0 && show.left % 40 == 0) {
+				Cmd.sound(show.level, "minecraft:block.bell.use", spot.getX() + 0.5, spot.getY() + 2, spot.getZ() + 0.5, 2f, 0.5f);
+				Cmd.sound(show.level, "minecraft:entity.villager.ambient", spot.getX() + 0.5, spot.getY(), spot.getZ() - 2.5, 1f, 0.8f);
+			}
+			if (show.left <= 0) {
+				it.remove();
+				finish(show);
+			}
+		}
+	}
+
+	private static void finish(Show show) {
+		BlockPos spot = show.scaffold.world(BuildingType.SCAFFOLD_SPOT);
+		double x = spot.getX() + 0.5;
+		double z = spot.getZ() + 0.5;
+		Cmd.sound(show.level, "minecraft:entity.player.attack.sweep", x, spot.getY(), z, 1.5f, 0.6f);
+		Cmd.particles(show.level, "minecraft:soul", x, spot.getY() + 1, z, 0.3, 0.02, 30);
+		Cmd.run(show.level, "kill " + show.id);
+		Cmd.sound(show.level, "minecraft:entity.villager.celebrate", x, spot.getY(), z, 2f, 1f);
+		Cmd.particles(show.level, "minecraft:happy_villager", x, spot.getY(), z, 4, 0, 40);
+		show.level.getServer().getPlayerList().broadcastSystemMessage(Component.literal("Justice is served in " + show.scaffold.colony.name + ". ")
+			.withStyle(ChatFormatting.DARK_RED).append(Component.literal(show.name + epitaph(show.type) + " The crowd goes wild.")
+				.withStyle(ChatFormatting.GRAY)), false);
+	}
+
+	/** Server stopping: the shows can't wait. */
+	static void stop() {
+		for (Show show : new ArrayList<>(SHOWS)) {
+			finish(show);
+		}
+		SHOWS.clear();
 	}
 
 	/** The last words the town crier has for them. */

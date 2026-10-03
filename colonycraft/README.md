@@ -61,12 +61,19 @@ Illagers have been burning villages for years. Time they did some time.
 | Building | Price | Crew | What it is |
 |---|---|---|---|
 | Cellblock | ₥2,200 | 1 jailer (₥5 a day) | A brick gaol after the Gevangenpoort in The Hague: a corridor between cells behind iron bars, the jailer's office upstairs, stepped gables. **2 / 4 / 6 cells** at tier 1 / 2 / 3; the cells you haven't paid for yet are bricked up |
+| Scaffold | ₥1,200 | – | The *schavot* from the market square: a stone platform up a flight of steps, a railing, a gallows beam with a bell and the headsman's block. Public executions pay **2× / 2.5× / 3×** the bounty at tier 1 / 2 / 3 |
 
 1. **Buy Shackles** (₥50) at the Town Hall: the *Law and order* row, or the Cellblock's own page. They're reusable.
 2. **Beat an illager below 40% health**, then right-click them with the shackles. Pillagers, vindicators, evokers and illusioners fit. Their weapons are confiscated; a raid captain's banner goes to you as a trophy, so no Bad Omen comes of it. Illagers without a name get one, so you know who Gary is.
 3. **Lock them up.** Every cell has a **holding block**: the vault in the corridor wall. Right-click it to open it and put the shackles in the middle slot (or right-click the vault with the shackles in hand). The prisoner appears in the cell, behind the bars, and stands there: no moving, no fighting, no spells, no joining raids. Their name tag counts the days they've done.
 4. **Take them out** again by taking the shackles out of the holding block: the prisoner goes back into the shackles, ready for another cell.
-5. **Execute them** with the red button in the holding block (click twice). Nothing drops, so there's no totem farm here, but the colony pays a bounty: **₥25** for a pillager, **₥40** for a vindicator, **₥80** for an illusioner, **₥100** for an evoker. Your shackles come back empty.
+5. **Decide their fate** in the holding block. Every option needs two clicks, and your shackles come back empty.
+
+| Fate | Pays | How it goes |
+|---|---|---|
+| **Execute in the cell** | The bounty: **₥25** pillager, **₥40** vindicator, **₥80** illusioner, **₥100** evoker | Quick and quiet. Nothing drops, so there's no totem farm here |
+| **Ransom** | The bounty, plus a quarter of it for every full day you've held them, up to **2.5×** | An illager envoy pays up and takes them home. They're gone for good, so you can't catch and ransom the same illager forever. Holding out costs upkeep |
+| **Public execution** | **2× / 2.5× / 3×** the bounty (bounty plus ticket sales), paid right away | Needs a **Scaffold** in the colony. The prisoner is marched up onto it, the whole server is told where, the bell tolls a six-second countdown and the crowd cheers. One show per scaffold at a time |
 
 Details:
 
