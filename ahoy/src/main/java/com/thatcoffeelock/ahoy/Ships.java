@@ -290,11 +290,8 @@ public final class Ships {
 			ItemStack held = player.getItemInHand(hand);
 			if (entity != null) {
 				Entity target = entity.getEntity();
-				InteractionResult result = target.interactAt(player, entity.getLocation().subtract(target.position()), hand);
-				if (!result.consumesAction()) {
-					result = player.interactOn(target, hand);
-				}
-				if (result.consumesAction()) {
+				// 26.3 folded "interact at a point" and "interact" into one call; the point is relative to the mob
+				if (player.interactOn(target, hand, entity.getLocation().subtract(target.position())).consumesAction()) {
 					return;
 				}
 			} else if (block != null) {
