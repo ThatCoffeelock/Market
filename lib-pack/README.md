@@ -16,7 +16,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Warehouse](../warehouse/README.md) | Big sorted storage: a core plus racks, intake chests, train drop-off and Loading Docks for ships |
 | [Skills](../skills/README.md) | Elder Scrolls style skills: level up by doing, spend perk points every 10 levels |
 | [Hamlets & Horrors](../hamlets/README.md) | Random cottages, castles and dungeons: some lived in by villagers, some overrun by monsters |
-| [Overenchant](../overenchant/README.md) | Higher maximum enchantment levels (Sharpness X, Unbreaking VI). Flintlock guns can be enchanted too |
+| [Overenchant](../overenchant/README.md) | Higher maximum enchantment levels: every enchantment goes to X (Sharpness X instead of V). Flintlock guns can be enchanted too |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 

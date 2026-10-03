@@ -13,22 +13,31 @@ import net.fabricmc.loader.api.FabricLoader;
 /**
  * config/overenchant.json. Created with defaults on first start; /overenchant reload re-reads it.
  * <p>
- * The new maximum level of an enchantment is {@code old max × multiplier + bonusLevels}, never above {@link #cap} and
- * never below what it was.
+ * The new maximum level of an enchantment is the higher of {@link #raiseTo} and {@code old max × multiplier +
+ * bonusLevels}, never above {@link #cap} and never below what it was. With the defaults every enchantment that has more
+ * than one level goes up to X: Sharpness V, Protection IV, Unbreaking III and Knockback II all become X.
  */
 public final class OverenchantConfig {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static volatile OverenchantConfig current;
 
-	/** 2.0 doubles every maximum: Sharpness V becomes X, Unbreaking III becomes VI, Protection IV becomes VIII. */
-	public double multiplier = 2.0;
-	/** Levels added on top, after multiplying. */
+	/** Every enchantment with more than one level can reach at least this level. */
+	public int raiseTo = 10;
+	/** On top of that: the old maximum times this (2.0 doubles it). 1.0 does nothing, so {@link #raiseTo} decides. */
+	public double multiplier = 1.0;
+	/** Levels added to the old maximum, after multiplying. */
 	public int bonusLevels = 0;
 	/**
 	 * Nothing is raised above this level. Vanilla clients only have names for I to X, so with anything higher they show
 	 * "enchantment.level.11" instead of "XI" (clients that have this mod installed show it properly).
 	 */
 	public int cap = 10;
+	/**
+	 * Squeeze the enchanting table's cost curve so the new top level costs what the old top level did (Sharpness X
+	 * costs what V used to), and every level below it gets cheaper in proportion. Off: the new levels are out of the
+	 * table's reach and only come from anvils, books and /enchant.
+	 */
+	public boolean compressCosts = true;
 	/** Also give enchantments that only have one level (Mending, Silk Touch, Infinity...) a second one. That does nothing useful. */
 	public boolean raiseSingleLevel = false;
 
@@ -46,8 +55,9 @@ public final class OverenchantConfig {
 		if (original <= 1 && !raiseSingleLevel) {
 			return original;
 		}
-		long raised = Math.round(original * multiplier) + bonusLevels;
-		return (int) Math.max(original, Math.min(cap, raised));
+		long scaled = Math.round(original * multiplier) + bonusLevels;
+		long target = Math.max(raiseTo, scaled);
+		return (int) Math.max(original, Math.min(cap, target));
 	}
 
 	public static synchronized OverenchantConfig load() {
@@ -61,6 +71,7 @@ public final class OverenchantConfig {
 			}
 		}
 		OverenchantConfig config = loaded != null ? loaded : new OverenchantConfig();
+		config.raiseTo = Math.max(0, Math.min(255, config.raiseTo));
 		config.multiplier = Math.max(1.0, Math.min(100.0, config.multiplier));
 		config.bonusLevels = Math.max(0, config.bonusLevels);
 		config.cap = Math.max(1, Math.min(255, config.cap));

@@ -47,3 +47,6 @@ dump net.minecraft.world.item.ItemStack 'isEnchantable|isEnchanted|getEnchantmen
 dump net.minecraft.world.entity.Entity 'igniteForSeconds|igniteForTicks|setRemainingFireTicks|isOnFire|getRemainingFireTicks'
 dump net.minecraft.world.entity.LivingEntity 'setItemSlot|getMainHandItem'
 dump net.minecraft.resources.ResourceKey 'identifier|location'
+dump net.minecraft.world.item.enchantment.Enchantment 'getMinCost|getMaxCost'
+dump 'net.minecraft.world.item.enchantment.Enchantment$Cost' 'base|perLevelAboveFirst|calculate'
+dump 'net.minecraft.world.item.enchantment.Enchantment$EnchantmentDefinition' 'minCost|maxCost'

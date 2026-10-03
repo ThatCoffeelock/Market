@@ -129,7 +129,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Thirteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there and push enchantments to Sharpness X. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Thirteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there and push every enchantment to level X. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
@@ -279,14 +279,14 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
           <thead><tr><th>Vanilla</th><th>Now</th><th>Enchantments</th></tr></thead>
           <tbody>
             <tr><th>V</th><td><b>X</b></td><td>Sharpness, Smite, Bane of Arthropods, Efficiency, Power, Impaling, Density</td></tr>
-            <tr><th>IV</th><td><b>VIII</b></td><td>Protection (all four kinds), Piercing, Breach</td></tr>
-            <tr><th>III</th><td><b>VI</b></td><td>Unbreaking, Fortune, Looting, Sweeping Edge, Thorns, Respiration, Depth Strider, Soul Speed, Swift Sneak, Quick Charge, Riptide, Loyalty, Lure, Luck of the Sea, Wind Burst</td></tr>
-            <tr><th>II</th><td><b>IV</b></td><td>Knockback, Fire Aspect, Punch, Frost Walker</td></tr>
+            <tr><th>IV</th><td><b>X</b></td><td>Protection (all four kinds), Piercing, Breach</td></tr>
+            <tr><th>III</th><td><b>X</b></td><td>Unbreaking, Fortune, Looting, Sweeping Edge, Thorns, Respiration, Depth Strider, Soul Speed, Swift Sneak, Quick Charge, Riptide, Loyalty, Lure, Luck of the Sea, Wind Burst</td></tr>
+            <tr><th>II</th><td><b>X</b></td><td>Knockback, Fire Aspect, Punch, Frost Walker</td></tr>
             <tr><th>I</th><td>I</td><td>Mending, Silk Touch, Infinity, Flame, Multishot, Channeling, Aqua Affinity</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="note">Two books of the same level in an anvil make the next level. The anvil still says "Too Expensive!" at 40 levels. Change the numbers in <code>config/overenchant.json</code>. Keep the cap at X or lower unless everyone has the mod installed.</p>
+      <p class="note">The enchanting table offers the new levels: Sharpness X costs what V used to. Two books of the same level in an anvil make the next level, and the anvil still says "Too Expensive!" at 40 levels. Change the numbers in <code>config/overenchant.json</code>. Keep it at X or lower unless everyone has the mod installed.</p>
     </div>
 
     <div class="sheet">
@@ -450,11 +450,11 @@ const MODS = [
           "Every dungeon has a prison. Free the prisoners with the button",
           "Stays clear of vanilla villages, only on flat dry land"],
     cmds: ["/hamlets", ["/hamlets build", true]] },
-  { name: "Overenchant", id: "overenchant", colour: "#8a4fc7", tag: "Raises the maximum level of enchantments. Sharpness X, Unbreaking VI, Protection VIII.",
+  { name: "Overenchant", id: "overenchant", colour: "#8a4fc7", tag: "Raises the maximum level of every enchantment to X. Sharpness X instead of V, Protection X instead of IV.",
     recipes: [], buy: "No recipe: it works on every enchanting table, anvil and book. Type <code>/overenchant</code> to see what went up.",
-    how: ["Maximum levels are doubled, capped at X. One-level enchantments (Mending, Silk Touch) stay as they are",
-          "Combine two books of the same level in an anvil to climb past the old maximum",
-          "Ops: <code>/enchant @s minecraft:sharpness 10</code> works now",
+    how: ["Every enchantment with more than one level can now reach X. One-level enchantments (Mending, Silk Touch) stay as they are",
+          "The enchanting table offers the new levels: Sharpness X costs what V did",
+          "Combine two books of the same level in an anvil to climb",
           "Flintlock guns take enchantments too, so Power X is a real thing"],
     cmds: ["/overenchant", ["/overenchant reload", true]] },
 ];
