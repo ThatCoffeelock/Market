@@ -89,7 +89,8 @@ final class SmokeTest {
 		check(Category.of(new ItemStack(Items.BREAD)) == Category.FOOD, "bread is food");
 		check(Category.of(new ItemStack(Items.IRON_PICKAXE)) == Category.GEAR, "a pickaxe is gear");
 		check(Category.of(new ItemStack(Items.BRICKS)) == Category.BLOCKS, "bricks are building blocks");
-		check(Category.of(new ItemStack(Items.STRING)) == Category.OTHER, "string is everything else");
+		check(Category.of(new ItemStack(Items.STRING)) == Category.OTHER && Category.of(new ItemStack(Items.WHEAT_SEEDS)) == Category.OTHER,
+			"string and seeds are everything else (not blocks, even though they place one)");
 
 		// warehouse 1: a core and four racks (three in a row, one stacked)
 		place(level, CORE, "minecraft:cartography_table", Parts.core());

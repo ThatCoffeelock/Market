@@ -65,7 +65,8 @@ enum Category {
 		if (stack.get(DataComponents.FOOD) != null) {
 			return FOOD;
 		}
-		if (stack.getItem() instanceof BlockItem) {
+		// a block item that places a block with its own name; string (tripwire) and seeds (crops) don't count
+		if (stack.getItem() instanceof BlockItem block && BuiltInRegistries.BLOCK.getKey(block.getBlock()).getPath().equals(id)) {
 			return BLOCKS;
 		}
 		return OTHER;
