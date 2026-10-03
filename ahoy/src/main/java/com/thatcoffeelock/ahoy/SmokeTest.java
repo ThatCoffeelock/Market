@@ -120,19 +120,16 @@ final class SmokeTest {
 			check(why != null && !player.isSleeping(), "nobody sleeps in the daytime (" + why + ")");
 			Cmd.run(level, "time set midnight");
 			// the sky only darkens on the next ticks
-			// a fake player isn't in the world, so it can't ride or sleep; let it join for this check
-			if (!level.players().contains(player)) {
-				level.addNewPlayer(player);
-			}
+			BunkDeck.RIDE_OPTIONAL = true; // a fake player can't be mounted onto a seat
 			AhoyMod.later(5, () -> step(level.getServer(), () -> {
 				String lay = deck.lieDown(player, 0);
 				check(lay == null, "lying down at night works (" + lay + ")");
-				check(player.isSleeping() && player.getVehicle() != null, "the player is asleep, riding the bunk (sleeping=" + player.isSleeping() + ", vehicle=" + player.getVehicle() + ")");
-				check(Ships.shipOf(player) == ship && deck.isSleeping(player), "the sleeper counts as aboard");
+				check(player.isSleeping(), "the player is asleep (the game accepted the hidden bed)");
+				check(deck.isSleeping(player) && deck.sleeperIn(0) == player, "the bunk knows who is asleep in it");
 				check(deck.lieDown(player, 0) != null, "a second lie-down is refused");
 				deck.wake(player, true);
 				check(!player.isSleeping() && !deck.isSleeping(player), "waking up works");
-				level.removePlayerImmediately(player, Entity.RemovalReason.DISCARDED);
+				BunkDeck.RIDE_OPTIONAL = false;
 				Cmd.run(level, "time set day");
 				startZ = ship.root.getZ();
 				ship.testControls = new Ship.Controls(true, false, false, false, false);

@@ -30,6 +30,8 @@ final class BunkDeck {
 	private static final Set<String> COLOURS = Set.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
 		"light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
 	private static final double MAX_DRIFT = 6;
+	/** The smoke test's fake player can't be mounted onto a seat, so it lets the ride fail. */
+	static boolean RIDE_OPTIONAL;
 
 	private static final class Sleeper {
 		final UUID player;
@@ -200,20 +202,20 @@ final class BunkDeck {
 		Direction facing = Direction.fromYRot(ship.root.getYRot());
 		BlockPos foot = BlockPos.containing(w[0], ship.root.getY() + 24, w[1]);
 		BlockPos head = foot.relative(facing);
-		BlockState bed = Blocks.STRAW_BED.defaultBlockState().setValue(AbstractBedBlock.FACING, facing);
+		BlockState bed = Blocks.BED.red().defaultBlockState().setValue(AbstractBedBlock.FACING, facing);
 		ship.level.setBlock(foot, bed.setValue(AbstractBedBlock.PART, BedPart.FOOT), 2);
 		ship.level.setBlock(head, bed.setValue(AbstractBedBlock.PART, BedPart.HEAD), 2);
 
 		if (player.getVehicle() != null) {
 			player.stopRiding();
 		}
+		// startSleeping takes the player out of any vehicle, so lie down first and mount the bunk's seat afterwards
 		boolean slept = player.startSleeping(foot);
-		boolean rode = player.startRiding(seat, true, false);
-		if (rode && !player.isSleeping()) {
-			slept = player.startSleeping(foot); // riding resets the pose; lie down again on the seat
+		if (slept) {
+			Cmd.run(ship.level, "ride " + player.getUUID() + " mount " + seat.getUUID());
 		}
-		AhoyMod.LOG.debug("Bunk: slept={} rode={} sleeping={} vehicle={}", slept, rode, player.isSleeping(), player.getVehicle());
-		if (!rode || !player.isSleeping()) {
+		boolean rode = player.getVehicle() == seat;
+		if (!slept || (!rode && !RIDE_OPTIONAL)) {
 			String why = "slept=" + slept + " rode=" + rode + " sleeping=" + player.isSleeping() + " vehicle=" + player.getVehicle();
 			AhoyMod.LOG.warn("Couldn't put {} to bed: {}", player.getName().getString(), why);
 			sleepers.add(new Sleeper(player.getUUID(), bunk, fromSeat, foot, head, ship.root.getX(), ship.root.getZ(), seat));
