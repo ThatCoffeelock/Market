@@ -129,13 +129,13 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Ten mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers and smoke cigars. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Twelve mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills and raid castles that were already there. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.0.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.2.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -216,8 +216,58 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     </div>
   </section>
 
+  <section class="two">
+    <div class="sheet">
+      <header>
+        <p class="eyebrow">Skills · level 0 to 100 by doing</p>
+        <h2>Thirteen skills</h2>
+      </header>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Skill</th><th>XP from</th><th>At level 100</th></tr></thead>
+          <tbody>
+            <tr><th>Combat</th><td>Melee damage dealt</td><td>+25% melee damage</td></tr>
+            <tr><th>Marksmanship</th><td>Bows, crossbows, tridents, Flintlock guns</td><td>+25% ranged damage</td></tr>
+            <tr><th>Mining</th><td>Natural stone and ores</td><td>+30% pickaxe speed</td></tr>
+            <tr><th>Woodcutting</th><td>Natural logs</td><td>+30% axe speed</td></tr>
+            <tr><th>Excavation</th><td>Dirt, sand, gravel, clay, snow</td><td>+30% shovel speed</td></tr>
+            <tr><th>Farming</th><td>Ripe crops, breeding</td><td>30% double harvest</td></tr>
+            <tr><th>Fishing</th><td>Catches</td><td>25% bonus fish</td></tr>
+            <tr><th>Horseriding</th><td>Distance ridden</td><td>+20% mount speed</td></tr>
+            <tr><th>Sailing</th><td>Boats, rafts, Ahoy ships</td><td>Faster swimming</td></tr>
+            <tr><th>Enchanting</th><td>Enchanting at a table</td><td>30% chance of levels back</td></tr>
+            <tr><th>Blacksmithing</th><td>Crafting tools, weapons, armor</td><td>25% chance of no wear</td></tr>
+            <tr><th>Brewing</th><td>Potions brewed</td><td>25% ingredient saving</td></tr>
+            <tr><th>Mercantile</th><td>Villager trades, Market sales</td><td>+10% Market sell prices</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">A perk point every 10 levels: 10 points for 3 perks × 5 ranks, so choose. Vein Miner and Timber only work while you sneak. Blocks you placed yourself give no XP. <code>/skills</code> opens the menu.</p>
+    </div>
+
+    <div class="sheet">
+      <header>
+        <p class="eyebrow">Hamlets &amp; Horrors · found, not crafted</p>
+        <h2>What's out there</h2>
+      </header>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Structure</th><th>Who's home</th><th>Worth it for</th></tr></thead>
+          <tbody>
+            <tr><th>Cottage</th><td>A villager family, sometimes a cat</td><td>Beds, a workstation, a loot chest, vegetable plots</td></tr>
+            <tr><th>Haunted cottage</th><td>Zombies, a witch or skeleton, a <b>zombie villager</b> to cure</td><td>Brewing corner, dungeon loot</td></tr>
+            <tr><th>Castle</th><td>Six villagers and an iron golem</td><td>Seven workshops, six beds, a farm, a well and a bell</td></tr>
+            <tr><th>Ruined castle</th><td>Skeletons and zombies, <b>bandits</b> in the courtyard</td><td>Stronghold and outpost loot, a spawner</td></tr>
+            <tr><th>Dungeon</th><td>Monsters, and <b>prisoners</b></td><td>A treasury, a library, a crypt 16 blocks down</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Cottages turn up about every 20 chunks, dungeons every 28, castles every 44, built from the local biome's wood or sandstone. Only new chunks get them, so explore somewhere fresh. Press the stone button by a cell door to free a prisoner.</p>
+    </div>
+  </section>
+
   <footer>
-    <span>LIB Pack 1.1.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse</span>
+    <span>LIB Pack 1.2.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -337,6 +387,20 @@ const MODS = [
           "Specialist warehouses (food only, ores only…) get their kind first at a Loading Dock",
           "Break the core to pack it up: the stock stays inside"],
     cmds: ["/warehouse", "/warehouse list", ["/warehouse give", true]] },
+  { name: "Skills", id: "skills", colour: "#6a4fb3", tag: "Elder Scrolls style skills. You get better at things by doing them.",
+    recipes: [], buy: "No recipe: <code>/skills</code> opens the menu. Click a skill to see its perks.",
+    how: ["13 skills from Combat and Mining to Sailing and Mercantile, each 0 to 100",
+          "Every level is a small passive bonus; level 100 is about twice a beginner",
+          "A perk point every 10 levels; forget your perks for 5 XP levels",
+          "Plays along with Market, Flintlock, Ahoy and Havana"],
+    cmds: ["/skills", "/skills top", ["/skills admin", true]] },
+  { name: "Hamlets & Horrors", id: "hamlets", colour: "#4f6b3a", tag: "Random cottages, castles and dungeons. Some lived in by villagers, some overrun by monsters.",
+    recipes: [], buy: "Nothing to craft: they generate in new terrain. Ops can find one with <code>/locate structure hamlets:castle</code>.",
+    how: ["Villager homes are safe: no hostile mobs spawn inside",
+          "Monster homes keep spawning their kind of monster",
+          "Every dungeon has a prison. Free the prisoners with the button",
+          "Stays clear of vanilla villages, only on flat dry land"],
+    cmds: ["/hamlets", ["/hamlets build", true]] },
 ];
 
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };

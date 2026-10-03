@@ -19,7 +19,7 @@ It's **server-side only**. Players join with a plain vanilla client. Structures 
 
 ## Install
 
-Put **Fabric API** and **`hamlets-<version>.jar`** in your server's `mods/` folder. Get the jar from the [hamlets-latest release](https://github.com/ThatCoffeelock/Market/releases/tag/hamlets-latest).
+Put **Fabric API** and **`hamlets-<version>.jar`** in your server's `mods/` folder. Get the jar from the [hamlets-latest release](https://github.com/ThatCoffeelock/Market/releases/tag/hamlets-latest). It's in the [LIB Pack](../lib-pack/README.md) too.
 
 ## Commands
 
