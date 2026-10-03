@@ -30,8 +30,6 @@ final class BunkDeck {
 	private static final Set<String> COLOURS = Set.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
 		"light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
 	private static final double MAX_DRIFT = 6;
-	/** The smoke test's fake player can't be mounted onto a seat, so it lets the ride fail. */
-	static boolean RIDE_OPTIONAL;
 
 	private static final class Sleeper {
 		final UUID player;
@@ -215,7 +213,7 @@ final class BunkDeck {
 			Cmd.run(ship.level, "ride " + player.getUUID() + " mount " + seat.getUUID());
 		}
 		boolean rode = player.getVehicle() == seat;
-		if (!slept || (!rode && !RIDE_OPTIONAL)) {
+		if (!slept || !rode) {
 			BlockState headState = ship.level.getBlockState(head);
 			String detail = "";
 			if (headState.getBlock() instanceof AbstractBedBlock bedBlock) {
