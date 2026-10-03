@@ -74,6 +74,8 @@ final class Shot {
 		int balls;
 		/** Whether the damage landed (not blocked, not invulnerable). Set once it's dealt. */
 		boolean landed;
+		/** The target's health right after the hit, for the smoke test. */
+		float healthAfter;
 		/** The target's velocity right after the shove. Set once it's dealt. */
 		Vec3 velocityAfter = Vec3.ZERO;
 
@@ -270,8 +272,10 @@ final class Shot {
 			UUID by = impact.shooter != null && level.getServer().getPlayerList().getPlayer(impact.shooter) != null ? impact.shooter : null;
 			// a gun is slow enough that it shouldn't be swallowed by the half second of invulnerability after a sword hit
 			target.setInvulnerableTime(0);
+			float before = target.getHealth();
 			Cmd.damage(level, target.getUUID(), impact.damage, by);
-			impact.landed = target.getInvulnerableTime() > 0;
+			impact.healthAfter = target.getHealth();
+			impact.landed = !target.isAlive() || impact.healthAfter < before || target.getInvulnerableTime() > 0;
 			if (impact.landed && !(target instanceof Player player && player.isCreative())) {
 				shove(target, impact.push);
 			}

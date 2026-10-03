@@ -108,7 +108,8 @@ final class SmokeTest {
 		MinecraftServer server = level.getServer();
 		check(Shot.flying().isEmpty(), "musket ball landed");
 		musketHit = impactOn(MUSKET_TARGET);
-		check(musketHit != null && musketHit.landed, "musket ball hit the villager");
+		check(musketHit != null, "musket ball hit the villager (hits recorded: " + Shot.RECENT.size() + ")");
+		check(musketHit.landed, "musket damage landed (" + musketHit.damage + " dealt, health now " + musketHit.healthAfter + ")");
 		check(Math.abs(musketHit.damage - Gun.MUSKET.damage) < 0.01, "musket hit for full damage at 15 blocks (" + musketHit.damage + ")");
 		LivingEntity target = living(level, MUSKET_TARGET);
 		check(target == null || target.getHealth() <= target.getMaxHealth() - Gun.MUSKET.damage + 0.5,
@@ -121,7 +122,8 @@ final class SmokeTest {
 	private static void pistol(ServerLevel level) {
 		MinecraftServer server = level.getServer();
 		pistolHit = impactOn(PISTOL_TARGET);
-		check(pistolHit != null && pistolHit.landed, "pistol ball hit the villager");
+		check(pistolHit != null, "pistol ball hit the villager");
+		check(pistolHit.landed, "pistol damage landed (health now " + pistolHit.healthAfter + ")");
 		LivingEntity target = living(level, PISTOL_TARGET);
 		check(target != null && Math.abs(target.getHealth() - (target.getMaxHealth() - Gun.PISTOL.damage)) < 0.5,
 			"pistol took " + Gun.PISTOL.damage + " health off (" + (target == null ? "dead" : target.getHealth() + " left") + ")");
@@ -135,7 +137,8 @@ final class SmokeTest {
 		MinecraftServer server = level.getServer();
 		check(Shot.flying().isEmpty(), "every pellet landed or dropped");
 		Shot.Impact hit = impactOn(BLUNDERBUSS_TARGET);
-		check(hit != null && hit.landed, "blunderbuss hit the villager");
+		check(hit != null, "blunderbuss hit the villager");
+		check(hit.landed, "blunderbuss damage landed (health now " + hit.healthAfter + ")");
 		check(hit.balls >= 3, "at least 3 of 8 pellets hit at 2 blocks (" + hit.balls + ")");
 		check(hit.damage > Gun.BLUNDERBUSS.damage * 2, "pellet damage adds up into one hit (" + hit.damage + ")");
 		double shove = horizontal(hit.push);
