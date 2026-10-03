@@ -13,6 +13,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Flintlock](../flintlock/README.md) | Flintlock pistols, muskets and blunderbusses, with cartridges and slow reloads |
 | [Havana](../havana/README.md) | Grow tobacco, cure it in a barrel, roll and smoke cigars |
 | [Mobile Home](../mobile-home/README.md) | Drivable camper vans and tanks with storage and a force field |
+| [Warehouse](../warehouse/README.md) | Big sorted storage: a core plus racks, intake chests, train drop-off and Loading Docks for ships |
 | [Skills](../skills/README.md) | Elder Scrolls style skills: level up by doing, spend perk points every 10 levels |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
@@ -33,4 +34,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There is a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all ten mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all ten mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all eleven mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all eleven mods load and the server starts.

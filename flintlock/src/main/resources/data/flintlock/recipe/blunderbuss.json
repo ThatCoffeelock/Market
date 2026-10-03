@@ -18,8 +18,10 @@
 			"minecraft:custom_data": {
 				"flintlock": "blunderbuss"
 			},
-			"!minecraft:max_damage": {},
-			"!minecraft:damage": {},
+			"minecraft:max_damage": 120,
+			"minecraft:repairable": {
+				"items": "minecraft:copper_ingot"
+			},
 			"minecraft:item_model": "minecraft:crossbow",
 			"minecraft:item_name": {
 				"text": "Blunderbuss",

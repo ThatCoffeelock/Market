@@ -9,10 +9,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
@@ -56,7 +58,7 @@ final class Guns {
 			return InteractionResult.SUCCESS; // busy with the ramrod
 		}
 		if (GunItems.isLoaded(stack)) {
-			shoot(player, stack, gun);
+			shoot(player, hand, stack, gun);
 			return InteractionResult.SUCCESS;
 		}
 		if (!player.isCreative() && GunItems.countAmmo(player, gun.ammo) == 0) {
@@ -85,16 +87,18 @@ final class Guns {
 	}
 
 	/** Bang. The gun is empty afterwards. */
-	static void shoot(ServerPlayer player, ItemStack stack, Gun gun) {
+	static void shoot(ServerPlayer player, InteractionHand hand, ItemStack stack, Gun gun) {
 		ServerLevel level = (ServerLevel) player.level();
 		GunItems.setLoaded(stack, gun, false);
 		Vec3 look = player.getLookAngle();
 		Vec3 eye = player.getEyePosition();
 		Shot.fire(level, gun, eye.add(look.scale(0.3)), look, player, true);
 		muzzle(level, gun, eye.add(look.scale(1.0)));
+		// after firing, so the last shot still goes off. Vanilla handles Unbreaking, creative and the breaking sound
+		stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
 		if (gun.recoil > 0) {
 			player.setDeltaMovement(player.getDeltaMovement().add(look.scale(-gun.recoil)));
-			player.hurtMarked = true;
+			player.connection.send(new ClientboundSetEntityMotionPacket(player)); // players move themselves: tell their client
 		}
 	}
 

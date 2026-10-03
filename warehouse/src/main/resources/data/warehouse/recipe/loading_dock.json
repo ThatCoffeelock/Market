@@ -1,0 +1,22 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:lantern",
+		"minecraft:chest",
+		"minecraft:lead"
+	],
+	"result": {
+		"id": "minecraft:lantern",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"warehouse_dock": true},
+			"minecraft:item_name": {"text": "Loading Dock", "color": "yellow"},
+			"minecraft:lore": [
+				{"text": "Put it on your pier. It serves the warehouses nearby.", "color": "gray", "italic": false},
+				{"text": "Sail an Ahoy ship up to it to unload and load.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

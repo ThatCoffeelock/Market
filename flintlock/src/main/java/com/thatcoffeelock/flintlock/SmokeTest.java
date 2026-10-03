@@ -8,9 +8,11 @@ import java.util.UUID;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Repairable;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +64,17 @@ final class SmokeTest {
 			check(GunItems.gunOf(stack) == gun, gun.id + " is recognised");
 			check(stack.is(Items.CARROT_ON_A_STICK), gun.id + " is a carrot on a stick to vanilla clients");
 			check(stack.getMaxStackSize() == 1, gun.id + " doesn't stack");
-			check(!stack.isDamageableItem(), gun.id + " has no durability bar");
+			check(stack.isDamageableItem() && stack.getMaxDamage() == gun.durability, gun.id + " lasts " + gun.durability + " shots");
+			Repairable repairable = stack.get(DataComponents.REPAIRABLE);
+			check(repairable != null && repairable.isValidRepairItem(new ItemStack(gun.repairItem)), gun.id + " is repaired with " + gun.repairItem);
+			check(!repairable.isValidRepairItem(new ItemStack(Items.DIAMOND)), gun.id + " isn't repaired with diamonds");
+			stack.hurtAndBreak(1, level, (ServerPlayer) null, item -> { });
+			check(stack.getDamageValue() == 1, gun.id + " wears down");
+			ItemStack old = GunItems.gun(gun);
+			old.remove(DataComponents.MAX_DAMAGE);
+			old.remove(DataComponents.REPAIRABLE);
+			GunItems.setLoaded(old, gun, true);
+			check(old.getMaxDamage() == gun.durability && old.has(DataComponents.REPAIRABLE), gun.id + " made before durability gets it when loaded");
 			check(stack.get(DataComponents.ITEM_MODEL) != null, gun.id + " looks like a crossbow");
 			check(!GunItems.isLoaded(stack), gun.id + " comes unloaded");
 			check(!stack.has(DataComponents.CHARGED_PROJECTILES), gun.id + " looks unloaded");
@@ -80,7 +92,9 @@ final class SmokeTest {
 		for (Gun gun : Gun.values()) {
 			String recipe = resource("/data/flintlock/recipe/" + gun.id + ".json");
 			check(recipe.contains("\"" + gun.title + "\"") && recipe.contains(GunItems.stats(gun)) && recipe.contains(gun.blurb)
-				&& recipe.contains("reload (1 " + gun.ammo.title + ")"), gun.id + " recipe makes the same item as /flintlock give");
+				&& recipe.contains("reload (1 " + gun.ammo.title + ")") && recipe.contains("\"minecraft:max_damage\": " + gun.durability)
+				&& recipe.contains("\"items\": \"" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(gun.repairItem) + "\""),
+				gun.id + " recipe makes the same item as /flintlock give");
 		}
 		for (Gun.Ammo ammo : Gun.Ammo.values()) {
 			String recipe = resource("/data/flintlock/recipe/" + ammo.id + ".json");
@@ -108,7 +122,8 @@ final class SmokeTest {
 		MinecraftServer server = level.getServer();
 		check(Shot.flying().isEmpty(), "musket ball landed");
 		musketHit = impactOn(MUSKET_TARGET);
-		check(musketHit != null && musketHit.landed, "musket ball hit the villager");
+		check(musketHit != null, "musket ball hit the villager (hits recorded: " + Shot.RECENT.size() + ")");
+		check(musketHit.landed, "musket damage landed (" + musketHit.damage + " dealt, health now " + musketHit.healthAfter + ")");
 		check(Math.abs(musketHit.damage - Gun.MUSKET.damage) < 0.01, "musket hit for full damage at 15 blocks (" + musketHit.damage + ")");
 		LivingEntity target = living(level, MUSKET_TARGET);
 		check(target == null || target.getHealth() <= target.getMaxHealth() - Gun.MUSKET.damage + 0.5,
@@ -121,7 +136,8 @@ final class SmokeTest {
 	private static void pistol(ServerLevel level) {
 		MinecraftServer server = level.getServer();
 		pistolHit = impactOn(PISTOL_TARGET);
-		check(pistolHit != null && pistolHit.landed, "pistol ball hit the villager");
+		check(pistolHit != null, "pistol ball hit the villager");
+		check(pistolHit.landed, "pistol damage landed (health now " + pistolHit.healthAfter + ")");
 		LivingEntity target = living(level, PISTOL_TARGET);
 		check(target != null && Math.abs(target.getHealth() - (target.getMaxHealth() - Gun.PISTOL.damage)) < 0.5,
 			"pistol took " + Gun.PISTOL.damage + " health off (" + (target == null ? "dead" : target.getHealth() + " left") + ")");
@@ -135,7 +151,8 @@ final class SmokeTest {
 		MinecraftServer server = level.getServer();
 		check(Shot.flying().isEmpty(), "every pellet landed or dropped");
 		Shot.Impact hit = impactOn(BLUNDERBUSS_TARGET);
-		check(hit != null && hit.landed, "blunderbuss hit the villager");
+		check(hit != null, "blunderbuss hit the villager");
+		check(hit.landed, "blunderbuss damage landed (health now " + hit.healthAfter + ")");
 		check(hit.balls >= 3, "at least 3 of 8 pellets hit at 2 blocks (" + hit.balls + ")");
 		check(hit.damage > Gun.BLUNDERBUSS.damage * 2, "pellet damage adds up into one hit (" + hit.damage + ")");
 		double shove = horizontal(hit.push);

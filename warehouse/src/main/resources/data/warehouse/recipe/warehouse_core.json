@@ -1,0 +1,29 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"IBI",
+		"CTC",
+		"ICI"
+	],
+	"key": {
+		"I": "minecraft:iron_ingot",
+		"B": "minecraft:book",
+		"C": "minecraft:chest",
+		"T": "minecraft:cartography_table"
+	},
+	"result": {
+		"id": "minecraft:cartography_table",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"warehouse_core": true},
+			"minecraft:item_name": {"text": "Warehouse Core", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Place it to start a new warehouse.", "color": "gray", "italic": false},
+				{"text": "Storage Racks touching it add room.", "color": "gray", "italic": false},
+				{"text": "Rename it in an anvil to name the warehouse.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

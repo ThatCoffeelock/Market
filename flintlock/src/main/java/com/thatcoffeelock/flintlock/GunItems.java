@@ -3,6 +3,7 @@ package com.thatcoffeelock.flintlock;
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,13 +17,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ChargedProjectiles;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.enchantment.Repairable;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Guns and ammo as items: vanilla items tagged with custom data, so vanilla clients can join.
  * <ul>
  * <li>A gun is a carrot on a stick (no use of its own, never stacks, not an ingredient in anything) that looks like a
- * crossbow. Its durability is removed. A loaded gun carries an arrow as "charged projectile", so it looks like a
+ * crossbow. It has its own durability (one point per shot) and is repaired in an anvil with its barrel metal. A loaded gun carries an arrow as "charged projectile", so it looks like a
  * loaded crossbow.</li>
  * <li>Ammo is paper that looks like a candle (cartridges) or a bundle (scattershot).</li>
  * </ul>
@@ -44,8 +46,7 @@ public final class GunItems {
 
 	public static ItemStack gun(Gun gun) {
 		ItemStack stack = new ItemStack(Items.CARROT_ON_A_STICK);
-		stack.remove(DataComponents.MAX_DAMAGE);
-		stack.remove(DataComponents.DAMAGE);
+		setDurability(stack, gun);
 		stack.set(DataComponents.ITEM_MODEL, Identifier.withDefaultNamespace("crossbow"));
 		stack.set(DataComponents.ITEM_NAME, Component.literal(gun.title).withStyle(gun.color));
 		setLoaded(stack, gun, false);
@@ -65,8 +66,26 @@ public final class GunItems {
 		return stack;
 	}
 
+	/** Gives a gun its durability and makes it repairable in an anvil with its barrel metal. */
+	static void setDurability(ItemStack stack, Gun gun) {
+		stack.set(DataComponents.MAX_DAMAGE, gun.durability);
+		if (!stack.has(DataComponents.DAMAGE)) {
+			stack.set(DataComponents.DAMAGE, 0);
+		}
+		stack.set(DataComponents.REPAIRABLE, new Repairable(HolderSet.direct(gun.repairItem.builtInRegistryHolder())));
+	}
+
+	/** Guns made before they had durability get it the next time they're loaded or fired. */
+	static void upgrade(ItemStack stack, Gun gun) {
+		Integer max = stack.get(DataComponents.MAX_DAMAGE);
+		if (max == null || max != gun.durability || !stack.has(DataComponents.REPAIRABLE)) {
+			setDurability(stack, gun);
+		}
+	}
+
 	/** Loads or unloads a gun: its custom data, its look and its lore. */
 	static void setLoaded(ItemStack stack, Gun gun, boolean loaded) {
+		upgrade(stack, gun);
 		CompoundTag tag = new CompoundTag();
 		tag.putString(KEY, gun.id);
 		if (loaded) {
@@ -74,7 +93,7 @@ public final class GunItems {
 		}
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 		if (loaded) {
-			stack.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(new ItemStack(Items.ARROW)));
+			stack.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.ofNonEmpty(List.of(new ItemStack(Items.ARROW))));
 		} else {
 			stack.remove(DataComponents.CHARGED_PROJECTILES);
 		}

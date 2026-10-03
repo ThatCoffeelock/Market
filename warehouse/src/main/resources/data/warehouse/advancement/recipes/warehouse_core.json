@@ -1,0 +1,15 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_cartography_table": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:cartography_table"}]}
+		},
+		"has_chest": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:chest"}]}
+		}
+	},
+	"requirements": [["has_cartography_table", "has_chest"]],
+	"rewards": {"recipes": ["warehouse:warehouse_core"]}
+}

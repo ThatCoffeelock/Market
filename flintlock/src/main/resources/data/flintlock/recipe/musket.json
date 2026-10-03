@@ -18,8 +18,10 @@
 			"minecraft:custom_data": {
 				"flintlock": "musket"
 			},
-			"!minecraft:max_damage": {},
-			"!minecraft:damage": {},
+			"minecraft:max_damage": 150,
+			"minecraft:repairable": {
+				"items": "minecraft:iron_ingot"
+			},
 			"minecraft:item_model": "minecraft:crossbow",
 			"minecraft:item_name": {
 				"text": "Musket",

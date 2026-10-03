@@ -1,6 +1,8 @@
 package com.thatcoffeelock.flintlock;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -10,15 +12,15 @@ import org.jetbrains.annotations.Nullable;
 enum Gun {
 	/** Quick to reload, light to carry, fine for a duel. */
 	PISTOL("pistol", "Flintlock Pistol", ChatFormatting.YELLOW, Ammo.CARTRIDGE,
-		40, 1, 9f, 1.5, 4.0, 0.99, 0.015, 12, 0, 0.3, 0.12, 0.0, 1.6f,
+		40, 1, 9f, 1.5, 4.0, 0.99, 0.015, 12, 0, 0.3, 0.12, 0.0, 1.6f, 200, Items.IRON_INGOT,
 		"Small, loud, and rude."),
 	/** Slow to reload, hits like a horse, flies straight. */
 	MUSKET("musket", "Musket", ChatFormatting.GOLD, Ammo.CARTRIDGE,
-		80, 1, 18f, 0.4, 6.0, 0.99, 0.01, 20, 0, 0.5, 0.15, 0.0, 1.0f,
+		80, 1, 18f, 0.4, 6.0, 0.99, 0.01, 20, 0, 0.5, 0.15, 0.0, 1.0f, 150, Items.IRON_INGOT,
 		"Point the long end at the problem."),
 	/** Fires a fistful of junk. Hurts up close, sends things flying, useless past a dozen blocks. */
 	BLUNDERBUSS("blunderbuss", "Blunderbuss", ChatFormatting.RED, Ammo.SCATTERSHOT,
-		60, 8, 2.5f, 8.0, 2.5, 0.85, 0.02, 8, 12, 0.25, 0.08, 0.7, 0.7f,
+		60, 8, 2.5f, 8.0, 2.5, 0.85, 0.02, 8, 12, 0.25, 0.08, 0.7, 0.7f, 120, Items.COPPER_INGOT,
 		"Aiming is optional. Bracing is not.");
 
 	final String id;
@@ -49,6 +51,10 @@ enum Gun {
 	final double recoil;
 	/** Pitch of the bang. Lower is bigger. */
 	final float pitch;
+	/** Shots before it breaks (Unbreaking stretches that). */
+	final int durability;
+	/** What it's repaired with in an anvil: the metal its barrel is made of. */
+	final Item repairItem;
 	final String blurb;
 
 	static final double MIN_FALLOFF = 0.3;
@@ -58,7 +64,7 @@ enum Gun {
 
 	Gun(String id, String title, ChatFormatting color, Ammo ammo, int reloadTicks, int pellets, float damage, double spreadDegrees,
 		double speed, double drag, double gravity, int maxAge, double falloffBlocks, double knockback, double lift, double recoil,
-		float pitch, String blurb) {
+		float pitch, int durability, Item repairItem, String blurb) {
 		this.id = id;
 		this.title = title;
 		this.color = color;
@@ -76,6 +82,8 @@ enum Gun {
 		this.lift = lift;
 		this.recoil = recoil;
 		this.pitch = pitch;
+		this.durability = durability;
+		this.repairItem = repairItem;
 		this.blurb = blurb;
 	}
 

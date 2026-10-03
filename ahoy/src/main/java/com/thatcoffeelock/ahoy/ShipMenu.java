@@ -158,6 +158,27 @@ final class ShipMenu extends ChestMenu {
 			});
 		}
 		button(26, icon(Items.BARRIER, t("Close", ChatFormatting.RED)), () -> AhoyMod.nextTick(viewer::closeContainer));
+		extraButtons();
+	}
+
+	/** Buttons other mods added through {@link AhoyApi#addMenuButton} (e.g. the Warehouse's Loading Dock). */
+	private void extraButtons() {
+		int[] slots = {19, 25};
+		List<AhoyApi.MenuButton> extra = AhoyApi.menuButtons();
+		for (int i = 0; i < extra.size() && i < slots.length; i++) {
+			AhoyApi.MenuButton extension = extra.get(i);
+			try {
+				ItemStack icon = extension.icon(viewer, ship);
+				if (icon != null) {
+					button(slots[i], icon, () -> {
+						extension.click(viewer, ship);
+						render();
+					});
+				}
+			} catch (RuntimeException e) {
+				AhoyMod.LOG.warn("A ship menu button from another mod failed", e);
+			}
+		}
 	}
 
 	private void cargo(int bay) {

@@ -129,7 +129,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Nine mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, drive camper vans and tanks, fire cannons and muskets, kidnap villagers and smoke cigars. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Ten mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers and smoke cigars. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
@@ -217,7 +217,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.0.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home</span>
+    <span>LIB Pack 1.1.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -233,6 +233,7 @@ const I = {
   barrel: ["Brl", "#8d6236"], hay_block: ["Hay", "#c9a82b"],
   glass: ["Gls", "#bfe3ee"], minecart: ["Mc", "#7b7b7b"], furnace: ["Frn", "#6a6a6a"],
   flint: ["Flt", "#3b3b40"], copper_ingot: ["Cu", "#c86f4a"], paper: ["Ppr", "#f2efe6"], iron_nugget: ["Nug", "#d6d6d6"], gravel: ["Grv", "#8a8580"],
+  book: ["Book", "#7a3b2a"], cartography_table: ["Map", "#7b5a3a"], lantern: ["Lntn", "#e0a33a"], lead: ["Lead", "#a58a5e"],
 };
 const names = {
   gold_ingot: "Gold Ingot", obsidian: "Obsidian", emerald: "Emerald", wool: "Any Wool", glass_bottle: "Glass Bottle", chest: "Chest",
@@ -241,6 +242,7 @@ const names = {
   chest_minecart: "Minecart with Chest", redstone_block: "Block of Redstone", rail: "Rail", barrel: "Barrel", hay_block: "Hay Bale",
   glass: "Glass", minecart: "Minecart", furnace: "Furnace",
   flint: "Flint", copper_ingot: "Copper Ingot", paper: "Paper", iron_nugget: "Iron Nugget", gravel: "Gravel",
+  book: "Book", cartography_table: "Cartography Table", lantern: "Lantern", lead: "Lead",
 };
 // Lighter swatches need dark text.
 const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget"]);
@@ -265,7 +267,8 @@ const MODS = [
     how: ["Right-click open water (about 7 × 20 blocks) to launch",
           "Sailing with the wind is full speed, against it half",
           "Nobody aboard gets hurt; drowned and guardians get zapped",
-          "Rename the bottle in an anvil to name your ship"],
+          "Rename the bottle in an anvil to name your ship",
+          "Moor near a Warehouse <b>Loading Dock</b> to unload and load"],
     cmds: ["/ahoy", ["/ahoy give", true]] },
   { name: "Burlap Sack", id: "burlapsack", colour: "#a07a45", tag: "Bag villagers and wandering traders, let them out where you want them.",
     recipes: [{ name: "Burlap Sack", pattern: [" S ", "L L", "LLL"], key: { S: "string", L: "leather" }, out: ["Sack", "#a07a45"] }],
@@ -291,7 +294,8 @@ const MODS = [
     how: ["Right-click a rail (4+ in a row) with the train. Off it goes",
           "Stations: chests named <b>Pickup</b>, <b>Drop-off</b> or <b>Swap Station</b> next to the track",
           "Sneak + right-click a station (empty hand) to switch its mode",
-          "Keeps its chunks loaded while it runs"],
+          "Keeps its chunks loaded while it runs",
+          "A Drop-off Station touching a warehouse unloads straight into it"],
     cmds: ["/train", ["/train give", true]] },
   { name: "Flintlock", id: "flintlock", colour: "#8a5a3c", tag: "Flintlock pistols, muskets and blunderbusses. Hit hard, reload slowly.",
     recipes: [
@@ -303,7 +307,8 @@ const MODS = [
     how: ["Right-click an empty gun to reload. Keep holding it until the bar fills",
           "Right-click a loaded gun to fire. Pistol 2 s, blunderbuss 3 s, musket 4 s",
           "Musket: 18 damage. Pistol: 9. Blunderbuss: 8 pellets, short range, huge knockback",
-          "Shields block shots. Load a few pistols before a fight"],
+          "Shields block shots. Load a few pistols before a fight",
+          "Wears out: 200 / 150 / 120 shots. Repair in an anvil with iron (blunderbuss: copper)"],
     cmds: ["/flintlock", ["/flintlock give", true]] },
   { name: "Havana", id: "havana", colour: "#7a4a24", tag: "Grow tobacco, cure it in a barrel, roll cigars and smoke them.",
     recipes: [{ name: "Curing Barrel", shapeless: ["barrel", "hay_block"], out: ["Cure", "#8d6236"] }],
@@ -321,6 +326,17 @@ const MODS = [
           "Seated means safe: no damage, no drowning, monsters zapped",
           "It floats. Nobody planned that"],
     cmds: ["/mobilehome", ["/mobilehome give", true], ["/mobilehome refuel", true]] },
+  { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
+    recipes: [
+      { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },
+      { name: "Storage Rack", shapeless: ["barrel", "chest", "iron_ingot", "iron_ingot"], out: ["Rack", "#8d6236"] },
+      { name: "Loading Dock", shapeless: ["lantern", "chest", "lead"], out: ["Dock", "#e0a33a"] }],
+    how: ["Core holds 2,048 items; every Storage Rack touching it (or a connected rack) adds 4,096",
+          "Right-click the core or a rack: tabs, sort, search. Click to take, drop items on it to store",
+          "Hoppers into racks, a chest named <b>Warehouse Intake</b>, or a Drop-off Station touching it",
+          "Specialist warehouses (food only, ores only…) get their kind first at a Loading Dock",
+          "Break the core to pack it up: the stock stays inside"],
+    cmds: ["/warehouse", "/warehouse list", ["/warehouse give", true]] },
 ];
 
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };

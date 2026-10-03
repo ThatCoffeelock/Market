@@ -1,0 +1,15 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_lantern": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:lantern"}]}
+		},
+		"has_chest": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:chest"}]}
+		}
+	},
+	"requirements": [["has_lantern", "has_chest"]],
+	"rewards": {"recipes": ["warehouse:loading_dock"]}
+}
