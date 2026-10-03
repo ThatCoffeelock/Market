@@ -207,8 +207,19 @@ final class BunkDeck {
 		if (player.getVehicle() != null) {
 			player.stopRiding();
 		}
-		player.startSleeping(foot);
-		player.startRiding(seat, true, false);
+		boolean slept = player.startSleeping(foot);
+		boolean rode = player.startRiding(seat, true, false);
+		if (rode && !player.isSleeping()) {
+			slept = player.startSleeping(foot); // riding resets the pose; lie down again on the seat
+		}
+		AhoyMod.LOG.debug("Bunk: slept={} rode={} sleeping={} vehicle={}", slept, rode, player.isSleeping(), player.getVehicle());
+		if (!rode || !player.isSleeping()) {
+			String why = "slept=" + slept + " rode=" + rode + " sleeping=" + player.isSleeping() + " vehicle=" + player.getVehicle();
+			AhoyMod.LOG.warn("Couldn't put {} to bed: {}", player.getName().getString(), why);
+			sleepers.add(new Sleeper(player.getUUID(), bunk, fromSeat, foot, head, ship.root.getX(), ship.root.getZ(), seat));
+			wake(player, true);
+			return "Couldn't lie down (" + why + ")";
+		}
 		sleepers.add(new Sleeper(player.getUUID(), bunk, fromSeat, foot, head, ship.root.getX(), ship.root.getZ(), seat));
 		Ships.rememberRider(player.getUUID(), ship);
 		return null;

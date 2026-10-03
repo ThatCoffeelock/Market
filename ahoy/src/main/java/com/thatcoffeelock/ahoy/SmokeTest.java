@@ -123,7 +123,7 @@ final class SmokeTest {
 			AhoyMod.later(5, () -> step(level.getServer(), () -> {
 				String lay = deck.lieDown(player, 0);
 				check(lay == null, "lying down at night works (" + lay + ")");
-				check(player.isSleeping() && player.getVehicle() != null, "the player is asleep, riding the bunk");
+				check(player.isSleeping() && player.getVehicle() != null, "the player is asleep, riding the bunk (sleeping=" + player.isSleeping() + ", vehicle=" + player.getVehicle() + ")");
 				check(Ships.shipOf(player) == ship && deck.isSleeping(player), "the sleeper counts as aboard");
 				check(deck.lieDown(player, 0) != null, "a second lie-down is refused");
 				deck.wake(player, true);
