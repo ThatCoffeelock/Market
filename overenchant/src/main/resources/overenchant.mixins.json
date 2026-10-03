@@ -1,0 +1,10 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.thatcoffeelock.overenchant.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": ["EnchantmentMixin"],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

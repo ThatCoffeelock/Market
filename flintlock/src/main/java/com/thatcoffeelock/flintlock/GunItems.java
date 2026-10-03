@@ -17,6 +17,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ChargedProjectiles;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.Repairable;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
  * Guns and ammo as items: vanilla items tagged with custom data, so vanilla clients can join.
  * <ul>
  * <li>A gun is a carrot on a stick (no use of its own, never stacks, not an ingredient in anything) that looks like a
- * crossbow. It has its own durability (one point per shot) and is repaired in an anvil with its barrel metal. A loaded gun carries an arrow as "charged projectile", so it looks like a
- * loaded crossbow.</li>
+ * crossbow. It has its own durability (one point per shot), is repaired in an anvil with its barrel metal and can be enchanted
+ * (see {@link GunEnchants}). A loaded gun carries an arrow as "charged projectile", so it looks like a loaded crossbow.</li>
  * <li>Ammo is paper that looks like a candle (cartridges) or a bundle (scattershot).</li>
  * </ul>
  * The unloaded gun and the ammo must match the results in data/flintlock/recipe.
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 public final class GunItems {
 	static final String KEY = "flintlock";
 	static final String LOADED = "loaded";
+	/** Enchantability, like an iron tool: what the enchanting table works with. */
+	static final int ENCHANTABILITY = 14;
 
 	private GunItems() {
 	}
@@ -66,19 +69,20 @@ public final class GunItems {
 		return stack;
 	}
 
-	/** Gives a gun its durability and makes it repairable in an anvil with its barrel metal. */
+	/** Gives a gun its durability, makes it repairable in an anvil with its barrel metal, and lets the enchanting table enchant it. */
 	static void setDurability(ItemStack stack, Gun gun) {
 		stack.set(DataComponents.MAX_DAMAGE, gun.durability);
 		if (!stack.has(DataComponents.DAMAGE)) {
 			stack.set(DataComponents.DAMAGE, 0);
 		}
 		stack.set(DataComponents.REPAIRABLE, new Repairable(HolderSet.direct(gun.repairItem.builtInRegistryHolder())));
+		stack.set(DataComponents.ENCHANTABLE, new Enchantable(ENCHANTABILITY));
 	}
 
-	/** Guns made before they had durability get it the next time they're loaded or fired. */
+	/** Guns made before they had durability (or could be enchanted) get it the next time they're loaded or fired. */
 	static void upgrade(ItemStack stack, Gun gun) {
 		Integer max = stack.get(DataComponents.MAX_DAMAGE);
-		if (max == null || max != gun.durability || !stack.has(DataComponents.REPAIRABLE)) {
+		if (max == null || max != gun.durability || !stack.has(DataComponents.REPAIRABLE) || !stack.has(DataComponents.ENCHANTABLE)) {
 			setDurability(stack, gun);
 		}
 	}

@@ -36,6 +36,9 @@ final class Guns {
 		final InteractionHand hand;
 		final ItemStack stack;
 		final Gun gun;
+		final GunEnchants enchants;
+		/** Quick Charge shortens it. */
+		final int needed;
 		int ticks;
 
 		Reload(ServerPlayer player, InteractionHand hand, ItemStack stack, Gun gun) {
@@ -43,6 +46,8 @@ final class Guns {
 			this.hand = hand;
 			this.stack = stack;
 			this.gun = gun;
+			this.enchants = GunEnchants.of(stack);
+			this.needed = enchants.reloadTicks(gun);
 		}
 	}
 
@@ -89,10 +94,11 @@ final class Guns {
 	/** Bang. The gun is empty afterwards. */
 	static void shoot(ServerPlayer player, InteractionHand hand, ItemStack stack, Gun gun) {
 		ServerLevel level = (ServerLevel) player.level();
+		GunEnchants enchants = GunEnchants.of(stack);
 		GunItems.setLoaded(stack, gun, false);
 		Vec3 look = player.getLookAngle();
 		Vec3 eye = player.getEyePosition();
-		Shot.fire(level, gun, eye.add(look.scale(0.3)), look, player, true);
+		Shot.fire(level, gun, enchants, eye.add(look.scale(0.3)), look, player, true);
 		muzzle(level, gun, eye.add(look.scale(1.0)));
 		// after firing, so the last shot still goes off. Vanilla handles Unbreaking, creative and the breaking sound
 		stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
@@ -114,10 +120,11 @@ final class Guns {
 	// ---------------------------------------------------------------- reloading
 
 	private static void startReload(ServerPlayer player, InteractionHand hand, ItemStack stack, Gun gun) {
-		RELOADING.put(player.getUUID(), new Reload(player, hand, stack, gun));
+		Reload reload = new Reload(player, hand, stack, gun);
+		RELOADING.put(player.getUUID(), reload);
 		ServerLevel level = (ServerLevel) player.level();
 		Cmd.sound(level, "minecraft:item.crossbow.loading_start", player.getX(), player.getEyeY(), player.getZ(), 0.8f, 0.8f);
-		progress(player, gun, 0);
+		progress(player, gun, 0, reload.needed);
 	}
 
 	static void tick() {
@@ -147,17 +154,17 @@ final class Guns {
 		}
 		reload.ticks++;
 		ServerLevel level = (ServerLevel) player.level();
-		if (reload.ticks == reload.gun.reloadTicks / 2) {
+		if (reload.ticks == reload.needed / 2) {
 			Cmd.sound(level, "minecraft:item.crossbow.loading_middle", player.getX(), player.getEyeY(), player.getZ(), 0.8f, 0.8f);
 		}
-		if (reload.ticks < reload.gun.reloadTicks) {
+		if (reload.ticks < reload.needed) {
 			if (reload.ticks % 2 == 0) {
-				progress(player, reload.gun, reload.ticks);
+				progress(player, reload.gun, reload.ticks, reload.needed);
 			}
 			return;
 		}
 		RELOADING.remove(player.getUUID());
-		if (!player.isCreative() && !GunItems.takeAmmo(player, reload.gun.ammo)) {
+		if (!player.isCreative() && !takeAmmo(player, reload)) {
 			actionBar(player, Component.literal("Your " + reload.gun.ammo.title + " went missing halfway through. Impressive.").withStyle(ChatFormatting.RED));
 			return;
 		}
@@ -168,12 +175,20 @@ final class Guns {
 			.append(Component.literal(ammoLeft(player, reload.gun.ammo)).withStyle(ChatFormatting.GRAY)));
 	}
 
+	/** Infinity: reloading is free, but you still need a round in your inventory. */
+	private static boolean takeAmmo(ServerPlayer player, Reload reload) {
+		if (reload.enchants.infinity() > 0) {
+			return GunItems.countAmmo(player, reload.gun.ammo) > 0;
+		}
+		return GunItems.takeAmmo(player, reload.gun.ammo);
+	}
+
 	private static String ammoLeft(ServerPlayer player, Gun.Ammo ammo) {
 		return player.isCreative() ? "" : GunItems.countAmmo(player, ammo) + " " + ammo.title + " left.";
 	}
 
-	private static void progress(ServerPlayer player, Gun gun, int ticks) {
-		int done = ticks * 10 / gun.reloadTicks;
+	private static void progress(ServerPlayer player, Gun gun, int ticks, int needed) {
+		int done = Math.min(10, ticks * 10 / needed);
 		MutableComponent line = Component.literal("Reloading " + gun.title + " ").withStyle(ChatFormatting.GOLD)
 			.append(Component.literal("█".repeat(done)).withStyle(ChatFormatting.GOLD))
 			.append(Component.literal("█".repeat(10 - done)).withStyle(ChatFormatting.DARK_GRAY));

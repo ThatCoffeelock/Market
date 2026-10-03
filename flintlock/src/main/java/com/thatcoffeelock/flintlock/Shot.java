@@ -43,18 +43,25 @@ final class Shot {
 
 	final ServerLevel level;
 	final Gun gun;
+	/** What the gun was enchanted with when it was fired. */
+	final GunEnchants enchants;
 	Vec3 pos;
 	Vec3 vel;
 	private final @Nullable UUID shooter;
 	/** The shooter and whatever they're riding: the ball starts inside them, so it ignores them for its first ticks. */
 	private final Set<UUID> ignore;
+	/** Piercing: what this ball has already gone through, and how many more it can. */
+	private final Set<UUID> pierced = new HashSet<>();
+	private int pierceLeft;
 	private double travelled;
 	private int age;
 	private boolean done;
 
-	private Shot(ServerLevel level, Gun gun, Vec3 pos, Vec3 vel, @Nullable Entity shooter) {
+	private Shot(ServerLevel level, Gun gun, GunEnchants enchants, Vec3 pos, Vec3 vel, @Nullable Entity shooter) {
 		this.level = level;
 		this.gun = gun;
+		this.enchants = enchants;
+		this.pierceLeft = enchants.piercing();
 		this.pos = pos;
 		this.vel = vel;
 		this.shooter = shooter == null ? null : shooter.getUUID();
@@ -72,6 +79,8 @@ final class Shot {
 		float damage;
 		Vec3 push = Vec3.ZERO;
 		int balls;
+		/** Flame: set the target alight if the damage lands. */
+		boolean burn;
 		/** Whether the damage landed (not blocked, not invulnerable). Set once it's dealt. */
 		boolean landed;
 		/** The target's health right after the hit, for the smoke test. */
@@ -91,16 +100,33 @@ final class Shot {
 	 * {@code spread} false aims every ball dead straight (for tests).
 	 */
 	static List<Shot> fire(ServerLevel level, Gun gun, Vec3 from, Vec3 dir, @Nullable Entity shooter, boolean spread) {
+		return fire(level, gun, GunEnchants.NONE, from, dir, shooter, spread);
+	}
+
+	/** As above, for a gun with these enchantments. Multishot fires the same shot three times, in a fan. */
+	static List<Shot> fire(ServerLevel level, Gun gun, GunEnchants enchants, Vec3 from, Vec3 dir, @Nullable Entity shooter, boolean spread) {
 		RandomSource random = level.getRandom();
 		Vec3 forward = dir.normalize();
 		List<Shot> shots = new ArrayList<>();
-		for (int i = 0; i < gun.pellets; i++) {
-			Vec3 d = spread ? scatter(forward, gun.spreadDegrees, random) : forward;
-			Shot shot = new Shot(level, gun, from, d.scale(gun.speed), shooter);
-			FLYING.add(shot);
-			shots.add(shot);
+		double[] fan = enchants.fan() == 3 ? new double[] {0, -GunEnchants.MULTISHOT_DEGREES, GunEnchants.MULTISHOT_DEGREES} : new double[] {0};
+		for (double turn : fan) {
+			Vec3 aim = turn == 0 ? forward : yaw(forward, turn);
+			for (int i = 0; i < gun.pellets; i++) {
+				Vec3 d = spread ? scatter(aim, gun.spreadDegrees, random) : aim;
+				Shot shot = new Shot(level, gun, enchants, from, d.scale(gun.speed), shooter);
+				FLYING.add(shot);
+				shots.add(shot);
+			}
 		}
 		return shots;
+	}
+
+	/** Turns a direction around the vertical axis. */
+	static Vec3 yaw(Vec3 v, double degrees) {
+		double rad = Math.toRadians(degrees);
+		double cos = Math.cos(rad);
+		double sin = Math.sin(rad);
+		return new Vec3(v.x * cos - v.z * sin, v.y, v.x * sin + v.z * cos);
 	}
 
 	/** Tilts a direction by a random angle (normally distributed, {@code degrees} standard deviation). */
@@ -169,6 +195,17 @@ final class Shot {
 				case OUT -> {
 				}
 			}
+			if (hit.kind == Kind.ENTITY && pierceLeft > 0) {
+				// Piercing: carry on through, and don't hit the same one twice
+				pierceLeft--;
+				pierced.add(hit.entity.getUUID());
+				pos = hit.at;
+				vel = vel.scale(gun.drag).add(0, -gun.gravity, 0);
+				if (age >= gun.maxAge) {
+					remove();
+				}
+				return;
+			}
 			remove();
 			return;
 		}
@@ -204,6 +241,9 @@ final class Shot {
 		for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, sweep, e -> e.isAlive() && !e.isSpectator())) {
 			if (age <= 2 && ignore.contains(entity.getUUID())) {
 				continue; // don't shoot yourself (or your horse) on the way out of the barrel
+			}
+			if (pierced.contains(entity.getUUID())) {
+				continue; // already went through this one
 			}
 			AABB box = entity.getBoundingBox().inflate(0.1);
 			// point-blank: the muzzle is already inside them, and clip() only finds a way in from outside
@@ -249,11 +289,13 @@ final class Shot {
 	private void hitEntity(LivingEntity target, Vec3 at) {
 		double keep = gun.falloff(travelled);
 		Impact impact = PENDING.computeIfAbsent(target, t -> new Impact(t, shooter, gun));
-		impact.damage += (float) (gun.damage * keep);
+		impact.damage += (float) (gun.damage * keep * enchants.damageMultiplier());
 		Vec3 flat = new Vec3(vel.x, 0, vel.z);
 		Vec3 away = flat.lengthSqr() < 1.0e-6 ? Vec3.ZERO : flat.normalize();
-		impact.push = impact.push.add(away.scale(gun.knockback * keep)).add(0, gun.lift * keep, 0);
+		double punch = enchants.knockbackMultiplier();
+		impact.push = impact.push.add(away.scale(gun.knockback * keep * punch)).add(0, gun.lift * keep * punch, 0);
 		impact.balls++;
+		impact.burn |= enchants.flame() > 0;
 		Cmd.particles(level, "minecraft:damage_indicator", at.x, at.y, at.z, 0.1, 0.1, 2);
 	}
 
@@ -278,6 +320,9 @@ final class Shot {
 			impact.landed = !target.isAlive() || impact.healthAfter < before || target.getInvulnerableTime() > 0;
 			if (impact.landed && !(target instanceof Player player && player.isCreative())) {
 				shove(target, impact.push);
+			}
+			if (impact.landed && impact.burn && target.isAlive()) {
+				target.igniteForSeconds(GunEnchants.FLAME_SECONDS);
 			}
 			impact.velocityAfter = target.getDeltaMovement();
 			RECENT.add(impact);

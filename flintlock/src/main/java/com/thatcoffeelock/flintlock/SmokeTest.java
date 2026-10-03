@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Repairable;
@@ -19,15 +20,28 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Only runs with -Dflintlock.smokeTest=true (CI). Boots a real server, lines up three villagers on a shooting range and
  * shoots each one with a different gun: the musket must hit hardest, the blunderbuss must shove hardest, and the
- * pistol must land somewhere in between. Then it shoots the floor to check balls stop at blocks, and shuts down.
+ * pistol must land somewhere in between. Then it shoots the floor to check balls stop at blocks. Last it enchants guns
+ * (through /enchant, so the tags that let them take bow and crossbow enchantments are tested too) and checks what Power,
+ * Punch, Flame, Piercing and Multishot do to a shot, and that Quick Charge shortens the reload.
  */
 final class SmokeTest {
 	private static final UUID MUSKET_TARGET = UUID.randomUUID();
 	private static final UUID PISTOL_TARGET = UUID.randomUUID();
 	private static final UUID BLUNDERBUSS_TARGET = UUID.randomUUID();
 
+	private static final UUID SMITH = UUID.randomUUID();
+	private static final UUID POWER_TARGET = UUID.randomUUID();
+	private static final UUID PUNCH_TARGET = UUID.randomUUID();
+	private static final UUID FLAME_TARGET = UUID.randomUUID();
+	private static final UUID PIERCED_FIRST = UUID.randomUUID();
+	private static final UUID PIERCED_SECOND = UUID.randomUUID();
+	private static final UUID PLAIN_FIRST = UUID.randomUUID();
+	private static final UUID PLAIN_SECOND = UUID.randomUUID();
+
 	private static Shot.Impact musketHit;
 	private static Shot.Impact pistolHit;
+	private static GunEnchants power;
+	private static GunEnchants punch;
 
 	private SmokeTest() {
 	}
@@ -68,6 +82,8 @@ final class SmokeTest {
 			Repairable repairable = stack.get(DataComponents.REPAIRABLE);
 			check(repairable != null && repairable.isValidRepairItem(new ItemStack(gun.repairItem)), gun.id + " is repaired with " + gun.repairItem);
 			check(!repairable.isValidRepairItem(new ItemStack(Items.DIAMOND)), gun.id + " isn't repaired with diamonds");
+			check(stack.isEnchantable() && stack.get(DataComponents.ENCHANTABLE).value() == GunItems.ENCHANTABILITY, gun.id + " can be enchanted at a table");
+			check(!GunEnchants.of(stack).any(), gun.id + " comes without enchantments");
 			stack.hurtAndBreak(1, level, (ServerPlayer) null, item -> { });
 			check(stack.getDamageValue() == 1, gun.id + " wears down");
 			ItemStack old = GunItems.gun(gun);
@@ -75,6 +91,10 @@ final class SmokeTest {
 			old.remove(DataComponents.REPAIRABLE);
 			GunItems.setLoaded(old, gun, true);
 			check(old.getMaxDamage() == gun.durability && old.has(DataComponents.REPAIRABLE), gun.id + " made before durability gets it when loaded");
+			ItemStack older = GunItems.gun(gun);
+			older.remove(DataComponents.ENCHANTABLE);
+			GunItems.setLoaded(older, gun, true);
+			check(older.isEnchantable(), gun.id + " made before enchanting gets it when loaded");
 			check(stack.get(DataComponents.ITEM_MODEL) != null, gun.id + " looks like a crossbow");
 			check(!GunItems.isLoaded(stack), gun.id + " comes unloaded");
 			check(!stack.has(DataComponents.CHARGED_PROJECTILES), gun.id + " looks unloaded");
@@ -93,6 +113,7 @@ final class SmokeTest {
 			String recipe = resource("/data/flintlock/recipe/" + gun.id + ".json");
 			check(recipe.contains("\"" + gun.title + "\"") && recipe.contains(GunItems.stats(gun)) && recipe.contains(gun.blurb)
 				&& recipe.contains("reload (1 " + gun.ammo.title + ")") && recipe.contains("\"minecraft:max_damage\": " + gun.durability)
+				&& recipe.contains("\"minecraft:enchantable\"") && recipe.contains("\"value\": " + GunItems.ENCHANTABILITY)
 				&& recipe.contains("\"items\": \"" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(gun.repairItem) + "\""),
 				gun.id + " recipe makes the same item as /flintlock give");
 		}
@@ -106,6 +127,15 @@ final class SmokeTest {
 		check(Gun.BLUNDERBUSS.falloff(0) == 1.0 && Gun.BLUNDERBUSS.falloff(100) == Gun.MIN_FALLOFF, "blunderbuss pellets lose power with range");
 		check(Gun.MUSKET.falloff(100) == 1.0, "musket balls don't");
 		check(Gun.MUSKET.damage > Gun.PISTOL.damage && Gun.MUSKET.damage > Gun.BLUNDERBUSS.damage, "the musket hits hardest per ball");
+		for (String tag : new String[] {"bow", "crossbow"}) {
+			check(resource("/data/minecraft/tags/item/enchantable/" + tag + ".json").contains("minecraft:carrot_on_a_stick"), "guns take the " + tag + " enchantments");
+		}
+		check(GunEnchants.NONE.reloadTicks(Gun.MUSKET) == Gun.MUSKET.reloadTicks && GunEnchants.NONE.damageMultiplier() == 1.0 && GunEnchants.NONE.fan() == 1,
+			"no enchantments, no change");
+		GunEnchants quick = new GunEnchants(0, 0, 0, 3, 0, 0, 0);
+		check(quick.reloadTicks(Gun.MUSKET) < Gun.MUSKET.reloadTicks && quick.reloadTicks(Gun.MUSKET) > Gun.MUSKET.reloadTicks / 2,
+			"Quick Charge III shortens the musket's reload (" + quick.reloadTicks(Gun.MUSKET) + " of " + Gun.MUSKET.reloadTicks + " ticks)");
+		check(new GunEnchants(0, 0, 0, 20, 0, 0, 0).reloadTicks(Gun.MUSKET) == Gun.MUSKET.reloadTicks / 4, "reloading never gets faster than a quarter of the time");
 		check(Gun.MUSKET.reloadTicks > Gun.BLUNDERBUSS.reloadTicks && Gun.BLUNDERBUSS.reloadTicks > Gun.PISTOL.reloadTicks, "reload times: pistol < blunderbuss < musket");
 
 		// three lanes: musket at 15 blocks, pistol at 8, blunderbuss at 2
@@ -168,8 +198,91 @@ final class SmokeTest {
 
 	private static void floor(ServerLevel level) {
 		check(Shot.flying().isEmpty(), "a ball fired into the floor stops there");
+		MinecraftServer server = level.getServer();
+		FlintlockMod.later(5, () -> step(server, () -> enchanting(level)));
+	}
+
+	/** Enchants guns with /enchant and fires them at lined-up villagers. */
+	private static void enchanting(ServerLevel level) {
+		MinecraftServer server = level.getServer();
+		Cmd.run(level, "summon minecraft:villager 14.5 100 28.5 {" + Cmd.uuidNbt(SMITH) + ",NoAI:1b,PersistenceRequired:1b}");
+		LivingEntity smith = living(level, SMITH);
+		check(smith != null, "an enchanter was summoned");
+
+		// every enchantment a gun is meant to take, one at a time
+		check(GunEnchants.of(enchanted(level, smith, Gun.MUSKET, "minecraft:power 3")).power() == 3, "a musket takes Power");
+		check(GunEnchants.of(enchanted(level, smith, Gun.MUSKET, "minecraft:punch 2")).punch() == 2, "a musket takes Punch");
+		check(GunEnchants.of(enchanted(level, smith, Gun.PISTOL, "minecraft:flame 1")).flame() == 1, "a pistol takes Flame");
+		check(GunEnchants.of(enchanted(level, smith, Gun.PISTOL, "minecraft:infinity 1")).infinity() == 1, "a pistol takes Infinity");
+		check(GunEnchants.of(enchanted(level, smith, Gun.PISTOL, "minecraft:quick_charge 3")).quickCharge() == 3, "a pistol takes Quick Charge");
+		check(GunEnchants.of(enchanted(level, smith, Gun.MUSKET, "minecraft:piercing 2")).piercing() == 2, "a musket takes Piercing");
+		check(GunEnchants.of(enchanted(level, smith, Gun.BLUNDERBUSS, "minecraft:multishot 1")).multishot() == 1, "a blunderbuss takes Multishot");
+		check(enchanted(level, smith, Gun.MUSKET, "minecraft:unbreaking 3").getEnchantments().size() == 1, "a musket takes Unbreaking");
+		check(enchanted(level, smith, Gun.MUSKET, "minecraft:mending 1").getEnchantments().size() == 1, "a musket takes Mending");
+		check(!enchanted(level, smith, Gun.MUSKET, "minecraft:sharpness 3").isEnchanted(), "a musket doesn't take Sharpness");
+		GunEnchants both = GunEnchants.of(enchanted(level, smith, Gun.MUSKET, "minecraft:power 5", "minecraft:punch 2", "minecraft:piercing 1"));
+		check(both.power() == 5 && both.punch() == 2 && both.piercing() == 1, "a gun takes several at once");
+		check(GunItems.gunOf(enchanted(level, smith, Gun.MUSKET, "minecraft:power 1")) == Gun.MUSKET, "an enchanted gun is still a musket");
+
+		// what they do: a lane each, all fired at once
+		summon(level, POWER_TARGET, -14.5, 6.5);
+		summon(level, PUNCH_TARGET, 12.5, 6.5);
+		summon(level, FLAME_TARGET, -2.5, 6.5);
+		summon(level, PIERCED_FIRST, -5.5, 6.5);
+		summon(level, PIERCED_SECOND, -5.5, 10.5);
+		summon(level, PLAIN_FIRST, 5.5, 6.5);
+		summon(level, PLAIN_SECOND, 5.5, 10.5);
+		power = GunEnchants.of(enchanted(level, smith, Gun.MUSKET, "minecraft:power 4"));
+		punch = GunEnchants.of(enchanted(level, smith, Gun.MUSKET, "minecraft:punch 2"));
+		GunEnchants flame = GunEnchants.of(enchanted(level, smith, Gun.PISTOL, "minecraft:flame 1"));
+		GunEnchants piercing = GunEnchants.of(enchanted(level, smith, Gun.MUSKET, "minecraft:piercing 1"));
+		Shot.RECENT.clear();
+		Shot.fire(level, Gun.MUSKET, power, new Vec3(-14.5, 101.5, 0.5), new Vec3(0, 0, 1), null, false);
+		Shot.fire(level, Gun.MUSKET, punch, new Vec3(12.5, 101.5, 0.5), new Vec3(0, 0, 1), null, false);
+		Shot.fire(level, Gun.PISTOL, flame, new Vec3(-2.5, 101.5, 0.5), new Vec3(0, 0, 1), null, false);
+		Shot.fire(level, Gun.MUSKET, piercing, new Vec3(-5.5, 101.5, 0.5), new Vec3(0, 0, 1), null, false);
+		Shot.fire(level, Gun.MUSKET, GunEnchants.NONE, new Vec3(5.5, 101.5, 0.5), new Vec3(0, 0, 1), null, false);
+		GunEnchants multi = new GunEnchants(0, 0, 0, 0, 0, 1, 0);
+		check(Shot.fire(level, Gun.PISTOL, multi, new Vec3(-12.5, 101.5, 20.5), new Vec3(1, 0, 0), null, false).size() == 3, "Multishot fires three balls from a pistol");
+		check(Shot.fire(level, Gun.BLUNDERBUSS, multi, new Vec3(-12.5, 101.5, 24.5), new Vec3(1, 0, 0), null, true).size() == 3 * Gun.BLUNDERBUSS.pellets,
+			"Multishot fires three fans of pellets from a blunderbuss");
+		FlintlockMod.later(10, () -> step(server, () -> enchantedShots(level)));
+	}
+
+	private static void enchantedShots(ServerLevel level) {
+		Shot.Impact powerHit = impactOn(POWER_TARGET);
+		check(powerHit != null && powerHit.landed, "the Power musket ball hit");
+		check(Math.abs(powerHit.damage - Gun.MUSKET.damage * power.damageMultiplier()) < 0.01 && powerHit.damage > Gun.MUSKET.damage * 1.5,
+			"Power IV hits harder: " + powerHit.damage + " instead of " + Gun.MUSKET.damage);
+
+		Shot.Impact punchHit = impactOn(PUNCH_TARGET);
+		check(punchHit != null && punchHit.landed, "the Punch musket ball hit");
+		check(Math.abs(horizontal(punchHit.push) - horizontal(musketHit.push) * punch.knockbackMultiplier()) < 0.01 && horizontal(punchHit.push) > horizontal(musketHit.push),
+			"Punch II shoves harder (" + horizontal(punchHit.push) + " instead of " + horizontal(musketHit.push) + ")");
+
+		LivingEntity burning = living(level, FLAME_TARGET);
+		check(burning != null && burning.isOnFire(), "Flame sets the target on fire");
+		check(impactOn(FLAME_TARGET) != null && Math.abs(impactOn(FLAME_TARGET).damage - Gun.PISTOL.damage) < 0.01, "Flame doesn't change the damage");
+
+		check(impactOn(PIERCED_FIRST) != null && impactOn(PIERCED_SECOND) != null, "Piercing: the ball went through the first villager and hit the second");
+		check(Math.abs(impactOn(PIERCED_SECOND).damage - Gun.MUSKET.damage) < 0.01, "Piercing doesn't weaken the ball");
+		check(impactOn(PLAIN_FIRST) != null && impactOn(PLAIN_SECOND) == null, "without Piercing the ball stops at the first villager");
+		FlintlockMod.later(40, () -> step(level.getServer(), () -> finish(level)));
+	}
+
+	private static void finish(ServerLevel level) {
+		check(Shot.flying().isEmpty(), "every ball landed or dropped");
 		FlintlockMod.LOG.info("FLINTLOCK SMOKE TEST PASSED");
 		level.getServer().halt(false);
+	}
+
+	/** A fresh gun of this kind, enchanted with these (as "id level", through /enchant) while an enchanter holds it. */
+	private static ItemStack enchanted(ServerLevel level, LivingEntity holder, Gun gun, String... enchantments) {
+		holder.setItemSlot(EquipmentSlot.MAINHAND, GunItems.gun(gun));
+		for (String enchantment : enchantments) {
+			Cmd.run(level, "enchant " + holder.getUUID() + " " + enchantment);
+		}
+		return holder.getMainHandItem().copy();
 	}
 
 	private static void summon(ServerLevel level, UUID id, double x, double z) {

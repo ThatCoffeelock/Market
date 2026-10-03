@@ -55,6 +55,25 @@ A gun stays loaded until you fire it. So you can load four pistols before a figh
 
 **Under the hood**: balls are simulated by the server with a swept collision check, so they can't skip through a wall or a mob at speed. They stop at the first block or mob they touch, never break blocks, and quietly vanish if they fly into unloaded chunks. The damage is arrow damage, so **shields block it** and Projectile Protection helps. All the blunderbuss pellets that hit a mob in the same tick are added up into one hit, so they all count. Knockback respects knockback resistance (ravagers barely budge), and creative players don't get shoved.
 
+## Enchanting
+
+Guns take the enchanting table (they enchant like an iron tool) and the anvil. They borrow the bow and crossbow enchantments:
+
+| Enchantment | What it does to a gun |
+|---|---|
+| **Power** | +15% damage per level (Power V: ×1.75) |
+| **Punch** | +50% knockback per level (a single shot still never shoves harder than 2.4 blocks of velocity) |
+| **Flame** | Whatever the ball hits burns for 5 seconds |
+| **Quick Charge** | Reloading takes 15% less time per level, but never less than a quarter of it |
+| **Piercing** | The ball goes through that many extra targets, at full damage |
+| **Multishot** | One shot fires three, 10° apart (three fans of pellets for a blunderbuss), for one round of ammo |
+| **Infinity** | Reloading doesn't use ammo. You still need one round in your inventory |
+| **Unbreaking**, **Mending** | As in vanilla |
+
+The usual rules apply: Infinity and Mending don't mix, nor do Piercing and Multishot. Guns made before they could be enchanted become enchantable the next time they're loaded. [Overenchant](../overenchant/README.md) raises the maximum levels, so Power can go past V.
+
+Because a gun is a carrot on a stick, the enchantments are added to vanilla's bow and crossbow item tags. A plain carrot on a stick can take them too, and they do nothing for it.
+
 ## Commands
 
 - `/flintlock`: help and recipes

@@ -17,6 +17,9 @@
 			"minecraft:custom_data": {
 				"flintlock": "pistol"
 			},
+			"minecraft:enchantable": {
+				"value": 14
+			},
 			"minecraft:max_damage": 200,
 			"minecraft:repairable": {
 				"items": "minecraft:iron_ingot"

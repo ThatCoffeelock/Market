@@ -18,6 +18,9 @@
 			"minecraft:custom_data": {
 				"flintlock": "blunderbuss"
 			},
+			"minecraft:enchantable": {
+				"value": 14
+			},
 			"minecraft:max_damage": 120,
 			"minecraft:repairable": {
 				"items": "minecraft:copper_ingot"
