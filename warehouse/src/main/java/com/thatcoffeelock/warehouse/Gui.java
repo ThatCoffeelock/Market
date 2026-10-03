@@ -1,12 +1,16 @@
 package com.thatcoffeelock.warehouse;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemLore;
@@ -38,8 +42,21 @@ final class Gui {
 		return stack;
 	}
 
+	private static final Map<String, Item> ITEMS = new HashMap<>();
+
+	/** An item by id, for the ones that aren't constants in Items (dyed glass panes, say). */
+	static Item item(String id, Item fallback) {
+		if (ITEMS.isEmpty()) {
+			for (Item item : BuiltInRegistries.ITEM) {
+				ITEMS.put(BuiltInRegistries.ITEM.getKey(item).toString(), item);
+			}
+		}
+		Item item = ITEMS.get(id);
+		return item == null || item == Items.AIR ? fallback : item;
+	}
+
 	static ItemStack filler() {
-		return icon(Items.GRAY_STAINED_GLASS_PANE, Component.literal(" "));
+		return icon(item("minecraft:gray_stained_glass_pane", Items.GLASS_PANE), Component.literal(" "));
 	}
 
 	/** 48213 -> "48,213". */
