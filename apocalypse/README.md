@@ -9,6 +9,7 @@ It's **server-side only**. Players join with a plain vanilla client. It is **not
 | Thing | What happens |
 |---|---|
 | **Hordes** | Every minute or so at night, a horde of 4–8 zombies rises 24–44 blocks from each survivor. Hordes get bigger every day you survive (up to 24) |
+| **Sunproof** | Zombies, drowned and zombie villagers **don't burn in the sun** (husks never did). Dawn doesn't clear the streets any more: whatever came at night is still out there in the morning |
 | **Light keeps them out** | Hordes follow **vanilla's spawn rules**, zombie by zombie: block light 0, a dark sky, a floor monsters can stand on, room to stand. Light up your base and nothing spawns inside your walls. They can still walk up to those walls and knock |
 | **...so they put it out** | Zombies **smash lights**. An idle horde with nobody in sight looks for torches, lanterns and lamps within 12 blocks and knocks them out, and any zombie chasing you takes a swing at lights it passes. They can only reach from their feet to just above their heads, so torches on top of walls, lights inside sealed walls and lights built into the floor are safe. A torch takes two zombie-seconds, a lantern longer, and more zombies are faster. Smashed lights drop as items. They leave furnaces, campfires, beacons, redstone and anything natural alone. A bell lure beats light-hunting |
 | **Herding** | Each horde follows a **leader**. An idle horde drifts toward the nearest survivor it can smell (80 blocks). Loose zombies near a horde join it, and two hordes that meet merge into one bigger problem (up to 40) |
@@ -50,6 +51,7 @@ Created on first start. The main ones:
 | `noise`, `bellRadius`, `bellSeconds` | true, 64, 40 | Sound and bells |
 | `infection`, `infectionChance`, `infectionMinutes` | true, 0.12, 20 | Bites |
 | `riseAsZombie` | true | The fallen get back up |
+| `sunproofZombies` | true | Zombies survive daylight. False brings back vanilla burning |
 | `smashLights`, `lightSearchRange`, `lightGiveUpSeconds` | true, 12, 20 | Light smashing. They give up on a light they can't get to after 20 seconds |
 | `breakDoors`, `breakPlanks`, `breakSeconds` | true, false, 10 | Door chewing. `breakPlanks` lets them through wooden walls too. Good luck |
 
@@ -59,4 +61,4 @@ Created on first start. The main ones:
 - Admin hordes (`/apocalypse admin horde`) ignore the light rules. That's the point of them.
 - Hordes roam the surface around you. Caves are relatively safe. Relatively.
 - Horde zombies aren't persistent: they despawn like any other monster once you're far away. Risen players are persistent, so your gear doesn't vanish.
-- CI builds the mod, then boots a real dedicated server. In a glowstone pen in the sky it spawns two hordes and a straggler, then checks that they merge and recruit, that one sighting turns the whole horde, that three zombies get through a window faster than one, that a bell pulls the horde across the pen, that Horde Night speeds them up, and that a fallen player gets back up. It also checks the light rule: no horde rises on a lit floor, zombies may spawn in a sealed dark room, and one torch in that room stops them. Then the horde smashes a torch and a lantern it can reach and leaves the torch on top of a pillar alone.
+- CI builds the mod, then boots a real dedicated server. In a glowstone pen in the sky it spawns two hordes and a straggler, then checks that they merge and recruit, that one sighting turns the whole horde, that three zombies get through a window faster than one, that a bell pulls the horde across the pen, that Horde Night speeds them up, and that a fallen player gets back up. It also checks the light rule: no horde rises on a lit floor, zombies may spawn in a sealed dark room, and one torch in that room stops them. Then the horde smashes a torch and a lantern it can reach and leaves the torch on top of a pillar alone. Finally, at noon: with the feature off a bare zombie catches fire (the control, so the test can tell), and with it on, a bare zombie stands in the sun for 15 seconds at full health.

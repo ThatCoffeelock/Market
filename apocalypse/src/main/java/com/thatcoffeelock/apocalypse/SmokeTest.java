@@ -8,6 +8,7 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -19,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Only runs with -Dapocalypse.smokeTest=true (CI). Boots a real server and puts some hordes in a pen in the sky:
  * they must herd, merge, recruit, share a target, chew through glass, come to a bell, speed up on Horde Night,
- * a fallen player must get back up, nothing may spawn in the light, and they must smash the lights they can reach.
+ * a fallen player must get back up, nothing may spawn in the light, they must smash the lights they can reach, and the sun must not burn them.
  */
 final class SmokeTest {
 	private static final int Y = 200;
@@ -31,6 +32,8 @@ final class SmokeTest {
 	private static Vec3 bell;
 	private static double before;
 	private static final BlockPos DARK = new BlockPos(33, Y, 33);
+	private static Mob control;
+	private static Mob sunny;
 	private static final BlockPos TORCH = new BlockPos(14, Y, -14);
 	private static final BlockPos LANTERN = new BlockPos(16, Y, -8);
 	private static final BlockPos HIGH = new BlockPos(10, Y + 3, -20);
@@ -198,8 +201,39 @@ final class SmokeTest {
 		check(!level.getBlockState(TORCH).is(Blocks.TORCH), "the horde smashed the torch");
 		check(!level.getBlockState(LANTERN).is(Blocks.LANTERN), "the horde smashed the lantern");
 		check(level.getBlockState(HIGH).is(Blocks.TORCH), "the torch on top of the pillar is out of reach");
+		check(first.leaderMob() != null, "the horde still has a leader after the lights");
+
+		// sunlight: first a control (feature off: a bare zombie at noon must catch fire), then the real thing
+		Cmd.run(level, "time set noon");
+		ApocalypseConfig.get().sunproofZombies = false;
+		control = bare(level, new BlockPos(-10, Y, 10));
+		next(level, 200, () -> sunControl(level));
+	}
+
+	/** A zombie with nothing on its head (a helmet would protect it from the sun anyway). */
+	private static Mob bare(ServerLevel level, BlockPos at) {
+		Mob z = EntityTypes.ZOMBIE.create(level, EntitySpawnReason.EVENT);
+		check(z != null, "a bare zombie");
+		z.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0f, 0f);
+		level.addFreshEntity(z);
+		return z;
+	}
+
+	private static void sunControl(ServerLevel level) {
+		check(control.isOnFire(), "control: with the feature off, a zombie burns at noon");
+		ApocalypseConfig.get().sunproofZombies = true;
+		control.clearFire();
+		sunny = bare(level, new BlockPos(-14, Y, 14));
+		next(level, 300, () -> sun(level));
+	}
+
+	private static void sun(ServerLevel level) {
+		check(level.isBrightOutside(), "it's broad daylight");
+		check(sunny.isAlive() && !sunny.isOnFire(), "a zombie stands in the noon sun and doesn't burn");
+		check(sunny.getHealth() >= sunny.getMaxHealth(), "not even a little (" + sunny.getHealth() + "/" + sunny.getMaxHealth() + ")");
+		check(control.isAlive() && !control.isOnFire(), "the control zombie stopped burning too");
 		Mob leader = first.leaderMob();
-		check(leader != null, "the horde still has a leader after the lights");
+		check(leader != null, "the horde still has a leader at noon");
 
 		HordeNight.force(level.getServer());
 		check(HordeNight.active(), "Horde Night can be started");

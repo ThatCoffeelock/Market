@@ -70,6 +70,10 @@ public final class ApocalypseConfig {
 	/** Horde Night zombie cap near each player. */
 	public int hordeNightMaxZombies = 70;
 
+	// ---- sunlight
+	/** Zombies (and drowned and zombie villagers) don't burn in the sun. Husks never did. */
+	public boolean sunproofZombies = true;
+
 	// ---- noise
 	/** Noise (breaking blocks, fighting, sprinting, bells) attracts zombies. */
 	public boolean noise = true;

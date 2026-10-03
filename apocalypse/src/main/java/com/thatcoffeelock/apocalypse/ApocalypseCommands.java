@@ -120,6 +120,7 @@ final class ApocalypseCommands {
 			"§7Every 7th night is §4Horde Night§7. You get a warning that morning.",
 			"§7Bites can §2infect§7 you. A §6golden apple§7 cures it. Die infected and you get back up, wearing your stuff.",
 			"§7Hordes follow vanilla spawn rules: they only rise in the §fdark§7. Light up your base and nothing spawns inside.",
+			"§7The §esun§7 doesn't burn them any more. Morning won't save you.",
 			"§7So they §csmash lights§7 they can reach. Put your torches up high, inside, or in the floor.",
 			"§f/apocalypse§7 shows the day, the next Horde Night and whether you're infected.",
 			"§7Ops: §f/apocalypse admin horde [size]|hordenight start|stop|infect|cure <player>|clear|reload"
