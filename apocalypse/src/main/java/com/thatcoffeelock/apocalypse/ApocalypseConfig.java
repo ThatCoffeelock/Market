@@ -50,6 +50,14 @@ public final class ApocalypseConfig {
 	/** Horde members track targets this far (vanilla zombies: 35). */
 	public double hordeFollowRange = 48;
 
+	// ---- lights
+	/** Zombies smash torches, lanterns and other lights they can reach. Idle hordes go looking for them. */
+	public boolean smashLights = true;
+	/** How far an idle horde looks for a light to put out. */
+	public int lightSearchRange = 12;
+	/** Seconds a horde keeps trying to get to a light before giving up on it. */
+	public int lightGiveUpSeconds = 20;
+
 	// ---- horde night
 	/** Every Nth night is Horde Night. 0 = never. */
 	public int hordeNightEvery = 7;
@@ -119,6 +127,8 @@ public final class ApocalypseConfig {
 		cfg.infectionChance = Math.max(0, Math.min(1, cfg.infectionChance));
 		cfg.infectionMinutes = Math.max(1, cfg.infectionMinutes);
 		cfg.breakSeconds = Math.max(1, cfg.breakSeconds);
+		cfg.lightSearchRange = Math.max(1, Math.min(32, cfg.lightSearchRange));
+		cfg.lightGiveUpSeconds = Math.max(5, cfg.lightGiveUpSeconds);
 		current = cfg;
 		try {
 			Files.createDirectories(file.getParent());

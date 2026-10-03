@@ -2,6 +2,7 @@ package com.thatcoffeelock.apocalypse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,10 @@ final class Hordes {
 		int goalUntil;
 		int lastPath = -100;
 		boolean gone;
+		/** The light it's going to smash, since when, and the ones it couldn't get to. */
+		@Nullable BlockPos light;
+		int lightSince;
+		final Set<Long> ignoredLights = new HashSet<>();
 		/** Where each member stood a second ago, to tell who's stuck at a door. */
 		final Map<UUID, Vec3> lastPos = new HashMap<>();
 
@@ -229,12 +234,21 @@ final class Hordes {
 			if (cfg.breakDoors) {
 				Doors.chew(h, mobs, target);
 			}
+			Lights.onTheWay(h, mobs, target, now);
 			remember(h, mobs);
 			return;
 		}
 		remember(h, mobs);
 
-		// Nobody in sight: go where the noise was, or follow the scent of the living.
+		// Nobody in sight and nothing to investigate: put out the lights, so more of us can rise.
+		boolean investigating = h.goal != null && now < h.goalUntil;
+		if (!investigating && Lights.seek(h, mobs, leader, now)) {
+			recruit(h, leader);
+			merge(h, leader);
+			return;
+		}
+
+		// Then: go where the noise was, or follow the scent of the living.
 		Vec3 dest = null;
 		if (h.goal != null && now < h.goalUntil) {
 			dest = h.goal;

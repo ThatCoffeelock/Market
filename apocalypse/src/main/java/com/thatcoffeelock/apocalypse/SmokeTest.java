@@ -2,6 +2,7 @@ package com.thatcoffeelock.apocalypse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
@@ -18,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Only runs with -Dapocalypse.smokeTest=true (CI). Boots a real server and puts some hordes in a pen in the sky:
  * they must herd, merge, recruit, share a target, chew through glass, come to a bell, speed up on Horde Night,
- * a fallen player must get back up, and nothing may spawn in the light.
+ * a fallen player must get back up, nothing may spawn in the light, and they must smash the lights they can reach.
  */
 final class SmokeTest {
 	private static final int Y = 200;
@@ -30,6 +31,9 @@ final class SmokeTest {
 	private static Vec3 bell;
 	private static double before;
 	private static final BlockPos DARK = new BlockPos(33, Y, 33);
+	private static final BlockPos TORCH = new BlockPos(14, Y, -14);
+	private static final BlockPos LANTERN = new BlockPos(16, Y, -8);
+	private static final BlockPos HIGH = new BlockPos(10, Y + 3, -20);
 
 	private SmokeTest() {
 	}
@@ -177,6 +181,25 @@ final class SmokeTest {
 		check(leader != null, "the horde still has a leader after the bell");
 		double after = leader.position().distanceTo(bell);
 		check(after < before - 4, "the horde went to the bell (" + Math.round(before) + " → " + Math.round(after) + " blocks)");
+
+		// lights: a torch and a lantern they can reach, and a torch on top of a pillar they can't
+		Cmd.run(level, "setblock " + TORCH.getX() + " " + TORCH.getY() + " " + TORCH.getZ() + " minecraft:torch");
+		Cmd.run(level, "setblock " + LANTERN.getX() + " " + LANTERN.getY() + " " + LANTERN.getZ() + " minecraft:lantern");
+		Cmd.run(level, "fill " + HIGH.getX() + " " + Y + " " + HIGH.getZ() + " " + HIGH.getX() + " " + (HIGH.getY() - 1) + " " + HIGH.getZ() + " minecraft:stone");
+		Cmd.run(level, "setblock " + HIGH.getX() + " " + HIGH.getY() + " " + HIGH.getZ() + " minecraft:torch");
+		check(Lights.isLight(level, TORCH, level.getBlockState(TORCH)) && Lights.isLight(level, LANTERN, level.getBlockState(LANTERN)),
+			"torches and lanterns count as lights");
+		check(Lights.nearest(level, new BlockPos(0, Y, 0), 3, Set.of()) == null, "a glowstone floor underfoot is never a target");
+		first.goal = null; // done with the bell
+		next(level, 400, () -> lights(level));
+	}
+
+	private static void lights(ServerLevel level) {
+		check(!level.getBlockState(TORCH).is(Blocks.TORCH), "the horde smashed the torch");
+		check(!level.getBlockState(LANTERN).is(Blocks.LANTERN), "the horde smashed the lantern");
+		check(level.getBlockState(HIGH).is(Blocks.TORCH), "the torch on top of the pillar is out of reach");
+		Mob leader = first.leaderMob();
+		check(leader != null, "the horde still has a leader after the lights");
 
 		HordeNight.force(level.getServer());
 		check(HordeNight.active(), "Horde Night can be started");

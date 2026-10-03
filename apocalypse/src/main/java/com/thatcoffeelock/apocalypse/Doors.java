@@ -95,14 +95,21 @@ final class Doors {
 		return breakable(level.getBlockState(up)) ? up : null;
 	}
 
-	/** One second of chewing by some zombies. Returns true when the block gives way. */
+	/** One second of chewing on a door or window. Returns true when it gives way. */
 	static boolean chewOnce(ServerLevel level, BlockPos pos, int zombies, int breaker, int now) {
+		return chewOnce(level, pos, zombies, breaker, now, ApocalypseConfig.get().breakSeconds, true);
+	}
+
+	/**
+	 * One second of some zombies working on a block that takes `needed` zombie-seconds to break.
+	 * Doors get door sounds; anything else (a lantern, say) just gets smashed. Returns true when it breaks.
+	 */
+	static boolean chewOnce(ServerLevel level, BlockPos pos, int zombies, int breaker, int now, int needed, boolean door) {
 		Map<Long, Chewing> map = CHEWING.computeIfAbsent(level, l -> new HashMap<>());
 		Chewing c = map.computeIfAbsent(pos.asLong(), k -> new Chewing());
 		c.breaker = breaker;
 		c.lastSecond = now;
 		c.progress += zombies;
-		int needed = ApocalypseConfig.get().breakSeconds;
 		double x = pos.getX() + 0.5;
 		double y = pos.getY() + 0.5;
 		double z = pos.getZ() + 0.5;
@@ -110,11 +117,14 @@ final class Doors {
 			map.remove(pos.asLong());
 			level.destroyBlockProgress(c.breaker, pos, -1);
 			level.destroyBlock(pos, true);
-			Cmd.sound(level, "minecraft:entity.zombie.break_wooden_door", x, y, z, 1.0f, 0.9f + Hordes.RANDOM.nextFloat() * 0.2f);
+			if (door) {
+				Cmd.sound(level, "minecraft:entity.zombie.break_wooden_door", x, y, z, 1.0f, 0.9f + Hordes.RANDOM.nextFloat() * 0.2f);
+			}
 			return true;
 		}
 		level.destroyBlockProgress(c.breaker, pos, Math.min(9, c.progress * 10 / needed));
-		Cmd.sound(level, "minecraft:entity.zombie.attack_wooden_door", x, y, z, 1.0f, 0.8f + Hordes.RANDOM.nextFloat() * 0.4f);
+		Cmd.sound(level, door ? "minecraft:entity.zombie.attack_wooden_door" : "minecraft:entity.zombie.attack_iron_door", x, y, z,
+			door ? 1.0f : 0.5f, 0.8f + Hordes.RANDOM.nextFloat() * 0.4f);
 		return false;
 	}
 

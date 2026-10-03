@@ -55,6 +55,7 @@ public final class ApocalypseMod implements ModInitializer {
 			HordeNight.forget();
 			Doors.forget();
 			Noise.forget();
+			Lights.forget();
 		});
 		ServerTickEvents.END_SERVER_TICK.register(ApocalypseMod::tick);
 
@@ -103,6 +104,7 @@ public final class ApocalypseMod implements ModInitializer {
 		}
 		Hordes.spawnTick(server);
 		Doors.tick(seconds);
+		Lights.tickLoose(server, seconds);
 		Infection.tick(server);
 		Noise.tick(server);
 	}
