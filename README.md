@@ -11,6 +11,8 @@ It's **server-side only**. Players join with a plain vanilla client and don't ne
 
 > **Want all the mods?** The [LIB Pack](lib-pack/README.md) has Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills and Hamlets & Horrors in one jar.
 
+> **Standalone, not in the LIB Pack:** [Zombie Apocalypse](apocalypse/README.md): hordes that herd, Horde Night every 7th night, infectious bites.
+
 ## Install (plug and play)
 
 1. Install [Fabric Loader](https://fabricmc.net/use/server/) for Minecraft 26.3 on your server.

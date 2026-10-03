@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "apocalypse",
+	"version": "${version}",
+	"name": "Zombie Apocalypse",
+	"description": "The dead walk, in herds. Zombie hordes roam toward survivors, follow a leader, hear noise and chew through doors. Horde Night every 7th night, bites that infect, and the fallen rise again. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.apocalypse.ApocalypseMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
