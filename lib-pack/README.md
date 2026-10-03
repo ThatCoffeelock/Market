@@ -33,6 +33,6 @@ The pack doesn't contain any code of its own. It nests the jars that the other p
 
 To build it yourself (Java 25): run `./gradlew build` in the repo root and in each mod folder, then `./gradlew build` in `lib-pack/`. The jar ends up in `lib-pack/build/libs/`.
 
-There is a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
+There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
 CI (`.github/workflows/lib-pack.yml`) builds all twelve mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twelve mods load and the server starts.
