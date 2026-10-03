@@ -216,7 +216,13 @@ final class BunkDeck {
 		}
 		boolean rode = player.getVehicle() == seat;
 		if (!slept || (!rode && !RIDE_OPTIONAL)) {
-			String why = "headBlock=" + ship.level.getBlockState(head).getBlock() + " slept=" + slept + " rode=" + rode + " sleeping=" + player.isSleeping() + " vehicle=" + player.getVehicle();
+			BlockState headState = ship.level.getBlockState(head);
+			String detail = "";
+			if (headState.getBlock() instanceof AbstractBedBlock bedBlock) {
+				detail = " height=" + bedBlock.getSleepHeight(headState, ship.level, head) + " shapeEmpty=" + headState.getShape(ship.level, head).isEmpty()
+					+ " playerLevelSame=" + (player.level() == ship.level) + " removed=" + player.isRemoved() + " alive=" + player.isAlive();
+			}
+			String why = "headState=" + headState + detail + " slept=" + slept + " rode=" + rode + " sleeping=" + player.isSleeping() + " vehicle=" + player.getVehicle();
 			AhoyMod.LOG.warn("Couldn't put {} to bed: {}", player.getName().getString(), why);
 			sleepers.add(new Sleeper(player.getUUID(), bunk, fromSeat, foot, head, ship.root.getX(), ship.root.getZ(), seat));
 			wake(player, true);
