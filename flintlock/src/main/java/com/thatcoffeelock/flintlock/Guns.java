@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -94,7 +95,7 @@ final class Guns {
 		muzzle(level, gun, eye.add(look.scale(1.0)));
 		if (gun.recoil > 0) {
 			player.setDeltaMovement(player.getDeltaMovement().add(look.scale(-gun.recoil)));
-			player.hurtMarked = true;
+			player.connection.send(new ClientboundSetEntityMotionPacket(player)); // players move themselves: tell their client
 		}
 	}
 

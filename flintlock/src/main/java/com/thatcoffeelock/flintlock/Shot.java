@@ -269,9 +269,9 @@ final class Shot {
 			}
 			UUID by = impact.shooter != null && level.getServer().getPlayerList().getPlayer(impact.shooter) != null ? impact.shooter : null;
 			// a gun is slow enough that it shouldn't be swallowed by the half second of invulnerability after a sword hit
-			target.invulnerableTime = 0;
+			target.setInvulnerableTime(0);
 			Cmd.damage(level, target.getUUID(), impact.damage, by);
-			impact.landed = target.invulnerableTime > 0;
+			impact.landed = target.getInvulnerableTime() > 0;
 			if (impact.landed && !(target instanceof Player player && player.isCreative())) {
 				shove(target, impact.push);
 			}
@@ -295,7 +295,7 @@ final class Shot {
 		if (add.lengthSqr() < 1.0e-6) {
 			return;
 		}
+		// the hit just marked the target as hurt, which sends players their new velocity at the end of the tick, shove included
 		target.setDeltaMovement(target.getDeltaMovement().add(add));
-		target.hurtMarked = true; // so players' own clients get the new velocity
 	}
 }

@@ -24,6 +24,7 @@ dump net.minecraft.world.item.ItemStack 'remove\(|set\(|has\(|isDamageableItem|g
 dump net.minecraft.world.item.component.ChargedProjectiles 'public static|EMPTY'
 dump net.minecraft.core.component.DataComponents 'MAX_STACK_SIZE|MAX_DAMAGE| DAMAGE|CUSTOM_DATA|ITEM_NAME|ITEM_MODEL|LORE|CHARGED_PROJECTILES'
 dump net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket '<init>|public'
+dump net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket '<init>'
 dump net.minecraft.nbt.CompoundTag 'getStringOr|getBooleanOr|putString|putBoolean'
 dump net.minecraft.resources.Identifier 'withDefaultNamespace'
 dump net.minecraft.server.level.ServerLevel 'getEntity\(|getEntitiesOfClass'
