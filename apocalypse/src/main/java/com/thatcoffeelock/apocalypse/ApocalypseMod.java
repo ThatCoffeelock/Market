@@ -44,8 +44,6 @@ public final class ApocalypseMod implements ModInitializer {
 	public void onInitialize() {
 		ApocalypseConfig.load();
 
-		// before the spawn chunks load, so zombies already standing in a base are caught too
-		ServerLifecycleEvents.SERVER_STARTING.register(Bases::load);
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			if (Boolean.getBoolean("apocalypse.smokeTest")) {
 				SmokeTest.run(server);
@@ -57,12 +55,10 @@ public final class ApocalypseMod implements ModInitializer {
 			HordeNight.forget();
 			Doors.forget();
 			Noise.forget();
-			Bases.forget();
 		});
 		ServerTickEvents.END_SERVER_TICK.register(ApocalypseMod::tick);
 
 		ServerEntityEvents.ENTITY_LOAD.register(Hordes::onLoad);
-		ServerEntityEvents.ENTITY_LOAD.register(Bases::onLoad);
 		ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> Hordes.onUnload(entity));
 		ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, baseDamageTaken, damageTaken, blocked) -> {
 			Infection.afterDamage(entity, source, damageTaken);

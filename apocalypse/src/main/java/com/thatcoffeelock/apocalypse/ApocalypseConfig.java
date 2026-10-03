@@ -47,14 +47,6 @@ public final class ApocalypseConfig {
 	/** Horde members track targets this far (vanilla zombies: 35). */
 	public double hordeFollowRange = 48;
 
-	// ---- bases
-	/** Default radius of a player base (/apocalypse base set). No zombies spawn inside. */
-	public int baseRadius = 48;
-	/** Biggest base anyone can claim. */
-	public int maxBaseRadius = 96;
-	/** You can't claim a base with zombies this close: it's a home, not a panic button. */
-	public int baseClearRange = 24;
-
 	// ---- horde night
 	/** Every Nth night is Horde Night. 0 = never. */
 	public int hordeNightEvery = 7;
@@ -124,9 +116,6 @@ public final class ApocalypseConfig {
 		cfg.infectionChance = Math.max(0, Math.min(1, cfg.infectionChance));
 		cfg.infectionMinutes = Math.max(1, cfg.infectionMinutes);
 		cfg.breakSeconds = Math.max(1, cfg.breakSeconds);
-		cfg.maxBaseRadius = Math.max(8, cfg.maxBaseRadius);
-		cfg.baseRadius = Math.max(8, Math.min(cfg.maxBaseRadius, cfg.baseRadius));
-		cfg.baseClearRange = Math.max(0, cfg.baseClearRange);
 		current = cfg;
 		try {
 			Files.createDirectories(file.getParent());

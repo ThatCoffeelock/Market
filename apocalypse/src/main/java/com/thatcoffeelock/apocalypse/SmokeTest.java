@@ -18,7 +18,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Only runs with -Dapocalypse.smokeTest=true (CI). Boots a real server and puts some hordes in a pen in the sky:
  * they must herd, merge, recruit, share a target, chew through glass, come to a bell, speed up on Horde Night,
- * a fallen player must get back up, and zombies must not spawn inside a base.
+ * and a fallen player must get back up.
  */
 final class SmokeTest {
 	private static final int Y = 200;
@@ -29,10 +29,6 @@ final class SmokeTest {
 	private static LivingEntity bait;
 	private static Vec3 bell;
 	private static double before;
-	private static final UUID BASE_OWNER = UUID.fromString("00000000-0000-0000-0000-00000000ba5e");
-	private static List<Mob> intruders;
-	private static Mob outside;
-	private static Mob steve;
 
 	private SmokeTest() {
 	}
@@ -185,28 +181,6 @@ final class SmokeTest {
 
 		int cleared = Hordes.clear();
 		check(cleared >= 10 && Hordes.all().isEmpty(), "admins can clear the hordes (" + cleared + ")");
-
-		// a base in the north half of the pen: zombies that appear inside it vanish, outside they don't
-		Bases.set(level.getServer(), BASE_OWNER, "Smoke", new BlockPos(0, Y, -12), 12);
-		check(Bases.protects(level, new BlockPos(2, Y, -12)) && !Bases.protects(level, new BlockPos(0, Y, 12)), "the base covers its circle and no more");
-		check(Hordes.ground(level, 2, -12, Y) == null && Hordes.ground(level, 0, 12, Y) != null, "hordes never rise inside a base");
-		Mob inside = Undead.spawn(level, EntityTypes.ZOMBIE, new BlockPos(2, Y, -12), 0f);
-		Mob husk = Undead.spawn(level, EntityTypes.HUSK, new BlockPos(-3, Y, -10), 0f);
-		outside = Undead.spawn(level, EntityTypes.ZOMBIE, new BlockPos(0, Y, 12), 0f);
-		risen.snapTo(1, Y, -11, 0f, 0f); // Steve walks in: named zombies are never deleted
-		check(inside != null && husk != null && outside != null, "zombies show up on both sides of the line");
-		intruders = List.of(inside, husk);
-		steve = risen;
-		next(level, 10, () -> based(level));
-	}
-
-	private static void based(ServerLevel level) {
-		for (Mob m : intruders) {
-			check(!m.isAlive(), "a " + Undead.typeId(m) + " that spawned inside the base is gone");
-		}
-		check(outside.isAlive(), "the one outside the base is still there");
-		check(steve.isAlive(), "a risen player inside the base is not deleted (go deal with Steve yourself)");
-		check(Bases.of(BASE_OWNER) != null && Bases.remove(level.getServer(), BASE_OWNER) && Bases.of(BASE_OWNER) == null, "a base can be abandoned");
 
 		ApocalypseMod.LOG.info("APOCALYPSE SMOKE TEST PASSED");
 		level.getServer().halt(false);
