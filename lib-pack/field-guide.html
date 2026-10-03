@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.4.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.5.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -153,7 +153,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <table>
         <thead><tr><th>Ride</th><th>Get on</th><th>Move</th><th>Space</th><th>Shift</th><th>Menu</th><th>Put away</th></tr></thead>
         <tbody>
-          <tr><th>Ship (Ahoy)</th><td>Right-click the ship. Owner takes the wheel</td><td><span class="key">W</span><span class="key">S</span> sails · <span class="key">A</span><span class="key">D</span> rudder</td><td>Ring the bell</td><td>Get off (ashore, or overboard)</td><td>Right-click aboard, or sneak + right-click</td><td>Menu → Bottle it up</td></tr>
+          <tr><th>Ship (Ahoy)</th><td>Right-click the ship. Owner takes the wheel</td><td><span class="key">W</span><span class="key">S</span> sails · <span class="key">A</span><span class="key">D</span> rudder</td><td>Ring the bell</td><td>Get off (ashore, or overboard)</td><td>Empty-hand right-click aboard (or <code>/ahoy menu</code>), or sneak + right-click</td><td>Menu → Bottle it up</td></tr>
           <tr><th>Van / Tank</th><td>Right-click it. Owner drives</td><td><span class="key">W</span><span class="key">S</span> gas · <span class="key">A</span><span class="key">D</span> steer · <span class="key">Ctrl</span> turbo</td><td>Honk</td><td>Get out by the door</td><td>Right-click seated, or sneak + right-click</td><td>Menu → Pack up</td></tr>
           <tr><th>Cargo Train</th><td>Right-click the locomotive (cab)</td><td>Drives itself. Stop it, then <span class="key">W</span><span class="key">S</span></td><td>Horn</td><td>Get off</td><td>Sneak + right-click the locomotive</td><td>Menu → Pick up the train</td></tr>
           <tr><th>Cannon</th><td>Right-click the cannon</td><td>Look to aim (−10° to 60°)</td><td>Fire (2 s reload)</td><td>Get off</td><td class="dash">–</td><td>Sneak + right-click</td></tr>
@@ -314,7 +314,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.4.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
+    <span>LIB Pack 1.5.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -366,8 +366,9 @@ const MODS = [
           "Sailing with the wind is full speed, against it half",
           "Nobody aboard gets hurt; drowned and guardians get zapped",
           "Rename the bottle in an anvil to name your ship",
+          "Aboard, right-click works like ashore: fish, shoot, throw, eat. Empty hand opens the menu",
           "Moor near a Warehouse <b>Loading Dock</b> to unload and load"],
-    cmds: ["/ahoy", ["/ahoy give", true]] },
+    cmds: ["/ahoy", "/ahoy menu", ["/ahoy give", true]] },
   { name: "Burlap Sack", id: "burlapsack", colour: "#a07a45", tag: "Bag villagers and wandering traders, let them out where you want them.",
     recipes: [{ name: "Burlap Sack", pattern: [" S ", "L L", "LLL"], key: { S: "string", L: "leather" }, out: ["Sack", "#a07a45"] }],
     how: ["Right-click a villager or wandering trader with the sack",

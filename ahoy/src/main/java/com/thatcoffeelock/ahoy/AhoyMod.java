@@ -99,6 +99,11 @@ public final class AhoyMod implements ModInitializer {
 		LOG.info("Ahoy loaded. All hands on deck.");
 	}
 
+	/** Server ticks since the mod started. */
+	public static int tickCount() {
+		return ticks;
+	}
+
 	public static void nextTick(Runnable task) {
 		NEXT_TICK.add(task);
 	}

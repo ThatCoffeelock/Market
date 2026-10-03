@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -58,9 +58,10 @@ MODS = [
          "Done sailing? Open the menu and choose <b>Bottle it up</b>. Name and cargo stay inside."],
   tips=["Sailing with the wind is full speed, against it half speed.",
         "Nobody aboard can be hurt, and drowned, guardians and phantoms get zapped.",
-        "Menu: right-click while aboard, or sneak + right-click from outside. It has the cargo holds and the lock.",
+        "Passengers can fish, shoot, throw, eat and use blocks and mobs in reach: right-click does what it does ashore.",
+        "Menu: right-click with an empty hand while aboard (or <code>/ahoy menu</code>), or sneak + right-click from outside. It has the cargo holds and the lock.",
         "Moor near a Warehouse <b>Loading Dock</b> to unload in one click."],
-  cmds="/ahoy"),
+  cmds="/ahoy · /ahoy menu"),
  dict(name="Burlap Sack", colour="#a07a45", tag="Bag villagers and wandering traders and let them out where you want them.",
   recipes=[shaped("Burlap Sack", [" S ","L L","LLL"], dict(S="string",L="leather"), "Sack")],
   steps=["Hold the sack in your main hand and right-click a villager or wandering trader.",

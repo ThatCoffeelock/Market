@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import net.minecraft.ChatFormatting;
@@ -18,11 +19,15 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /** Every loaded ship: routes ticks, clicks, block breaking and damage. */
@@ -30,6 +35,8 @@ public final class Ships {
 	private static final Map<UUID, Ship> BY_ROOT = new HashMap<>();
 	private static final Map<UUID, Ship> BY_MARKER = new HashMap<>();
 	private static final Map<UUID, Ship> RIDERS = new HashMap<>();
+	/** The tick of each passenger's last right-click on their ship (one click arrives as two packets). */
+	private static final Map<UUID, Integer> LAST_CLICK = new HashMap<>();
 	private static final List<Entity> PENDING = new ArrayList<>();
 	private static final List<Entity> STRAYS = new ArrayList<>();
 
@@ -138,11 +145,13 @@ public final class Ships {
 		BY_ROOT.clear();
 		BY_MARKER.clear();
 		RIDERS.clear();
+		LAST_CLICK.clear();
 		PENDING.clear();
 		STRAYS.clear();
 	}
 
 	static void onDisconnect(ServerPlayer player) {
+		LAST_CLICK.remove(player.getUUID());
 		if (shipOf(player) != null) {
 			player.stopRiding();
 		}
@@ -229,7 +238,16 @@ public final class Ships {
 		if (hand != InteractionHand.MAIN_HAND) {
 			return InteractionResult.SUCCESS;
 		}
-		if (shipOf(player) == ship || player.isShiftKeyDown()) {
+		if (shipOf(player) == ship) {
+			// the ship's hitbox is all around a passenger, so every right-click lands on it
+			int now = AhoyMod.tickCount();
+			Integer last = LAST_CLICK.put(player.getUUID(), now);
+			if (last == null || now - last > 1) {
+				useThrough(player, ship);
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if (player.isShiftKeyDown()) {
 			ShipMenu.open(player, ship);
 			return InteractionResult.SUCCESS;
 		}
@@ -240,11 +258,81 @@ public final class Ships {
 		}
 		player.sendSystemMessage(Component.literal("Welcome aboard the " + ship.data.name + " (" + ship.seatName(seat) + ").").withStyle(ChatFormatting.GOLD));
 		if (seat == 0) {
-			player.sendSystemMessage(Component.literal("W/S sails up/down · A/D rudder · Space ring the bell · Shift go ashore · Right-click menu")
+			player.sendSystemMessage(Component.literal("W/S sails up/down · A/D rudder · Space ring the bell · Shift go ashore · Empty-hand right-click or /ahoy menu for the menu")
 				.withStyle(ChatFormatting.GRAY));
 		} else {
-			player.sendSystemMessage(Component.literal("Shift to go ashore (or overboard) · Right-click for the menu").withStyle(ChatFormatting.GRAY));
+			player.sendSystemMessage(Component.literal("Shift to go ashore (or overboard) · Empty-hand right-click or /ahoy menu for the menu").withStyle(ChatFormatting.GRAY));
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	// ---------------------------------------------------------------- right-clicking from a seat
+
+	/**
+	 * A passenger right-clicked. The ship's click hitbox is a big box around the deck, so the game thinks they're always
+	 * pointing at it (and never uses what's in their hand while pointing at one). So we do what it would have done
+	 * without the ship in the way: use whatever they're really pointing at (a block, a mob), then the item in their
+	 * hand (fish, shoot, throw, eat, drink), main hand first. If none of that does anything and their hand is empty,
+	 * it's the ship's menu.
+	 */
+	static void useThrough(ServerPlayer player, Ship ship) {
+		ServerLevel level = (ServerLevel) player.level();
+		Vec3 eye = player.getEyePosition();
+		Vec3 look = player.getLookAngle();
+		BlockHitResult block = null;
+		HitResult picked = player.pick(player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE), 1.0f, false);
+		if (picked instanceof BlockHitResult blockHit && picked.getType() == HitResult.Type.BLOCK) {
+			block = blockHit;
+		}
+		double blockDistance = block == null ? Double.MAX_VALUE : block.getLocation().distanceToSqr(eye);
+		EntityHitResult entity = pickEntity(player, ship, eye, look, player.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE), blockDistance);
+		for (InteractionHand hand : InteractionHand.values()) {
+			ItemStack held = player.getItemInHand(hand);
+			if (entity != null) {
+				Entity target = entity.getEntity();
+				InteractionResult result = target.interactAt(player, entity.getLocation().subtract(target.position()), hand);
+				if (!result.consumesAction()) {
+					result = player.interactOn(target, hand);
+				}
+				if (result.consumesAction()) {
+					return;
+				}
+			} else if (block != null) {
+				InteractionResult result = player.gameMode.useItemOn(player, level, held, hand, block);
+				if (result.consumesAction() || result == InteractionResult.FAIL) {
+					return;
+				}
+			}
+			if (!held.isEmpty() && player.gameMode.useItem(player, level, held, hand).consumesAction()) {
+				return;
+			}
+		}
+		if (player.getMainHandItem().isEmpty()) {
+			ShipMenu.open(player, ship);
+		}
+	}
+
+	/** The nearest thing a player could interact with along their line of sight, not counting the ship itself. */
+	private static @Nullable EntityHitResult pickEntity(ServerPlayer player, Ship ship, Vec3 eye, Vec3 look, double reach, double blockDistanceSq) {
+		Vec3 end = eye.add(look.scale(reach));
+		AABB area = player.getBoundingBox().expandTowards(look.scale(reach)).inflate(1.0);
+		double best = Math.min(reach * reach, blockDistanceSq);
+		Entity found = null;
+		Vec3 at = null;
+		for (Entity candidate : player.level().getEntities(player, area, e -> !e.isSpectator() && e.isPickable() && !isPartOf(e, ship))) {
+			AABB box = candidate.getBoundingBox().inflate(candidate.getPickRadius());
+			Optional<Vec3> clip = box.contains(eye) ? Optional.of(eye) : box.clip(eye, end);
+			if (clip.isPresent() && eye.distanceToSqr(clip.get()) < best) {
+				best = eye.distanceToSqr(clip.get());
+				found = candidate;
+				at = clip.get();
+			}
+		}
+		return found == null ? null : new EntityHitResult(found, at);
+	}
+
+	/** The ship itself: its root, its model, its seats and its hitboxes. */
+	private static boolean isPartOf(Entity entity, Ship ship) {
+		return entity == ship.root || entity.getRootVehicle() == ship.root || BY_MARKER.get(entity.getUUID()) == ship;
 	}
 }

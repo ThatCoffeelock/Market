@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 import static net.minecraft.commands.Commands.literal;
 
-/** /ahoy (help for everyone), /ahoy give (ops). */
+/** /ahoy (help for everyone), /ahoy menu (open the ship's menu), /ahoy give (ops). */
 final class AhoyCommands {
 	private AhoyCommands() {
 	}
@@ -21,6 +21,16 @@ final class AhoyCommands {
 				help(ctx.getSource());
 				return 1;
 			})
+			.then(literal("menu").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				Ship ship = Ships.shipOf(player);
+				if (ship == null) {
+					ctx.getSource().sendFailure(Component.literal("You're not aboard a ship. Sneak + right-click one to open its menu from outside."));
+					return 0;
+				}
+				ShipMenu.open(player, ship);
+				return 1;
+			}))
 			.then(literal("give").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				Bottle.give(player, Bottle.empty());
@@ -34,7 +44,8 @@ final class AhoyCommands {
 			"§6§l—— Ahoy ——",
 			"§bShip in a Bottle§7: §fWool Glass-bottle Wool / Chest Boat Chest / Planks Planks Planks",
 			"§7Right-click open water with it. Rename the bottle in an anvil to name your ship.",
-			"§7Right-click the ship to climb aboard (owners take the wheel). Sneak + right-click for the menu.",
+			"§7Right-click the ship to climb aboard (owners take the wheel). Sneak + right-click it for the menu.",
+			"§7Aboard, right-click does what it does ashore: fish, shoot, throw, eat, open chests on the pier. With an empty hand it opens the menu (so does §f/ahoy menu§7).",
 			"§7Sailing: §fW/S§7 sails up/down, §fA/D§7 rudder, §fSpace§7 bell, §fShift§7 go ashore.",
 			"§7Cargo: two holds of 54 slots, in the menu. Bottle the ship up to take it with you.",
 			"§7The wind matters: sail with it for full speed, against it for half.",

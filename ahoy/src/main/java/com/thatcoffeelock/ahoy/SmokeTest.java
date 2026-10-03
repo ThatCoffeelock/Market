@@ -1,16 +1,25 @@
 package com.thatcoffeelock.ahoy;
 
+import java.util.UUID;
+
+import net.fabricmc.fabric.api.entity.FakePlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Interaction;
+import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Only runs with -Dahoy.smokeTest=true (CI). Boots a real server, digs a test harbour, launches a
- * ship, sails and turns it, runs it into the wall, then bottles it up and checks nothing was lost.
+ * ship, checks what a passenger can do from a seat (fish, draw a bow, milk a cow, use a block, open the menu with an empty
+ * hand), sails and turns it, runs it into the wall, then bottles it up and checks nothing was lost.
  */
 final class SmokeTest {
 	private static Ship ship;
@@ -69,9 +78,71 @@ final class SmokeTest {
 		check(AhoyApi.shipsNear(level, ship.root.position(), 4).contains(ship), "other mods can find the ship (AhoyApi)");
 		check(ship.holds().size() == 2 && ship.holds().get(0).getItem(0).is(Items.DIAMOND), "other mods can reach the cargo holds");
 
+		aboard(level);
+
 		startZ = ship.root.getZ();
 		ship.testControls = new Ship.Controls(true, false, false, false, false);
 		AhoyMod.later(80, () -> step(level.getServer(), () -> sailed(level)));
+	}
+
+	/**
+	 * A passenger stands inside the ship's click hitbox, so the game thinks every right-click is aimed at the ship. They
+	 * must still be able to use what's in their hand and what's in front of them, and only get the menu when there's
+	 * nothing else to do with an empty hand.
+	 */
+	private static void aboard(ServerLevel level) {
+		FakePlayer player = FakePlayer.get(level);
+		player.setPos(ship.root.getX(), ship.root.getY() + 1.0, ship.root.getZ());
+		player.setYRot(0);
+		player.setXRot(-40);
+		Vec3 eye = player.getEyePosition();
+		boolean inside = false;
+		for (Entity entity : level.getEntitiesOfClass(Interaction.class, player.getBoundingBox().inflate(0.5))) {
+			inside |= entity.getBoundingBox().contains(eye);
+		}
+		check(inside, "the passenger's eyes are inside the ship's click hitbox (that's why right-click used to open the menu)");
+
+		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.FISHING_ROD));
+		Ships.useThrough(player, ship);
+		check(player.fishing != null, "a passenger can cast a fishing rod");
+		check(player.containerMenu == player.inventoryMenu, "... without the ship's menu popping up");
+		Ships.useThrough(player, ship);
+		check(player.fishing == null, "... and can reel it in again");
+
+		player.getInventory().add(new ItemStack(Items.ARROW, 8));
+		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BOW));
+		Ships.useThrough(player, ship);
+		check(player.isUsingItem(), "a passenger can draw a bow");
+		check(player.containerMenu == player.inventoryMenu, "... without the ship's menu popping up");
+		player.stopUsingItem();
+
+		// something in front of them: a cow at arm's length, a crafting table in mid-air
+		player.setXRot(0);
+		UUID cowId = UUID.randomUUID();
+		Cmd.run(level, "summon minecraft:cow " + Cmd.pos(eye.x, eye.y - 0.7, eye.z + 2) + " {" + Cmd.uuidNbt(cowId) + ",NoAI:1b,NoGravity:1b,PersistenceRequired:1b}");
+		check(level.getEntity(cowId) != null, "a cow was summoned in front of the passenger");
+		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BUCKET));
+		Ships.useThrough(player, ship);
+		check(player.getMainHandItem().is(Items.MILK_BUCKET), "a passenger can milk a cow in front of them (they have " + player.getMainHandItem() + ")");
+		level.getEntity(cowId).discard();
+
+		BlockPos table = BlockPos.containing(eye.x, eye.y, eye.z + 2);
+		level.setBlockAndUpdate(table, Blocks.CRAFTING_TABLE.defaultBlockState());
+		player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+		Ships.useThrough(player, ship);
+		check(player.containerMenu instanceof CraftingMenu, "a passenger can use a block in front of them (menu: " + player.containerMenu.getClass().getSimpleName() + ")");
+		player.closeContainer();
+		level.setBlockAndUpdate(table, Blocks.AIR.defaultBlockState());
+
+		// nothing there, empty hand: now it's the ship's menu
+		player.setXRot(-40);
+		Ships.useThrough(player, ship);
+		check(player.containerMenu instanceof ShipMenu, "an empty hand and nothing in front opens the ship's menu");
+		player.closeContainer();
+		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
+		Ships.useThrough(player, ship);
+		check(player.containerMenu == player.inventoryMenu, "a stick in hand doesn't open the menu");
+		player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 	}
 
 	private static void sailed(ServerLevel level) {
