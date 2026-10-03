@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -35,17 +35,17 @@ public final class Brewing {
 		BREWERS.put(key(level, pos), player.getUUID());
 	}
 
-	public static void beforeBrew(Level level, BlockPos pos, NonNullList<ItemStack> items) {
-		ingredient = items.get(3).copy();
+	public static void beforeBrew(Level level, BlockPos pos, Container items) {
+		ingredient = items.getItem(3).copy();
 		bottles = 0;
 		for (int i = 0; i < 3; i++) {
-			if (!items.get(i).isEmpty()) {
+			if (!items.getItem(i).isEmpty()) {
 				bottles++;
 			}
 		}
 	}
 
-	public static void afterBrew(Level level, BlockPos pos, NonNullList<ItemStack> items) {
+	public static void afterBrew(Level level, BlockPos pos, Container items) {
 		brews++;
 		if (!(level instanceof ServerLevel server) || ingredient.isEmpty()) {
 			return;
@@ -59,11 +59,12 @@ public final class Brewing {
 		if (!Skills.roll(Skills.passive(player, Skill.BREWING) + Skills.perk(player, Perk.THRIFTY_ALCHEMIST))) {
 			return;
 		}
-		ItemStack now = items.get(3);
+		ItemStack now = items.getItem(3);
 		if (now.isEmpty()) {
-			items.set(3, ingredient.copyWithCount(1));
+			items.setItem(3, ingredient.copyWithCount(1));
 		} else if (ItemStack.isSameItemSameComponents(now, ingredient) && now.getCount() < now.getMaxStackSize()) {
 			now.grow(1);
+			items.setChanged();
 		} else {
 			return; // the slot holds something else now (an ingredient's leftover), leave it be
 		}
