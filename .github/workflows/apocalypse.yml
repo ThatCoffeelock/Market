@@ -41,8 +41,9 @@ jobs:
         run: |
           mkdir -p run/smoke
           echo "eula=true" > run/smoke/eula.txt
-          printf 'level-seed=apocalypse\nspawn-protection=0\n' > run/smoke/server.properties
-          timeout 900 ./gradlew runSmoke --stacktrace 2>&1 | tee smoke.log || true
+          # nobody joins the test server: don't let it pause itself after 60 empty seconds mid-test
+          printf 'level-seed=apocalypse\nspawn-protection=0\npause-when-empty-seconds=0\n' > run/smoke/server.properties
+          timeout 300 ./gradlew runSmoke --stacktrace 2>&1 | tee smoke.log || true
           grep -E "\[smoke\]|Apocalypse" smoke.log || true
           if grep -q "Serialization errors" smoke.log; then
             echo "::error::Vanilla rejected some entity data"
