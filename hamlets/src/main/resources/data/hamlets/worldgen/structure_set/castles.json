@@ -1,0 +1,22 @@
+{
+  "structures": [
+    {
+      "structure": "hamlets:castle",
+      "weight": 1
+    },
+    {
+      "structure": "hamlets:ruined_castle",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 44,
+    "separation": 16,
+    "salt": 1130517235,
+    "exclusion_zone": {
+      "other_set": "minecraft:villages",
+      "chunk_count": 6
+    }
+  }
+}
