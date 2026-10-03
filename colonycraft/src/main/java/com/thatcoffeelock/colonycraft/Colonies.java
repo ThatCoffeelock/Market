@@ -105,6 +105,7 @@ public final class Colonies {
 				}
 			}
 		}
+		Prison.index(COLONIES);
 		ColonycraftMod.LOG.info("Loaded {} colonies", COLONIES.size());
 	}
 
@@ -153,7 +154,7 @@ public final class Colonies {
 		}
 		if (!ORPHANS.isEmpty()) {
 			for (Entity orphan : ORPHANS) {
-				if (!orphan.isRemoved() && !VILLAGERS.containsKey(orphan.getUUID())) {
+				if (!orphan.isRemoved() && !VILLAGERS.containsKey(orphan.getUUID()) && !Prison.isHeld(orphan.getUUID())) {
 					orphan.discard();
 				}
 			}
@@ -184,6 +185,10 @@ public final class Colonies {
 			}
 		}
 		return null;
+	}
+
+	static @Nullable ServerPlayer owner(Colony colony) {
+		return server == null ? null : server.getPlayerList().getPlayer(colony.owner);
 	}
 
 	static String dim(Level level) {
@@ -513,6 +518,7 @@ public final class Colonies {
 
 	private static void movedIn(ServerLevel level, Colony.Building b) {
 		hireMissing(level, b);
+		furnish(level, b);
 		BlockPos at = b.world(b.type.home());
 		Cmd.sound(level, "minecraft:entity.player.levelup", at.getX(), at.getY(), at.getZ(), 1f, 1.2f);
 		Cmd.particles(level, "minecraft:happy_villager", at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, 2, 0, 30);
@@ -533,6 +539,7 @@ public final class Colonies {
 			case BARRACKS -> "Iron Guard";
 			case WATCHTOWER -> "Archer";
 			case WALL, GATEHOUSE -> "Sentry";
+			case CELLBLOCK -> "Jailer";
 		};
 	}
 
@@ -621,8 +628,12 @@ public final class Colonies {
 					if (b.type == BuildingType.BARRACKS && villager instanceof Mob golem && golem.isNoAi() != c.striking) {
 						golem.setNoAi(c.striking);
 					}
+					if (villager instanceof Mob guard && Prison.isPrisoner(guard.getTarget())) {
+						guard.setTarget(null); // they've done their fighting; now they do their time
+					}
 				}
 			}
+			Prison.keep(level, c);
 		}
 	}
 
@@ -652,7 +663,7 @@ public final class Colonies {
 					Entity target = null;
 					double best = ARCHER_RANGE * ARCHER_RANGE;
 					for (Entity e : level.getEntities(archer, archer.getBoundingBox().inflate(ARCHER_RANGE),
-						m -> m.isAlive() && m.getType().getCategory() == MobCategory.MONSTER)) {
+						m -> m.isAlive() && m.getType().getCategory() == MobCategory.MONSTER && !Prison.isPrisoner(m))) {
 						double dx = e.getX() - archer.getX();
 						double dz = e.getZ() - archer.getZ();
 						if (dx * out.getX() + dz * out.getZ() < 0) {
@@ -780,10 +791,25 @@ public final class Colonies {
 		run(buildJob(level, b, () -> {
 			if (b.colony.buildings.contains(b)) {
 				hireMissing(level, b);
+				furnish(level, b);
 				settle(level, b);
 			}
 		}), instant);
 		markDirty();
+	}
+
+	/**
+	 * Finishing touches a block state can't carry: the cellblock's holding blocks are vaults, and an empty loot
+	 * table keeps them from showing off trial chamber loot when someone walks past.
+	 */
+	private static void furnish(ServerLevel level, Colony.Building b) {
+		if (b.type != BuildingType.CELLBLOCK) {
+			return;
+		}
+		for (int cell = 0; cell < BuildingType.cells(b.tier); cell++) {
+			BlockPos at = b.world(BuildingType.holding(cell));
+			Cmd.run(level, "data merge block " + at.getX() + " " + at.getY() + " " + at.getZ() + " {config:{loot_table:\"minecraft:empty\"}}");
+		}
 	}
 
 	static void onVillagerDeath(Entity entity) {
@@ -807,6 +833,9 @@ public final class Colonies {
 	static void onEntityLoad(Entity entity) {
 		if (entity.hasAttached(ColonycraftMod.WORKER) && !VILLAGERS.containsKey(entity.getUUID())) {
 			ORPHANS.add(entity); // e.g. the worker of a building that was demolished while they were out of range
+		}
+		if (entity.hasAttached(ColonycraftMod.PRISONER) && !Prison.isHeld(entity.getUUID())) {
+			ORPHANS.add(entity); // a prisoner whose cell is gone
 		}
 	}
 
@@ -845,8 +874,8 @@ public final class Colonies {
 		b.tier++;
 		b.spent += paid;
 		b.resizeStorage();
-		if (b.type.fortification) {
-			rebuild(level, b, false); // in the next tier's stone; new archers get hired when it's done
+		if (b.type.rebuildsOnUpgrade()) {
+			rebuild(level, b, false); // in the next tier's stone, or with two more cells; new crew get hired when it's done
 		} else {
 			hireMissing(level, b);
 		}
@@ -863,6 +892,9 @@ public final class Colonies {
 		}
 		if (b.type == BuildingType.STOREHOUSE && !b.storage.isEmpty()) {
 			return "Empty the storehouse first.";
+		}
+		if (!b.prisoners.isEmpty()) {
+			return "There are still prisoners in the cells. Take them out or execute them first.";
 		}
 		int leaving = b.type.needsBeds() ? b.villagers.size() : 0;
 		if (b.type.housing(b.tier) > 0 && b.colony.housing() - b.type.housing(b.tier) < b.colony.jobs() - leaving) {
@@ -1054,7 +1086,8 @@ public final class Colonies {
 		}
 		boolean counter = b.type == BuildingType.TOWN_HALL && pos.equals(b.world(BuildingType.COUNTER));
 		boolean store = b.type == BuildingType.STOREHOUSE && level.getBlockState(pos).is(Blocks.BARREL);
-		if (!counter && !store) {
+		int cell = Prison.cellAt(b, pos);
+		if (!counter && !store && cell < 0) {
 			return InteractionResult.PASS;
 		}
 		if (hand == InteractionHand.MAIN_HAND) {
@@ -1063,11 +1096,23 @@ public final class Colonies {
 					.withStyle(ChatFormatting.YELLOW));
 			} else if (counter) {
 				TownHallMenu.open(player, b.colony);
+			} else if (cell >= 0) {
+				openCell(player, level, hand, b, cell);
 			} else {
 				TownHallMenu.openStorage(player, b);
 			}
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	/** A holding block: with full shackles in hand, an empty cell takes their prisoner straight away. Otherwise its screen opens. */
+	private static void openCell(ServerPlayer player, ServerLevel level, InteractionHand hand, Colony.Building b, int cell) {
+		ItemStack held = player.getItemInHand(hand);
+		if (Prison.isFull(held) && Prison.inmate(level, b, cell) == null && Prison.lockUp(level, b, cell, held) == null) {
+			player.setItemInHand(hand, ItemStack.EMPTY);
+			return;
+		}
+		HoldingMenu.open(player, b, cell);
 	}
 
 	static InteractionResult useVillager(ServerPlayer player, InteractionHand hand, Entity entity) {
@@ -1097,5 +1142,6 @@ public final class Colonies {
 			it.remove();
 		}
 		VILLAGERS.clear();
+		Prison.forget();
 	}
 }

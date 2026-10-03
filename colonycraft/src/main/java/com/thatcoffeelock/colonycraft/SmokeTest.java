@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.Item;
@@ -17,12 +18,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Only runs with -Dcolonycraft.smokeTest=true (CI). Boots a real server (with the Market mod), checks
  * every design, founds a colony, builds one of everything, runs paydays (normal, autosell, strike),
  * kills and replaces a worker, saves and reloads, builds a fortified line (walls, gatehouse, watchtower)
- * and a barracks, lets the archers shoot at a husk, repairs and upgrades, then demolishes it all again.
+ * and a barracks, lets the archers shoot at a husk, catches a vindicator and puts them through the cellblock
+ * (locked up, moved, executed), repairs and upgrades, then demolishes it all again.
  */
 final class SmokeTest {
 	private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-00000000c01a");
@@ -68,6 +71,19 @@ final class SmokeTest {
 						BlockState state = plan.get(head);
 						check(state == null || state.isAir(), type.id + " tier " + tier + " crew " + i + " has headroom", false);
 					}
+				}
+			}
+		}
+		// every open cell has its holding block, and room for a vindicator (just under two blocks tall) to stand
+		for (int tier = 1; tier <= BuildingType.MAX_TIER; tier++) {
+			Map<BlockPos, BlockState> plan = BuildingType.CELLBLOCK.plan(tier);
+			for (int cell = 0; cell < BuildingType.cells(tier); cell++) {
+				BlockState hold = plan.get(BuildingType.holding(cell));
+				check(hold != null && hold.is(Blocks.VAULT), "cellblock tier " + tier + " cell " + cell + " has a holding block", false);
+				BlockPos spot = BuildingType.cellSpot(cell);
+				for (BlockPos at : new BlockPos[] {spot, spot.above()}) {
+					BlockState state = plan.get(at);
+					check(state == null || state.isAir(), "cellblock tier " + tier + " cell " + cell + " has room for a prisoner", false);
 				}
 			}
 		}
@@ -221,12 +237,100 @@ final class SmokeTest {
 		check(Colonies.whyNoRebuild(level, tower) != null, "a full chest stops a rebuild");
 		Cmd.run(level, "setblock " + chest.getX() + " " + chest.getY() + " " + chest.getZ() + " minecraft:air");
 
+		prison(level);
+
 		// upgrading a wall rebuilds it in stone bricks
 		Colonies.upgrade(level, wallA, 0);
 		ColonycraftMod.later(200, () -> step(level.getServer(), () -> afterVolley(level)));
 	}
 
+	private static Colony.Building cellblock;
+	private static UUID convict;
+
+	/** A cellblock: a vindicator gets beaten, shackled, locked up, saved, moved to another cell and executed. */
+	private static void prison(ServerLevel level) {
+		long wagesBefore = colony.dailyWages();
+		cellblock = Colonies.construct(level, colony, BuildingType.CELLBLOCK, new BlockPos(24, 99, -12), 0,
+			Bank.cents(BuildingType.CELLBLOCK.price), true);
+		check(level.getBlockState(cellblock.world(BuildingType.holding(0))).is(Blocks.VAULT), "cell 1 has its holding block");
+		check(level.getBlockState(cellblock.world(BuildingType.holding(1))).is(Blocks.VAULT), "cell 2 has its holding block");
+		check(level.getBlockState(cellblock.world(BuildingType.holding(2))).is(Blocks.BRICKS), "cell 3 is bricked up at tier 1");
+		int off = Colonies.damaged(level, cellblock);
+		check(off == 0, "the cellblock was built as designed (" + off + " blocks off)");
+		check(cellblock.alive() == 1, "the jailer moved in");
+		check(BuiltInRegistries.ITEM.containsKey(Prison.chainModel()), "the shackles are drawn as a chain (" + Prison.chainModel() + ")");
+
+		// a healthy vindicator won't go quietly; a beaten one will
+		UUID id = UUID.randomUUID();
+		BlockPos yard = new BlockPos(24, 100, -21);
+		Cmd.run(level, "summon minecraft:vindicator " + Cmd.pos(yard.getX() + 0.5, yard.getY(), yard.getZ() + 0.5)
+			+ " {" + Cmd.uuidNbt(id) + ",PersistenceRequired:1b}");
+		check(level.getEntity(id) instanceof Mob, "a vindicator showed up");
+		Mob vindicator = (Mob) level.getEntity(id);
+		check(!Prison.weakEnough(vindicator), "a healthy vindicator can't be shackled");
+		vindicator.setHealth(vindicator.getMaxHealth() * 0.3f);
+		check(Prison.weakEnough(vindicator), "a beaten vindicator can be shackled");
+		vindicator.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+		ItemStack shackles = Prison.capture(vindicator);
+		check(vindicator.isRemoved(), "the vindicator went into the shackles");
+		check(Prison.isFull(shackles) && Prison.type(shackles).equals("minecraft:vindicator"),
+			"the shackles hold a vindicator (" + Prison.name(shackles) + ")");
+
+		// locked up in cell 1: there, unarmed, harmless and out of the guards' reach
+		check(Prison.lockUp(level, cellblock, 2, shackles) != null, "a bricked-up cell takes nobody");
+		check(Prison.lockUp(level, cellblock, 0, Prison.emptyShackles()) != null, "empty shackles lock nobody up");
+		String why = Prison.lockUp(level, cellblock, 0, shackles);
+		check(why == null, "the vindicator is locked up in cell 1 (" + why + ")");
+		Prison.Prisoner p = cellblock.prisoners.get(0);
+		Entity inmate = level.getEntity(p.id());
+		check(inmate instanceof Mob m && m.isNoAi(), "the prisoner has no AI: no moving, no fighting");
+		check(inmate.isInvulnerable(), "the guards can't kill the prisoner");
+		check(inmate instanceof LivingEntity l && l.getMainHandItem().isEmpty(), "the prisoner's axe was confiscated");
+		check(Prison.isPrisoner(inmate), "the prisoner is marked as one");
+		BlockPos spot = cellblock.world(BuildingType.cellSpot(0));
+		check(inmate.distanceToSqr(spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5) < 0.5, "the prisoner stands in their cell");
+		check(Prison.lockUp(level, cellblock, 0, shackles) != null, "one prisoner per cell");
+		long wages = colony.dailyWages() - wagesBefore;
+		check(wages == Bank.cents(BuildingType.CELLBLOCK.wage) + Bank.cents(Prison.UPKEEP),
+			"the jailer is paid and the prisoner fed (" + Bank.format(wages) + " a day)");
+		check(Colonies.whyNoDemolish(cellblock) != null, "a cellblock with prisoners in it can't be demolished");
+
+		// prisoners survive a save and load
+		List<Colony> back = ColonyStore.fromJson(level.getServer(), ColonyStore.toJson(level.getServer(), Colonies.all(), 0));
+		boolean kept = false;
+		for (Colony.Building b : back.get(0).buildings) {
+			kept |= b.type == BuildingType.CELLBLOCK && b.prisoners.containsKey(0) && b.prisoners.get(0).id().equals(p.id());
+		}
+		check(kept, "prisoners survive a save and load");
+
+		// out of cell 1, back into the shackles, and into cell 2 across the corridor
+		ItemStack out = Prison.takeOut(level, cellblock, 0);
+		check(out != null && Prison.isFull(out) && cellblock.prisoners.isEmpty(), "the prisoner goes back into the shackles");
+		check(level.getEntity(p.id()) == null, "and is gone from cell 1");
+		check(Prison.lockUp(level, cellblock, 1, out) == null, "and is locked up in cell 2");
+		convict = cellblock.prisoners.get(1).id();
+
+		// executed: the bounty is paid, and the cell is free again
+		long before = Bank.balance(OWNER);
+		long bounty = Prison.execute(level, cellblock, 1);
+		check(bounty == Bank.cents(Prison.BOUNTY.get("minecraft:vindicator")) && Bank.balance(OWNER) - before == bounty,
+			"executing a vindicator pays a bounty of " + Bank.format(bounty));
+		check(cellblock.prisoners.isEmpty(), "the cell is free again");
+
+		// upgrading unbricks two more cells (checked once the builders are done)
+		Colonies.upgrade(level, cellblock, 0);
+	}
+
 	private static void afterVolley(ServerLevel level) {
+		Entity dead = level.getEntity(convict);
+		check(dead == null || !dead.isAlive(), "the executed prisoner is dead");
+		BlockPos spot = cellblock.world(BuildingType.cellSpot(1));
+		int drops = level.getEntities((Entity) null, new AABB(spot).inflate(4), e -> Prison.typeId(e).equals("minecraft:item")).size();
+		check(drops == 0, "nothing dropped at the execution (" + drops + " items)");
+		check(level.getBlockState(cellblock.world(BuildingType.holding(3))).is(Blocks.VAULT), "the upgraded cellblock has a fourth cell");
+		int off = Colonies.damaged(level, cellblock);
+		check(off == 0, "the upgraded cellblock is complete (" + off + " blocks off)");
+
 		check(Colonies.shots > shotsBefore, "the archer shot at the husk (" + (Colonies.shots - shotsBefore) + " arrows)");
 		Entity target = level.getEntity(husk);
 		check(target == null || !target.isAlive() || (target instanceof LivingEntity l && l.getHealth() < l.getMaxHealth()),
@@ -274,6 +378,13 @@ final class SmokeTest {
 			}
 		}
 		check(workers == 0, "every worker left (" + workers + " still around)");
+		int prisoners = 0;
+		for (Entity e : level.getAllEntities()) {
+			if (e.hasAttached(ColonycraftMod.PRISONER) && e.isAlive()) {
+				prisoners++;
+			}
+		}
+		check(prisoners == 0, "no prisoners left behind (" + prisoners + ")");
 		ColonycraftMod.LOG.info("COLONYCRAFT SMOKE TEST PASSED");
 		level.getServer().halt(false);
 	}

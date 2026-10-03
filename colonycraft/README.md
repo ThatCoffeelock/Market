@@ -54,6 +54,28 @@ Archers are villagers with crossbows who stand at gaps in the parapet and don't 
 
 **If you can't pay wages, the guards strike too**: archers hold their fire and golems stand still until you can pay.
 
+## Cellblock: law and order
+
+Illagers have been burning villages for years. Time they did some time.
+
+| Building | Price | Crew | What it is |
+|---|---|---|---|
+| Cellblock | ₥2,200 | 1 jailer (₥5 a day) | A brick gaol after the Gevangenpoort in The Hague: a corridor between cells behind iron bars, the jailer's office upstairs, stepped gables. **2 / 4 / 6 cells** at tier 1 / 2 / 3; the cells you haven't paid for yet are bricked up |
+
+1. **Buy Shackles** (₥50) at the Town Hall: the *Law and order* row, or the Cellblock's own page. They're reusable.
+2. **Beat an illager below 40% health**, then right-click them with the shackles. Pillagers, vindicators, evokers and illusioners fit. Their weapons are confiscated; a raid captain's banner goes to you as a trophy, so no Bad Omen comes of it. Illagers without a name get one, so you know who Gary is.
+3. **Lock them up.** Every cell has a **holding block**: the vault in the corridor wall. Right-click it to open it and put the shackles in the middle slot (or right-click the vault with the shackles in hand). The prisoner appears in the cell, behind the bars, and stands there: no moving, no fighting, no spells, no joining raids. Their name tag counts the days they've done.
+4. **Take them out** again by taking the shackles out of the holding block: the prisoner goes back into the shackles, ready for another cell.
+5. **Execute them** with the red button in the holding block (click twice). Nothing drops, so there's no totem farm here, but the colony pays a bounty: **₥25** for a pillager, **₥40** for a vindicator, **₥80** for an illusioner, **₥100** for an evoker. Your shackles come back empty.
+
+Details:
+
+- Prisoners cost **₥2 a day** in bread and water, paid with the wages.
+- Prisoners are invulnerable, and the colony's golems and archers leave them alone. Executions are the jailer's privilege.
+- Shoved prisoners get put back where they stand. A prisoner who vanishes anyway (say the server went to Peaceful, which clears out all monsters) has escaped, and their cell is freed the next time you open it.
+- A cellblock with prisoners in it can't be demolished. Empty the cells first.
+- Upgrading rebuilds the cellblock with two more cells unbricked. The prisoners stay where they are.
+
 ## Repair & renovate
 
 Every building's page at the Town Hall has a **Repair & renovate** button (10% of the building's price). It shows how many blocks are missing or out of place, and rebuilds the building exactly as designed for its tier. Use it after a creeper visit, or on buildings from before the redesign to give them the new look. It clears everything in the footprint that isn't part of the design, so it won't start while a chest or other container in there still has something in it.
@@ -63,6 +85,7 @@ Every building's page at the Town Hall has a **Repair & renovate** button (10% o
 - `/colonycraft`: help
 - `/colonycraft charter`: buy a Colony Charter
 - `/colonycraft give <building>` (op): get a blueprint for free
+- `/colonycraft give shackles` (op): get a pair of shackles for free
 - `/colonycraft payday` (op): run a payday right now
 
 Colonies are saved in `<world>/colonycraft.json`.

@@ -32,6 +32,10 @@ public final class ColonycraftMod implements ModInitializer {
 	public static final AttachmentType<Boolean> WORKER = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "worker"), builder -> builder.persistent(Codec.BOOL));
 
+	/** Marks cellblock prisoners, so a prisoner whose cell is gone (e.g. demolished while they were unloaded) gets cleaned up. */
+	public static final AttachmentType<Boolean> PRISONER = AttachmentRegistry.create(
+		Identifier.fromNamespaceAndPath(MOD_ID, "prisoner"), builder -> builder.persistent(Codec.BOOL));
+
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();
 	private static int ticks;
@@ -64,7 +68,10 @@ public final class ColonycraftMod implements ModInitializer {
 		});
 
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> Colonies.onEntityLoad(entity));
-		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> Colonies.onVillagerDeath(entity));
+		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			Colonies.onVillagerDeath(entity);
+			Prison.onDeath(entity);
+		});
 
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
 			if (!(world instanceof ServerLevel level) || !(player instanceof ServerPlayer sp) || player.isSpectator()) {
@@ -78,6 +85,12 @@ public final class ColonycraftMod implements ModInitializer {
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
 			if (!(player instanceof ServerPlayer sp) || player.isSpectator()) {
 				return InteractionResult.PASS;
+			}
+			if (Prison.isShackles(player.getItemInHand(hand))) {
+				InteractionResult result = Prison.useEntity(sp, hand, entity);
+				if (result != InteractionResult.PASS) {
+					return result;
+				}
 			}
 			return Colonies.useVillager(sp, hand, entity);
 		});

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.google.gson.Gson;
@@ -81,6 +82,18 @@ final class ColonyStore {
 					});
 				}
 				bo.add("storage", items);
+				JsonArray prisoners = new JsonArray();
+				for (Map.Entry<Integer, Prison.Prisoner> e : b.prisoners.entrySet()) {
+					Prison.Prisoner p = e.getValue();
+					JsonObject po = new JsonObject();
+					po.addProperty("cell", e.getKey());
+					po.addProperty("id", p.id().toString());
+					po.addProperty("name", p.name());
+					po.addProperty("type", p.type());
+					po.addProperty("since", p.since());
+					prisoners.add(po);
+				}
+				bo.add("prisoners", prisoners);
 				buildings.add(bo);
 			}
 			o.add("buildings", buildings);
@@ -126,6 +139,13 @@ final class ColonyStore {
 							b.storage.setItem(slot, stack);
 						}
 					});
+				}
+				if (bo.has("prisoners")) {
+					for (JsonElement pe : bo.getAsJsonArray("prisoners")) {
+						JsonObject po = pe.getAsJsonObject();
+						b.prisoners.put(po.get("cell").getAsInt(), new Prison.Prisoner(UUID.fromString(po.get("id").getAsString()),
+							po.get("name").getAsString(), po.get("type").getAsString(), po.get("since").getAsLong()));
+					}
 				}
 				b.colony = c;
 				c.buildings.add(b);

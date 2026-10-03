@@ -81,7 +81,7 @@ final class TownHallMenu extends ChestMenu {
 
 	private static final Map<String, Item> ITEMS = new HashMap<>();
 
-	private static Item item(String id, Item fallback) {
+	static Item item(String id, Item fallback) {
 		if (ITEMS.isEmpty()) {
 			for (Item item : BuiltInRegistries.ITEM) {
 				ITEMS.put(BuiltInRegistries.ITEM.getKey(item).toString(), item);
@@ -160,6 +160,12 @@ final class TownHallMenu extends ChestMenu {
 			shopButton(19 + i, FORTIFICATIONS[i]);
 		}
 
+		button(23, icon(Items.IRON_BARS, t("Law and order", ChatFormatting.AQUA, ChatFormatting.BOLD),
+			List.of(t("Lock up the illagers you catch.", ChatFormatting.GRAY), t("Beat one down, shackle them, put the", ChatFormatting.GRAY),
+				t("shackles in a cell's holding block.", ChatFormatting.GRAY))), null);
+		shopButton(24, BuildingType.CELLBLOCK);
+		shacklesButton(25);
+
 		button(26, icon(Items.OAK_SIGN, t("Your buildings (below)", ChatFormatting.AQUA, ChatFormatting.BOLD),
 			List.of(t("Click one to upgrade it, repair it, hire", ChatFormatting.GRAY), t("replacements, open storage or demolish it.", ChatFormatting.GRAY))), null);
 		List<Colony.Building> list = colony.buildings;
@@ -180,6 +186,9 @@ final class TownHallMenu extends ChestMenu {
 			}
 			if (b.type == BuildingType.STOREHOUSE) {
 				lore.add(t("Autosell: " + (b.autosell ? "on" : "off"), b.autosell ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+			}
+			if (b.type == BuildingType.CELLBLOCK) {
+				lore.add(t("Prisoners: " + b.prisoners.size() + " / " + BuildingType.cells(b.tier), ChatFormatting.GRAY));
 			}
 			lore.add(t("at " + b.origin.getX() + ", " + b.origin.getY() + ", " + b.origin.getZ(), ChatFormatting.DARK_GRAY));
 			ItemStack icon = icon(b.type.icon, t(b.title(), ChatFormatting.WHITE, ChatFormatting.BOLD), lore);
@@ -224,6 +233,29 @@ final class TownHallMenu extends ChestMenu {
 		button(slot, icon(type.icon, t(name, ChatFormatting.AQUA, ChatFormatting.BOLD), lore), () -> buy(type, price));
 	}
 
+	private void shacklesButton(int slot) {
+		long price = Bank.cents(Prison.SHACKLES_PRICE);
+		ItemStack icon = Prison.emptyShackles();
+		List<Component> lore = new ArrayList<>();
+		lore.add(money("Price: ", price));
+		lore.add(t("Beat an illager below " + Math.round(Prison.WEAK * 100) + "% health,", ChatFormatting.GRAY));
+		lore.add(t("then right-click them. Reusable.", ChatFormatting.GRAY));
+		lore.add(Component.empty());
+		lore.add(t("Click to buy.", ChatFormatting.YELLOW));
+		icon.set(DataComponents.ITEM_NAME, t("Shackles", ChatFormatting.AQUA, ChatFormatting.BOLD));
+		icon.set(DataComponents.LORE, new ItemLore(lore));
+		button(slot, icon, () -> {
+			if (!Bank.pay(viewer, price)) {
+				nope("You need " + Bank.format(price) + " for that.");
+				return;
+			}
+			Blueprints.give(viewer, Prison.emptyShackles());
+			kaching();
+			viewer.sendSystemMessage(Component.literal("Bought: Shackles. Go catch yourself an illager.").withStyle(ChatFormatting.GREEN));
+			render();
+		});
+	}
+
 	private static String describe(BuildingType type) {
 		return switch (type) {
 			case TOWN_HALL -> "Found another colony somewhere else.";
@@ -237,6 +269,7 @@ final class TownHallMenu extends ChestMenu {
 			case WATCHTOWER -> "Archers on top shoot monsters up to 24 blocks away.";
 			case WALL -> "9 blocks of thick wall with a walkway on top.";
 			case GATEHOUSE -> "A way through the wall. You can open the gates, monsters can't.";
+			case CELLBLOCK -> "Cells for the illagers you catch. Lock them up, or execute them for a bounty.";
 		};
 	}
 
@@ -249,6 +282,15 @@ final class TownHallMenu extends ChestMenu {
 		}
 		if (b.type.housing(b.tier) > 0) {
 			info.add(t("Beds: " + b.type.housing(b.tier), ChatFormatting.GRAY));
+		}
+		if (b.type == BuildingType.CELLBLOCK) {
+			info.add(t("Prisoners: " + b.prisoners.size() + " / " + BuildingType.cells(b.tier) + " cells", ChatFormatting.GRAY));
+			for (Map.Entry<Integer, Prison.Prisoner> e : b.prisoners.entrySet()) {
+				info.add(t(" Cell " + (e.getKey() + 1) + ": " + e.getValue().name(), ChatFormatting.DARK_GRAY));
+			}
+			if (!b.prisoners.isEmpty()) {
+				info.add(money("Upkeep per day: ", Bank.cents(Prison.UPKEEP) * b.prisoners.size()));
+			}
 		}
 		info.add(t("at " + b.origin.getX() + ", " + b.origin.getY() + ", " + b.origin.getZ(), ChatFormatting.DARK_GRAY));
 		button(13, icon(b.type.icon, t(b.title(), ChatFormatting.GOLD, ChatFormatting.BOLD), info), null);
@@ -295,6 +337,10 @@ final class TownHallMenu extends ChestMenu {
 				render();
 			});
 		}
+		// cellblock
+		if (b.type == BuildingType.CELLBLOCK) {
+			shacklesButton(32);
+		}
 		// repair and renovate
 		ServerLevel here = level();
 		int broken = here == null ? 0 : Colonies.damaged(here, b);
@@ -327,6 +373,7 @@ final class TownHallMenu extends ChestMenu {
 			case BARRACKS -> b.type.workers(next) + " iron golems.";
 			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
 			case WALL, GATEHOUSE -> "Rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
+			case CELLBLOCK -> BuildingType.cells(next) + " cells: two more get unbricked.";
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}
@@ -360,7 +407,7 @@ final class TownHallMenu extends ChestMenu {
 			nope("Go a bit closer to that building first.");
 			return;
 		}
-		if (b.type.fortification) {
+		if (b.type.rebuildsOnUpgrade()) {
 			String blocked = Colonies.whyNoRebuild(level, b);
 			if (blocked != null) {
 				nope(blocked);

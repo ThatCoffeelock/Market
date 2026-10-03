@@ -2,6 +2,8 @@ package com.thatcoffeelock.colonycraft;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
@@ -24,6 +26,8 @@ public final class Colony {
 		/** Storehouses only. */
 		public boolean autosell;
 		public SimpleContainer storage = new SimpleContainer(27);
+		/** Cellblocks only: who's locked up in which cell. */
+		public final Map<Integer, Prison.Prisoner> prisoners = new TreeMap<>();
 		public transient Colony colony;
 
 		public Building(String id, BuildingType type, BlockPos origin, int quarter) {
@@ -168,10 +172,12 @@ public final class Colony {
 		return alive;
 	}
 
+	/** Wages, plus bread and water for the prisoners. */
 	public long dailyWages() {
 		long wages = 0;
 		for (Building b : buildings) {
 			wages += Bank.cents(b.type.wage) * b.alive();
+			wages += Bank.cents(Prison.UPKEEP) * b.prisoners.size();
 		}
 		return wages;
 	}

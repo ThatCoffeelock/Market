@@ -24,6 +24,10 @@ final class ColonyCommands {
 				return 1;
 			}));
 		}
+		give.then(literal("shackles").executes(ctx -> {
+			Blueprints.give(ctx.getSource().getPlayerOrException(), Prison.emptyShackles());
+			return 1;
+		}));
 		dispatcher.register(literal("colonycraft")
 			.executes(ctx -> {
 				help(ctx.getSource());
@@ -57,6 +61,7 @@ final class ColonyCommands {
 			"§7Buildings: Residence (beds), Farm, Lumber Camp, Mine, Workshop (makes goods better), Storehouse.",
 			"§7Every morning your workers are paid from your balance and everything they gather goes to your storehouses.",
 			"§7Storehouses can auto-sell to the Market. §cNo wages, no work.",
+			"§7Catch illagers: beat one below 40% health, right-click with §fShackles§7, lock them in a §fCellblock§7.",
 			"§7Found as many colonies as you can afford."
 		};
 		for (String line : lines) {

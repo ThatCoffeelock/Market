@@ -35,7 +35,8 @@ public enum BuildingType {
 	BARRACKS("barracks", "Barracks", Items.IRON_SWORD, 2000, 4, 4, 9, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 15, false, BuildingType::barracks),
 	WATCHTOWER("watchtower", "Watchtower", Items.CROSSBOW, 1800, 3, 3, 16, new int[] {1, 2, 3}, new int[] {1, 2, 3}, 10, true, BuildingType::watchtower),
 	WALL("wall", "Wall", Items.STONE_BRICK_WALL, 300, 4, 2, 8, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::wall),
-	GATEHOUSE("gatehouse", "Gatehouse", Items.SPRUCE_FENCE_GATE, 1200, 3, 3, 9, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::gatehouse);
+	GATEHOUSE("gatehouse", "Gatehouse", Items.SPRUCE_FENCE_GATE, 1200, 3, 3, 9, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::gatehouse),
+	CELLBLOCK("cellblock", "Cellblock", Items.IRON_BARS, 2200, 5, 6, 18, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 5, false, BuildingType::cellblock);
 
 	public static final int MAX_TIER = 3;
 
@@ -80,6 +81,11 @@ public enum BuildingType {
 		return housing[Math.max(1, Math.min(MAX_TIER, tier)) - 1];
 	}
 
+	/** Fortifications are rebuilt in better stone when upgraded, and the cellblock unbricks two more cells. */
+	public boolean rebuildsOnUpgrade() {
+		return fortification || this == CELLBLOCK;
+	}
+
 	/** Iron golems don't sleep. Everyone else needs a bed somewhere in the colony. */
 	public boolean needsBeds() {
 		return this != BARRACKS;
@@ -90,6 +96,7 @@ public enum BuildingType {
 		String noun = switch (this) {
 			case BARRACKS -> "iron golem";
 			case WATCHTOWER -> "archer";
+			case CELLBLOCK -> "jailer";
 			default -> "worker";
 		};
 		return n == 1 ? noun : noun + "s";
@@ -153,6 +160,31 @@ public enum BuildingType {
 
 	public static BlockPos lookout(int index) {
 		return LOOKOUT[Math.max(0, Math.min(LOOKOUT.length - 1, index))];
+	}
+
+	/**
+	 * Cellblock cells, front to back: which side of the corridor they're on (-1 left, 1 right) and the
+	 * first of their two rows. Each tier unbricks the next pair.
+	 */
+	private static final int[][] CELLS = {{-1, -2}, {1, -2}, {-1, 1}, {1, 1}, {-1, 4}, {1, 4}};
+
+	public static final int MAX_CELLS = CELLS.length;
+
+	/** How many cells a cellblock of this tier has open: 2, 4, then 6. */
+	public static int cells(int tier) {
+		return 2 * Math.max(1, Math.min(MAX_TIER, tier));
+	}
+
+	/** The cell's holding block (a vault in the corridor wall), where its prisoner is locked in and executed. */
+	public static BlockPos holding(int cell) {
+		int[] c = CELLS[cell];
+		return new BlockPos(2 * c[0], 1, c[1]);
+	}
+
+	/** Where the prisoner stands: at the back of the cell, behind the bars, facing the corridor. */
+	public static BlockPos cellSpot(int cell) {
+		int[] c = CELLS[cell];
+		return new BlockPos(3 * c[0], 1, c[1] + 1);
 	}
 
 	/** Where crew member number {@code index} belongs: archers at their post, everyone else at home. */
@@ -585,6 +617,132 @@ public enum BuildingType {
 		p.set(0, 9, 1, "minecraft:lantern[hanging=true]");
 		p.set(-3, 9, 1, "minecraft:lantern[hanging=true]");
 		p.set(3, 9, 1, "minecraft:lantern[hanging=true]");
+	}
+
+	/**
+	 * The cellblock, after the Gevangenpoort in The Hague: a two-storey brick gaol between stepped gables.
+	 * Downstairs a corridor runs between six cells, two per tier (the others stay bricked up), each closed by
+	 * iron bars and its holding block. Upstairs is the jailer's office, with the confiscated banners.
+	 */
+	private static void cellblock(Plan p) {
+		// paving out front, a stone footing, cobbled cells either side of a flagstone corridor
+		p.fill(-5, 0, -6, 5, 0, 6, PAVING);
+		p.fill(-5, 0, -5, 5, 0, 6, PLINTH);
+		p.fillMix(-4, 0, -4, 4, 0, 5, "minecraft:cobblestone", "minecraft:mossy_cobblestone");
+		p.fill(-1, 0, -4, 1, 0, 5, "minecraft:polished_andesite");
+		p.fill(-4, 0, -4, 4, 0, -4, "minecraft:polished_andesite");
+		// two storeys of brick: a stone plinth, a string course between the floors, a cornice on top
+		for (int y = 1; y <= 9; y++) {
+			p.rect(-5, -5, 5, 6, y, y == 1 ? PLINTH : y == 4 ? BAND : y == 9 ? TRIM : BRICK);
+		}
+		p.quoin(-5, -5, 1, 1, 2, 8);
+		p.quoin(5, -5, -1, 1, 2, 8);
+		p.quoin(-5, 6, 1, -1, 2, 8);
+		p.quoin(5, 6, -1, -1, 2, 8);
+		// the front: a door between sandstone pilasters under a barred fanlight, barred windows either side
+		p.fill(-1, 1, -5, -1, 3, -5, TRIM);
+		p.fill(1, 1, -5, 1, 3, -5, TRIM);
+		p.door(-5, "dark_oak");
+		p.set(0, 3, -5, "minecraft:iron_bars");
+		p.set(0, 4, -5, ACCENT);
+		for (int x : new int[] {-3, 3}) {
+			p.fill(x, 2, -5, x, 3, -5, "minecraft:iron_bars");
+		}
+		// lamps by the door, hedges along the front
+		for (int x : new int[] {-2, 2}) {
+			p.set(x, 1, -6, RAIL);
+			p.set(x, 2, -6, "minecraft:lantern[hanging=false]");
+		}
+		p.set(0, 0, -6, "minecraft:smooth_quartz");
+		for (int x : new int[] {-5, -4, 4, 5}) {
+			p.set(x, 1, -6, mix(x, 1, -6, "minecraft:azalea_leaves[persistent=true]", "minecraft:flowering_azalea_leaves[persistent=true]"));
+		}
+		// the jailer's windows upstairs, each under a lintel
+		p.windowX(-5, -4, -3, 6, 7);
+		p.windowX(-5, 0, 0, 6, 7);
+		p.windowX(-5, 3, 4, 6, 7);
+		p.windowX(6, -1, 1, 6, 7);
+		for (int x : new int[] {-5, 5}) {
+			p.windowZ(x, -3, -2, 6, 7);
+			p.windowZ(x, 2, 3, 6, 7);
+		}
+		// floors: the gaol, the office, the attic; a ladder up from the hall
+		p.fill(-4, 4, -4, 4, 4, 5, "minecraft:dark_oak_planks");
+		p.fill(-4, 9, -4, 4, 9, 5, "minecraft:dark_oak_planks");
+		p.fill(4, 1, -4, 4, 5, -4, "minecraft:ladder[facing=west]");
+		p.set(-4, 1, -4, "minecraft:potted_dead_bush");
+		// the cells: brick walls between them, a cell front of bars and a holding block on the corridor side
+		for (int side : new int[] {-1, 1}) {
+			p.fill(2 * side, 1, -3, 2 * side, 3, 5, BRICK);
+			for (int z : new int[] {-3, 0, 3}) {
+				p.fill(2 * side, 1, z, 4 * side, 3, z, BRICK);
+			}
+		}
+		for (int cell = 0; cell < MAX_CELLS; cell++) {
+			if (cell >= cells(p.tier)) {
+				continue; // bricked up until the next upgrade
+			}
+			int side = CELLS[cell][0];
+			int z = CELLS[cell][1];
+			BlockPos hold = holding(cell);
+			p.set(hold.getX(), 1, z, "minecraft:vault[facing=" + (side < 0 ? "east" : "west") + "]");
+			p.fill(hold.getX(), 2, z, hold.getX(), 3, z, "minecraft:iron_bars");
+			p.fill(hold.getX(), 1, z + 1, hold.getX(), 3, z + 1, "minecraft:iron_bars");
+			// a slit of daylight, a bucket in the corner and the obligatory cobweb
+			p.set(5 * side, 3, z, "minecraft:iron_bars");
+			p.set(5 * side, 3, z + 1, "minecraft:iron_bars");
+			p.set(4 * side, 1, z, "minecraft:cauldron");
+			p.set(4 * side, 3, z, "minecraft:cobweb");
+		}
+		// the corridor: lanterns, and the jailer's corner at the end
+		p.set(0, 3, -2, "minecraft:lantern[hanging=true]");
+		p.set(0, 3, 1, "minecraft:lantern[hanging=true]");
+		p.set(0, 3, 4, "minecraft:lantern[hanging=true]");
+		p.set(0, 1, 5, "minecraft:grindstone[face=floor,facing=north]");
+		p.stairs(-1, 1, 5, "minecraft:dark_oak_stairs", "south", false);
+		p.set(1, 1, 5, "minecraft:barrel[facing=up]");
+		// the office: a desk with a chair, bookcases, the keys on a hook, confiscated captain's banners
+		p.fill(-3, 5, 3, -1, 5, 3, "minecraft:dark_oak_slab[type=top]");
+		p.stairs(-2, 5, 4, "minecraft:dark_oak_stairs", "south", false);
+		p.fill(-4, 5, 5, -4, 7, 5, "minecraft:bookshelf");
+		p.fill(3, 5, 5, 4, 7, 5, "minecraft:bookshelf");
+		p.set(-3, 6, 5, "minecraft:tripwire_hook[facing=north]");
+		p.set(-2, 7, 5, "minecraft:white_wall_banner[facing=north]");
+		p.set(2, 7, 5, "minecraft:white_wall_banner[facing=north]");
+		p.set(3, 5, 1, "minecraft:cartography_table");
+		p.set(3, 5, 0, "minecraft:anvil[facing=north]");
+		p.fill(-1, 5, -3, 1, 5, -1, "minecraft:gray_carpet");
+		p.set(-2, 8, 0, "minecraft:lantern[hanging=true]");
+		p.set(2, 8, 0, "minecraft:lantern[hanging=true]");
+		// a slate roof between two stepped gables (the Dutch kind), windows and a pinnacle in the front one
+		for (int k = 0; k <= 5; k++) {
+			int r = 5 - k;
+			int y = 10 + k;
+			if (r == 0) {
+				p.fill(0, y, -5, 0, y, 6, SLATE_SLAB);
+				continue;
+			}
+			for (int z = -5; z <= 6; z++) {
+				p.stairs(-r, y, z, SLATE, "east", false);
+				p.stairs(r, y, z, SLATE, "west", false);
+			}
+		}
+		for (int z : new int[] {-5, 6}) {
+			for (int k = 0; k <= 5; k++) {
+				p.fill(-5 + k, 10 + k, z, 5 - k, 10 + k, z, BRICK);
+				p.set(-5 + k, 11 + k, z, TRIM_CAP);
+				p.set(5 - k, 11 + k, z, TRIM_CAP);
+			}
+			p.set(0, 16, z, ACCENT);
+			p.set(0, 17, z, RAIL);
+		}
+		p.set(-2, 11, -5, "minecraft:glass_pane");
+		p.set(2, 11, -5, "minecraft:glass_pane");
+		p.fill(0, 11, -5, 0, 12, -5, "minecraft:glass_pane");
+		p.set(0, 13, -5, ACCENT);
+		p.set(0, 14, -5, "minecraft:glass_pane");
+		p.set(0, 12, 6, "minecraft:glass_pane");
+		p.set(0, 18, -5, "minecraft:lightning_rod");
 	}
 
 	/** A brick townhouse in the same style: a little gable over the door, a mansard with dormers, a chimney. */
