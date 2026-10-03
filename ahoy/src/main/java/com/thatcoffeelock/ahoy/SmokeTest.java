@@ -120,6 +120,10 @@ final class SmokeTest {
 			check(why != null && !player.isSleeping(), "nobody sleeps in the daytime (" + why + ")");
 			Cmd.run(level, "time set midnight");
 			// the sky only darkens on the next ticks
+			// a fake player isn't in the world, so it can't ride or sleep; let it join for this check
+			if (!level.players().contains(player)) {
+				level.addNewPlayer(player);
+			}
 			AhoyMod.later(5, () -> step(level.getServer(), () -> {
 				String lay = deck.lieDown(player, 0);
 				check(lay == null, "lying down at night works (" + lay + ")");
@@ -128,6 +132,7 @@ final class SmokeTest {
 				check(deck.lieDown(player, 0) != null, "a second lie-down is refused");
 				deck.wake(player, true);
 				check(!player.isSleeping() && !deck.isSleeping(player), "waking up works");
+				level.removePlayerImmediately(player, Entity.RemovalReason.DISCARDED);
 				Cmd.run(level, "time set day");
 				startZ = ship.root.getZ();
 				ship.testControls = new Ship.Controls(true, false, false, false, false);
