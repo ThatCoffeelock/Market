@@ -210,13 +210,13 @@ final class BunkDeck {
 			player.stopRiding();
 		}
 		// startSleeping takes the player out of any vehicle, so lie down first and mount the bunk's seat afterwards
-		boolean slept = player.startSleeping(foot);
+		boolean slept = player.startSleeping(head); // vanilla sleeps on the head half
 		if (slept) {
 			Cmd.run(ship.level, "ride " + player.getUUID() + " mount " + seat.getUUID());
 		}
 		boolean rode = player.getVehicle() == seat;
 		if (!slept || (!rode && !RIDE_OPTIONAL)) {
-			String why = "slept=" + slept + " rode=" + rode + " sleeping=" + player.isSleeping() + " vehicle=" + player.getVehicle();
+			String why = "headBlock=" + ship.level.getBlockState(head).getBlock() + " slept=" + slept + " rode=" + rode + " sleeping=" + player.isSleeping() + " vehicle=" + player.getVehicle();
 			AhoyMod.LOG.warn("Couldn't put {} to bed: {}", player.getName().getString(), why);
 			sleepers.add(new Sleeper(player.getUUID(), bunk, fromSeat, foot, head, ship.root.getX(), ship.root.getZ(), seat));
 			wake(player, true);
