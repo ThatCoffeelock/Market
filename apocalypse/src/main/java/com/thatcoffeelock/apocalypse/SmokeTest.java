@@ -72,7 +72,7 @@ final class SmokeTest {
 		check(Doors.breakable(Blocks.GLASS.defaultBlockState()), "zombies smash glass");
 		check(Doors.breakable(Blocks.GLASS_PANE.defaultBlockState()), "zombies smash glass panes");
 		check(!Doors.breakable(Blocks.IRON_DOOR.defaultBlockState()), "iron doors hold");
-		check(!Doors.breakable(Blocks.COPPER_DOOR.defaultBlockState()), "copper doors hold");
+		check(!Doors.breakable(Blocks.IRON_TRAPDOOR.defaultBlockState()), "iron trapdoors hold");
 		check(!Doors.breakable(Blocks.STONE.defaultBlockState()), "stone holds");
 		check(!Doors.breakable(Blocks.OAK_PLANKS.defaultBlockState()), "planks hold (by default)");
 
