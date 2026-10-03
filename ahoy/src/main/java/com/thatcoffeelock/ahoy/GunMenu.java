@@ -65,7 +65,7 @@ final class GunMenu extends ChestMenu {
 	}
 
 	private void render() {
-		ItemStack filler = icon(Items.GRAY_STAINED_GLASS_PANE, Component.literal(" "));
+		ItemStack filler = icon(Items.GLASS_PANE, Component.literal(" "));
 		for (int i = 0; i < SIZE; i++) {
 			box.setItem(i, filler.copy());
 		}
