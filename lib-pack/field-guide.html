@@ -129,13 +129,13 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Twelve mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills and raid castles that were already there. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Thirteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there and push enchantments to Sharpness X. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.3.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.4.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -268,8 +268,53 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     </div>
   </section>
 
+  <section class="two">
+    <div class="sheet">
+      <header>
+        <p class="eyebrow">Overenchant · maximum levels</p>
+        <h2>Higher enchantments</h2>
+      </header>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Vanilla</th><th>Now</th><th>Enchantments</th></tr></thead>
+          <tbody>
+            <tr><th>V</th><td><b>X</b></td><td>Sharpness, Smite, Bane of Arthropods, Efficiency, Power, Impaling, Density</td></tr>
+            <tr><th>IV</th><td><b>VIII</b></td><td>Protection (all four kinds), Piercing, Breach</td></tr>
+            <tr><th>III</th><td><b>VI</b></td><td>Unbreaking, Fortune, Looting, Sweeping Edge, Thorns, Respiration, Depth Strider, Soul Speed, Swift Sneak, Quick Charge, Riptide, Loyalty, Lure, Luck of the Sea, Wind Burst</td></tr>
+            <tr><th>II</th><td><b>IV</b></td><td>Knockback, Fire Aspect, Punch, Frost Walker</td></tr>
+            <tr><th>I</th><td>I</td><td>Mending, Silk Touch, Infinity, Flame, Multishot, Channeling, Aqua Affinity</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Two books of the same level in an anvil make the next level. The anvil still says "Too Expensive!" at 40 levels. Change the numbers in <code>config/overenchant.json</code>. Keep the cap at X or lower unless everyone has the mod installed.</p>
+    </div>
+
+    <div class="sheet">
+      <header>
+        <p class="eyebrow">Flintlock · enchanted guns</p>
+        <h2>What they do to a gun</h2>
+      </header>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Enchantment</th><th>Effect on a gun</th></tr></thead>
+          <tbody>
+            <tr><th>Power</th><td>+15% damage per level</td></tr>
+            <tr><th>Punch</th><td>+50% knockback per level</td></tr>
+            <tr><th>Flame</th><td>Sets what it hits on fire for 5 seconds</td></tr>
+            <tr><th>Quick Charge</th><td>Reload 15% faster per level, never under a quarter of the time</td></tr>
+            <tr><th>Piercing</th><td>The ball goes through that many extra targets</td></tr>
+            <tr><th>Multishot</th><td>Three balls per shot, for one round of ammo</td></tr>
+            <tr><th>Infinity</th><td>Reloading is free (keep one round in your inventory)</td></tr>
+            <tr><th>Unbreaking, Mending</th><td>As in vanilla</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Use the enchanting table or an anvil. Guns made before the update become enchantable the next time you load them.</p>
+    </div>
+  </section>
+
   <footer>
-    <span>LIB Pack 1.3.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors</span>
+    <span>LIB Pack 1.4.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -361,7 +406,8 @@ const MODS = [
           "Right-click a loaded gun to fire. Pistol 2 s, blunderbuss 3 s, musket 4 s",
           "Musket: 18 damage. Pistol: 9. Blunderbuss: 8 pellets, short range, huge knockback",
           "Shields block shots. Load a few pistols before a fight",
-          "Wears out: 200 / 150 / 120 shots. Repair in an anvil with iron (blunderbuss: copper)"],
+          "Wears out: 200 / 150 / 120 shots. Repair in an anvil with iron (blunderbuss: copper)",
+          "Enchant them: Power, Punch, Flame, Quick Charge, Piercing, Multishot, Infinity (see below)"],
     cmds: ["/flintlock", ["/flintlock give", true]] },
   { name: "Havana", id: "havana", colour: "#7a4a24", tag: "Grow tobacco, cure it in a barrel, roll cigars and smoke them.",
     recipes: [{ name: "Curing Barrel", shapeless: ["barrel", "hay_block"], out: ["Cure", "#8d6236"] }],
@@ -404,6 +450,13 @@ const MODS = [
           "Every dungeon has a prison. Free the prisoners with the button",
           "Stays clear of vanilla villages, only on flat dry land"],
     cmds: ["/hamlets", ["/hamlets build", true]] },
+  { name: "Overenchant", id: "overenchant", colour: "#8a4fc7", tag: "Raises the maximum level of enchantments. Sharpness X, Unbreaking VI, Protection VIII.",
+    recipes: [], buy: "No recipe: it works on every enchanting table, anvil and book. Type <code>/overenchant</code> to see what went up.",
+    how: ["Maximum levels are doubled, capped at X. One-level enchantments (Mending, Silk Touch) stay as they are",
+          "Combine two books of the same level in an anvil to climb past the old maximum",
+          "Ops: <code>/enchant @s minecraft:sharpness 10</code> works now",
+          "Flintlock guns take enchantments too, so Power X is a real thing"],
+    cmds: ["/overenchant", ["/overenchant reload", true]] },
 ];
 
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };

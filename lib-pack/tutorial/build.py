@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -109,7 +109,8 @@ MODS = [
   tips=["Musket: 18 damage, about 100 blocks. Pistol: 9. Blunderbuss: up to 20 point-blank, and it knocks you back.",
         "A gun stays loaded until fired: load four pistols before a fight, like a proper pirate.",
         "Guns wear out (one point per shot). Repair in an anvil with iron (copper for the blunderbuss). Mending works.",
-        "Shields block shots."],
+        "Shields block shots.",
+        "Enchant guns at a table or anvil: Power (+15% damage a level), Punch, Flame, Quick Charge, Piercing, Multishot, Infinity."],
   cmds="/flintlock"),
  dict(name="Havana", colour="#7a4a24", tag="Grow tobacco, cure it in a barrel, roll cigars and smoke them.",
   recipes=[shapeless("Curing Barrel", ["barrel","hay"], "Cure")],
@@ -170,6 +171,17 @@ MODS = [
         "Cottages appear about every 20 chunks, dungeons every 28, castles every 44.",
         "Ops can find one with <code>/locate structure hamlets:castle</code> (or cottage, dungeon…)."],
   cmds="/hamlets"),
+ dict(name="Overenchant", colour="#8a4fc7", tag="Raises the maximum level of enchantments: Sharpness X, Unbreaking VI, Protection VIII.",
+  recipes=[], getit="No recipe: it works on every enchanting table, anvil and book. Type <code>/overenchant</code> to see what went up.",
+  steps=["Enchant as usual. The maximum level of every enchantment is doubled, capped at X.",
+         "To climb past the old maximum, put two books (or items) with the same enchantment at the same level in an anvil. Two Sharpness V give Sharpness VI.",
+         "Mending, Silk Touch, Infinity and other one-level enchantments stay at I.",
+         "Flintlock guns can be enchanted too, so Power X, Quick Charge VI and Piercing VIII are real."],
+  tips=["The anvil still says \"Too Expensive!\" at 40 levels, so plan your books.",
+        "Ops: <code>/enchant @s minecraft:sharpness 10</code> works now.",
+        "Enchanted items you already have keep their levels, and can now be raised.",
+        "Admins can change the multiplier and cap in <code>config/overenchant.json</code>. Keep the cap at X or lower unless everyone has the mod on their client."],
+  cmds="/overenchant"),
 ]
 
 def item(k, big=False):
@@ -262,7 +274,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Twelve mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Thirteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

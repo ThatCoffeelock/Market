@@ -28,6 +28,7 @@ def bundled = [
 	warehouse  : '../warehouse',
 	skills     : '../skills',
 	hamlets    : '../hamlets',
+	overenchant: '../overenchant',
 ]
 
 def here = projectDir
@@ -67,7 +68,7 @@ def writeModJson = tasks.register('writeModJson') {
 			id           : 'libpack',
 			version      : modVersion,
 			name         : 'LIB Pack',
-			description  : 'All of thatcoffeelock\'s mods in one jar: Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills and Hamlets & Horrors. Server-side: vanilla clients can join.',
+			description  : 'All of thatcoffeelock\'s mods in one jar: Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets & Horrors and Overenchant. Server-side: vanilla clients can join.',
 			authors      : ['thatcoffeelock'],
 			contact      : [sources: 'https://github.com/thatcoffeelock/market'],
 			environment  : '*',
