@@ -26,3 +26,7 @@ dump net.minecraft.world.level.block.state.BlockBehaviour\$BlockStateBase 'getLi
 dump net.minecraft.world.entity.monster.zombie.Zombie 'Sun|sun|Burn|burn'
 dump net.minecraft.world.entity.Mob 'Sun|sun|Burn|burn'
 dump net.minecraft.world.entity.Entity 'isOnFire|clearFire|igniteFor'
+echo "===== Mob.burnUndead and its callers (bytecode)"
+javap -cp "$MC" -c -p net.minecraft.world.entity.Mob 2>/dev/null | awk '/burnUndead\(\);$/{p=1} p{print} /^$/{p=0}' | head -60
+javap -cp "$MC" -c -p net.minecraft.world.entity.Mob 2>/dev/null | grep -n "burnUndead\|isSunSensitive\|BURN" | head -20
+javap -cp "$MC" -c -p net.minecraft.world.entity.monster.zombie.Zombie 2>/dev/null | grep -n "isSunSensitive\|burnUndead\|BURN" | head -20
