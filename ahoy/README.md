@@ -36,6 +36,18 @@ Rename the bottle in an anvil to name your ship. Ops can use `/ahoy give`.
 | Everything else | Aboard, right-click does what it does ashore: **fish, shoot, throw, eat, drink**, use blocks and mobs in reach (a chest on the pier, a villager on the dock). The menu only opens when your hand is empty and there's nothing else to do |
 | Put it away | Menu → **Bottle it up** (owner only). The name and cargo stay inside the bottle |
 
+## Shipwright: make her faster
+
+The ship menu has a **Shipwright** button (the anvil). The captain can refit the ship three times; each refit raises the top speed (and how quickly she gets there). The button shows the next refit, its price, and how much of it you're carrying.
+
+| Level | Refit | Top speed | Cost (from your inventory) |
+|---|---|---|---|
+| I | Extra canvas | +20% | 16 White Wool, 8 String |
+| II | Copper sheathing | +40% | 32 Copper Ingots, 8 White Wool |
+| III | Clipper rigging | +60% | 8 Phantom Membranes, 2 Diamonds |
+
+The wind still counts on top: against the wind a fully rigged ship does about 80% of a standard ship's best. Refits stay with the ship, also in the bottle. Creative players refit for free. The captain's speed bar shows the level as ⚓I to ⚓III.
+
 ## Gun deck
 
 With the [Cannon](../cannon/README.md) mod installed (1.1.0 or newer), the ship has **four gun ports** on deck, two a side. Open the menu, choose **Gun deck**, and click a port with a Cannon on your cursor to slot it in; click a slotted cannon with an empty cursor to take it out. The button under a port sits you behind that cannon (you must be aboard), and you aim and fire it like a normal one. Cannons ride along with the ship and point out to the side until someone aims them.
