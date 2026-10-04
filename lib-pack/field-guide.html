@@ -129,13 +129,13 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Thirteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there and push every enchantment to level X. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Fourteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there push every enchantment to level X and hunt illagers for bounties. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.9.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.10.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -314,7 +314,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.9.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant</span>
+    <span>LIB Pack 1.10.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -330,7 +330,7 @@ const I = {
   barrel: ["Brl", "#8d6236"], hay_block: ["Hay", "#c9a82b"],
   glass: ["Gls", "#bfe3ee"], minecart: ["Mc", "#7b7b7b"], furnace: ["Frn", "#6a6a6a"],
   flint: ["Flt", "#3b3b40"], copper_ingot: ["Cu", "#c86f4a"], paper: ["Ppr", "#f2efe6"], iron_nugget: ["Nug", "#d6d6d6"], gravel: ["Grv", "#8a8580"],
-  book: ["Book", "#7a3b2a"], cartography_table: ["Map", "#7b5a3a"], lantern: ["Lntn", "#e0a33a"], lead: ["Lead", "#a58a5e"],
+  crafting_table: ["Wbn", "#9c6b3a"], book: ["Book", "#7a3b2a"], cartography_table: ["Map", "#7b5a3a"], lantern: ["Lntn", "#e0a33a"], lead: ["Lead", "#a58a5e"],
 };
 const names = {
   gold_ingot: "Gold Ingot", obsidian: "Obsidian", emerald: "Emerald", wool: "Any Wool", glass_bottle: "Glass Bottle", chest: "Chest",
@@ -339,7 +339,7 @@ const names = {
   chest_minecart: "Minecart with Chest", redstone_block: "Block of Redstone", rail: "Rail", barrel: "Barrel", hay_block: "Hay Bale",
   glass: "Glass", minecart: "Minecart", furnace: "Furnace",
   flint: "Flint", copper_ingot: "Copper Ingot", paper: "Paper", iron_nugget: "Iron Nugget", gravel: "Gravel",
-  book: "Book", cartography_table: "Cartography Table", lantern: "Lantern", lead: "Lead",
+  crafting_table: "Crafting Table", book: "Book", cartography_table: "Cartography Table", lantern: "Lantern", lead: "Lead",
 };
 // Lighter swatches need dark text.
 const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget"]);
@@ -462,6 +462,15 @@ const MODS = [
           "Combine two books of the same level in an anvil to climb",
           "Flintlock guns take enchantments too, so Power X is a real thing"],
     cmds: ["/overenchant", ["/overenchant reload", true]] },
+  { name: "Fuck Illagers", id: "fuckillagers", colour: "#7a1f1f", tag: "Bounty hunting. Illagers drop fingers, the Bounty Station buys them and posts contracts on named illager bosses.",
+    recipes: [
+      { name: "Bounty Station", pattern: ["PCP", "CTC", "PCP"], key: { P: "paper", C: "copper_ingot", T: "crafting_table" }, out: ["Bnty", "#7a1f1f"] }],
+    how: ["Player-killed illagers drop <b>Illager Fingers</b>: pillager/vindicator 1, evoker 2. The station pays <b>₥3</b> each",
+          "Contracts: <b>Easy</b> wagon/tower (₥150), <b>Medium</b> camp/fortress (₥400), <b>Hard</b> dungeon/castle (₥1,000)",
+          "The target hides 1000–2000 blocks away. Hold the <b>Wanted Poster</b> for distance and direction",
+          "The hideout is built when you get within ~160 blocks: guards, loot chests, sometimes a prisoner",
+          "Kill the named boss, sell its <b>skull</b> at the station for the reward. One contract at a time"],
+    cmds: ["/bounty", "/bounty contract", ["/bounty give station", true], ["/bounty build", true]] },
 ];
 
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };

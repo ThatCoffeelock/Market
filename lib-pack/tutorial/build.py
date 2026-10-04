@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.9.0"
+VERSION = "1.10.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -16,7 +16,7 @@ I = {
  "redstoneblock": ("RsB", "#b51d12", "Block of Redstone", False), "rail": ("Rail", "#7d6a52", "Rail", False), "barrel": ("Brl", "#8d6236", "Barrel", False),
  "hay": ("Hay", "#c9a82b", "Hay Bale", True), "glass": ("Gls", "#bfe3ee", "Glass", True), "minecart": ("Mc", "#7b7b7b", "Minecart", False),
  "furnace": ("Frn", "#6a6a6a", "Furnace", False), "flint": ("Flt", "#3b3b40", "Flint", False), "copper": ("Cu", "#c86f4a", "Copper Ingot", False),
- "paper": ("Ppr", "#f2efe6", "Paper", True), "nugget": ("Nug", "#d6d6d6", "Iron Nugget", True), "gravel": ("Grv", "#8a8580", "Gravel", False),
+ "paper": ("Ppr", "#f2efe6", "Paper", True), "workbench": ("Wbn", "#9c6b3a", "Crafting Table", False), "nugget": ("Nug", "#d6d6d6", "Iron Nugget", True), "gravel": ("Grv", "#8a8580", "Gravel", False),
  "book": ("Book", "#7a3b2a", "Book", False), "carto": ("Map", "#7b5a3a", "Cartography Table", False), "lantern": ("Lntn", "#e0a33a", "Lantern", True),
  "lead": ("Lead", "#a58a5e", "Lead", False),
 }
@@ -187,6 +187,19 @@ MODS = [
         "Enchanted items you already have keep their levels, and can now be raised.",
         "Admins can change the levels in <code>config/overenchant.json</code>. Keep them at X or lower unless everyone has the mod on their client."],
   cmds="/overenchant"),
+ dict(name="Fuck Illagers", colour="#7a1f1f", tag="Bounty hunting: illagers drop fingers, a Bounty Station buys them and posts contracts on named illager bosses.",
+  recipes=[shaped("Bounty Station", ["PCP","CTC","PCP"], dict(P="paper",C="copper",T="workbench"), "Bnty")],
+  steps=["Craft a <b>Bounty Station</b> (paper, copper, a crafting table) and place it. Right-click it to open it.",
+         "Kill illagers. Each one a player kills drops an <b>Illager Finger</b> (pillagers and vindicators 1, evokers 2). The station pays ₥3 each: <b>Sell trophies</b>.",
+         "Take a contract: <b>Easy</b> (a wagon or watchtower, ₥150), <b>Medium</b> (a war camp or fortress, ₥400) or <b>Hard</b> (a dungeon or castle, ₥1,000). You get coordinates and a <b>Wanted Poster</b>.",
+         "Ride out. The target hides 1000–2000 blocks away. Hold the poster to see how far and which way. The hideout is built as you get close: guards, loot chests, sometimes a prisoner in a cage.",
+         "Kill the named boss and pick up its <b>skull</b>. Sell it at any Bounty Station for the reward."],
+  tips=["One contract at a time. Abandon it at the station if it's too much (no reward).",
+        "Bosses are tougher than normal: 40 health on Easy, 80 on Medium, 140 on Hard. Hard bosses are evokers. Bring a shield for the vexes.",
+        "The dungeon is 16 blocks down a ladder. The castle's boss waits upstairs in the keep, past a ravager.",
+        "Raid farms count as illagers too. Your fingers, your call.",
+        "Ops: <code>/bounty build castle</code> builds a hideout where you stand (for testing, no skull)."],
+  cmds="/bounty"),
 ]
 
 def item(k, big=False):
@@ -279,7 +292,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Thirteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Fourteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

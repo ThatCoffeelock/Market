@@ -17,6 +17,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Skills](../skills/README.md) | Elder Scrolls style skills: level up by doing, spend perk points every 10 levels |
 | [Hamlets & Horrors](../hamlets/README.md) | Random cottages, castles and dungeons: some lived in by villagers, some overrun by monsters |
 | [Overenchant](../overenchant/README.md) | Higher maximum enchantment levels: every enchantment goes to X (Sharpness X instead of V). Flintlock guns can be enchanted too |
+| [Fuck Illagers](../fuck-illagers/README.md) | Bounty hunting: illager fingers for Marks, and contracts on named illager bosses in wagons, towers, camps, fortresses, dungeons and castles |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 
@@ -36,4 +37,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all thirteen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all thirteen mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all fourteen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all fourteen mods load and the server starts.
