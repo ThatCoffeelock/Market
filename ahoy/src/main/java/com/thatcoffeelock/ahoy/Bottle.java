@@ -59,6 +59,9 @@ public final class Bottle {
 		List<Component> lore = new ArrayList<>();
 		lore.add(text("Right-click open water to launch it.", ChatFormatting.GRAY));
 		lore.add(text("Cargo: " + data.usedSlots() + " / " + (ShipData.BAY * 2) + " slots used", ChatFormatting.YELLOW));
+		if (data.speedLevel > 0) {
+			lore.add(text("Rigging: " + Shipwright.LEVELS.get(Shipwright.clamp(data.speedLevel)).name() + " (" + Shipwright.roman(data.speedLevel) + ")", ChatFormatting.GOLD));
+		}
 		lore.add(text("Captain: " + (data.ownerName.isEmpty() ? "nobody yet" : data.ownerName), ChatFormatting.DARK_GRAY));
 		stack.set(DataComponents.LORE, new ItemLore(lore));
 		return stack;

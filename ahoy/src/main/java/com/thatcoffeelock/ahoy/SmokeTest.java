@@ -135,6 +135,21 @@ final class SmokeTest {
 		}));
 	}
 
+	/** The Shipwright refits the ship only when the captain has the materials, and takes them. */
+	private static void shipwright(ServerLevel level) {
+		FakePlayer player = FakePlayer.get(level);
+		player.getInventory().clearContent();
+		check(ship.data.speedLevel == 0 && Shipwright.factor(0) == 1.0, "a new ship has standard rigging");
+		String why = Shipwright.upgrade(player, ship);
+		check(why != null && why.startsWith("You need") && ship.data.speedLevel == 0, "no refit without materials (" + why + ")");
+		player.getInventory().add(new ItemStack(Items.WOOL.white(), 16));
+		player.getInventory().add(new ItemStack(Items.STRING, 8));
+		why = Shipwright.upgrade(player, ship);
+		check(why == null && ship.data.speedLevel == 1, "with 16 white wool and 8 string the ship gets Extra canvas (" + why + ")");
+		check(Shipwright.count(player, Items.WOOL.white()) == 0 && Shipwright.count(player, Items.STRING) == 0, "and the materials are used up");
+		check(Shipwright.factor(1) > 1.0 && Shipwright.factor(Shipwright.MAX_LEVEL) > Shipwright.factor(1), "each refit makes the ship faster");
+	}
+
 	private static double portDistance(int port) {
 		ShipModel.GunPort p = ShipModel.GUN_PORTS.get(port);
 		double[] w = Ship.toWorld(ship.root.getX(), ship.root.getZ(), ship.root.getYRot(), p.x(), p.z());
@@ -222,6 +237,7 @@ final class SmokeTest {
 		check(Math.abs(ship.root.getZ()) < 26 && Math.abs(ship.root.getX()) < 16, "ship stayed inside the harbour ("
 			+ String.format("%.1f, %.1f", ship.root.getX(), ship.root.getZ()) + ")");
 		ship.testControls = null;
+		shipwright(level);
 		ItemStack bottle = ship.bottleUp();
 		check(Bottle.isBottle(bottle), "bottled it up");
 		ShipData back = Bottle.savedData(bottle, level);
@@ -229,6 +245,7 @@ final class SmokeTest {
 		check(back.name.equals(ship.data.name), "name survives the bottle (" + back.name + ")");
 		check(CannonItems.isCannon(back.guns.getItem(0)), "the slotted cannon survives the bottle");
 		check(back.bunks.getItem(0).is(Items.BED.blue()), "the slotted bed survives the bottle");
+		check(back.speedLevel == 1, "the rigging upgrade survives the bottle (level " + back.speedLevel + ")");
 		AhoyMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
 	}
 

@@ -223,10 +223,11 @@ public final class Ship implements AhoyApi.ShipView {
 		double x = root.getX();
 		double z = root.getZ();
 		float yaw = root.getYRot();
-		double max = MAX_SPEED * Wind.factor(level, yaw);
+		double rigging = Shipwright.factor(data.speedLevel);
+		double max = MAX_SPEED * rigging * Wind.factor(level, yaw);
 
 		if (c.forward()) {
-			speed = Math.min(max, speed + 0.004);
+			speed = Math.min(max, speed + 0.004 * rigging);
 		} else if (c.back()) {
 			speed = Math.max(-0.08, speed - 0.006);
 		} else {
@@ -290,6 +291,9 @@ public final class Ship implements AhoyApi.ShipView {
 	private void hud(ServerPlayer captain) {
 		int kmh = (int) Math.round(Math.abs(speed) * 20 * 3.6);
 		MutableComponent line = Component.literal("⛵ " + kmh + " km/h").withStyle(ChatFormatting.AQUA);
+		if (data.speedLevel > 0) {
+			line.append(Component.literal("  ⚓" + Shipwright.roman(data.speedLevel)).withStyle(ChatFormatting.GOLD));
+		}
 		line.append(Component.literal("   Wind " + Wind.arrow(level, root.getYRot()) + " " + Wind.label(level, root.getYRot()))
 			.withStyle(ChatFormatting.WHITE));
 		line.append(Component.literal("   Space: bell · Shift: go ashore").withStyle(ChatFormatting.GRAY));

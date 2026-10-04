@@ -130,6 +130,8 @@ final class ShipMenu extends ChestMenu {
 		button(15, icon(Items.BELL, t("Ring the bell", ChatFormatting.YELLOW, ChatFormatting.BOLD),
 			t("Ding. Absolutely necessary.", ChatFormatting.GRAY)), ship::ringBell);
 
+		shipwright();
+
 		if (owner) {
 			button(21, icon(data.locked ? Items.IRON_BARS : Items.TRIPWIRE_HOOK,
 				t(data.locked ? "Locked" : "Unlocked", data.locked ? ChatFormatting.RED : ChatFormatting.GREEN, ChatFormatting.BOLD),
@@ -186,6 +188,42 @@ final class ShipMenu extends ChestMenu {
 				AhoyMod.LOG.warn("A ship menu button from another mod failed", e);
 			}
 		}
+	}
+
+	/** Slot 22: the rigging level, and the next refit with its price. */
+	private void shipwright() {
+		ShipData data = ship.data;
+		int level = Shipwright.clamp(data.speedLevel);
+		Shipwright.Upgrade now = Shipwright.LEVELS.get(level);
+		Shipwright.Upgrade next = Shipwright.next(data);
+		int percent = (int) Math.round((Shipwright.factor(level) - 1) * 100);
+		List<Component> lore = new java.util.ArrayList<>();
+		lore.add(t("Now: " + now.name() + (level > 0 ? " (" + Shipwright.roman(level) + ", +" + percent + "% speed)" : ""), ChatFormatting.GRAY));
+		if (next == null) {
+			lore.add(t("Fully rigged. Nothing on the seven seas is faster.", ChatFormatting.GOLD));
+		} else {
+			int nextPercent = (int) Math.round((next.factor() - 1) * 100);
+			lore.add(t("Next: " + next.name() + " (+" + nextPercent + "% speed)", ChatFormatting.YELLOW));
+			lore.add(t(next.blurb(), ChatFormatting.DARK_GRAY));
+			for (Shipwright.Cost cost : next.costs()) {
+				int have = Shipwright.count(viewer, cost.item());
+				lore.add(t("  " + cost.count() + " × " + cost.name() + "  (you have " + have + ")",
+					have >= cost.count() || viewer.isCreative() ? ChatFormatting.GREEN : ChatFormatting.RED));
+			}
+			lore.add(t(ship.isOwner(viewer) || viewer.isCreative() ? "Click to refit." : "Only the captain can refit.", ChatFormatting.YELLOW));
+		}
+		button(22, icon(Items.ANVIL, t("Shipwright" + (level > 0 ? " · Rigging " + Shipwright.roman(level) : ""), ChatFormatting.GOLD, ChatFormatting.BOLD),
+			lore.toArray(new Component[0])), next == null ? null : () -> {
+			String why = Shipwright.upgrade(viewer, ship);
+			if (why != null) {
+				nope(why);
+				return;
+			}
+			Shipwright.Upgrade done = Shipwright.LEVELS.get(Shipwright.clamp(ship.data.speedLevel));
+			Cmd.sound(ship.level, "minecraft:block.anvil.use", viewer.getX(), viewer.getY(), viewer.getZ(), 0.8f, 1.1f);
+			viewer.sendSystemMessage(Component.literal("Refitted: " + done.name() + ". The " + ship.data.name + " is faster now!").withStyle(ChatFormatting.GOLD));
+			render();
+		});
 	}
 
 	private int gunCount() {

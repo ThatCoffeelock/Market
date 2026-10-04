@@ -33,7 +33,8 @@ public final class ShipData {
 		Slot.CODEC.listOf().optionalFieldOf("cargo_a", List.of()).forGetter(d -> slots(d.cargoA)),
 		Slot.CODEC.listOf().optionalFieldOf("cargo_b", List.of()).forGetter(d -> slots(d.cargoB)),
 		Slot.CODEC.listOf().optionalFieldOf("guns", List.of()).forGetter(d -> slots(d.guns)),
-		Slot.CODEC.listOf().optionalFieldOf("bunks", List.of()).forGetter(d -> slots(d.bunks))
+		Slot.CODEC.listOf().optionalFieldOf("bunks", List.of()).forGetter(d -> slots(d.bunks)),
+		Codec.INT.optionalFieldOf("speed_level", 0).forGetter(d -> d.speedLevel)
 	).apply(i, ShipData::new));
 
 	private static final String[] NAMES = {
@@ -44,6 +45,8 @@ public final class ShipData {
 	public String owner;
 	public String ownerName;
 	public boolean locked;
+	/** Rigging upgrades bought at the Shipwright (0 = as launched, see {@link Shipwright}). */
+	public int speedLevel;
 	/** World y of the water surface the ship floats on (local y = 0). */
 	public double surface;
 	public final SimpleContainer cargoA = new SimpleContainer(BAY);
@@ -58,7 +61,7 @@ public final class ShipData {
 		this.ownerName = "";
 	}
 
-	private ShipData(String name, String owner, String ownerName, boolean locked, double surface, List<Slot> a, List<Slot> b, List<Slot> guns, List<Slot> bunks) {
+	private ShipData(String name, String owner, String ownerName, boolean locked, double surface, List<Slot> a, List<Slot> b, List<Slot> guns, List<Slot> bunks, int speedLevel) {
 		this.name = name.isEmpty() ? NAMES[0] : name;
 		this.owner = owner;
 		this.ownerName = ownerName;
@@ -68,6 +71,7 @@ public final class ShipData {
 		fill(cargoB, b);
 		fill(this.guns, guns);
 		fill(this.bunks, bunks);
+		this.speedLevel = Shipwright.clamp(speedLevel);
 	}
 
 	private static void fill(SimpleContainer container, List<Slot> slots) {
