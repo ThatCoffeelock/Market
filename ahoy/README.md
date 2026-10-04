@@ -36,17 +36,31 @@ Rename the bottle in an anvil to name your ship. Ops can use `/ahoy give`.
 | Everything else | Aboard, right-click does what it does ashore: **fish, shoot, throw, eat, drink**, use blocks and mobs in reach (a chest on the pier, a villager on the dock). The menu only opens when your hand is empty and there's nothing else to do |
 | Put it away | Menu → **Bottle it up** (owner only). The name and cargo stay inside the bottle |
 
-## Shipwright: make her faster
+## Shipwright: refits
 
-The ship menu has a **Shipwright** button (the anvil). The captain can refit the ship three times; each refit raises the top speed (and how quickly she gets there). The button shows the next refit, its price, and how much of it you're carrying.
+The ship menu has a **Shipwright** button (the anvil). It opens a screen with three kinds of refit. The captain pays for them with materials from their own inventory; creative players refit for free. Each button shows the next refit, its price, and how much of it you're carrying (green: enough, red: short). Refits stay with the ship, also in the bottle.
 
-| Level | Refit | Top speed | Cost (from your inventory) |
+**Rigging (speed).** Each level raises top speed and acceleration. The wind still counts on top. The captain's speed bar shows ⚓I to ⚓III.
+
+| Level | Refit | Top speed | Cost |
 |---|---|---|---|
 | I | Extra canvas | +20% | 16 White Wool, 8 String |
 | II | Copper sheathing | +40% | 32 Copper Ingots, 8 White Wool |
 | III | Clipper rigging | +60% | 8 Phantom Membranes, 2 Diamonds |
 
-The wind still counts on top: against the wind a fully rigged ship does about 80% of a standard ship's best. Refits stay with the ship, also in the bottle. Creative players refit for free. The captain's speed bar shows the level as ⚓I to ⚓III.
+**Holds (cargo).** Extra holds of 54 slots each, with their own buttons in the ship menu. Warehouse loading docks and cannons use them too.
+
+| Level | Refit | Cargo | Cost |
+|---|---|---|---|
+| I | Extra hold (Cargo C) | 162 slots | 8 Chests, 16 Iron Ingots |
+| II | Deep hold (Cargo D) | 216 slots | 16 Barrels, 4 Blocks of Iron |
+
+**Canal drill.** Costs 2 Diamond Pickaxes, 8 Blocks of Iron and 4 Blocks of Redstone. It's fitted switched **off**; the ship menu gets a **Canal drill: ON/off** switch (anyone who may steer can flip it). Switched on, when the hull would hit land the ship cuts a canal as wide as the hull and carries on at drilling speed:
+
+- The canal is two blocks of **still water** at the ship's water level (it stays when you're gone), with four blocks of clear air above it. Higher up, nothing is touched.
+- Blocks are removed **without drops**. Holes under the canal get a dirt bottom so the water stays put.
+- The drill **never cuts chests, barrels, furnaces or other blocks with contents, or bedrock**. Those still stop the ship (and the captain gets a message).
+- It cuts everything else, though, including your house. Switch it off near your base. The speed bar shows **⛏ Drill on** as a reminder.
 
 ## Gun deck
 

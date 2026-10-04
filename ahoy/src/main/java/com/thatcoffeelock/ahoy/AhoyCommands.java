@@ -71,7 +71,7 @@ final class AhoyCommands {
 			"§7The wind matters: sail with it for full speed, against it for half.",
 			"§7Guns: with the Cannon mod, four gun ports on deck take Cannons (menu, Gun deck). Man one from there; balls come from your pockets, then the holds (/ahoy guns).",
 				"§7Bunks: menu, Bunks. Slot a bed into one of the two berths on the foredeck and lie down in it at night (§f/ahoy bunks§7). Sleep while anchored; Shift gets you up.",
-				"§7Faster: menu, §fShipwright§7. Three refits (Extra canvas, Copper sheathing, Clipper rigging), each +20% top speed. The captain pays in materials.",
+				"§7Refits: menu, §fShipwright§7. Rigging (up to +60% speed), extra holds C and D, and a canal drill (switch it on in the menu to cut canals through land).",
 				"§aAt sea, nobody aboard can be hurt, and sea monsters get zapped away."
 		};
 		for (String line : lines) {

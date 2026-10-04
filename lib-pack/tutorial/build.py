@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -55,7 +55,7 @@ MODS = [
          "Right-click <b>open water</b> (about 7 × 20 blocks). The stern starts where you click; the bow points where you look.",
          "Right-click the ship to board. The owner takes the wheel; friends get the benches.",
          "Sail with <b>W/S</b>, steer with <b>A/D</b>, ring the bell with <b>Space</b>. <b>Shift</b> to get off.",
-         "Want speed? Menu → <b>Shipwright</b>: three refits, +20% top speed each. I: 16 white wool + 8 string. II: 32 copper ingots + 8 white wool. III: 8 phantom membranes + 2 diamonds.",
+         "Menu → <b>Shipwright</b>: refits for speed (3 levels, up to +60%), cargo (holds C and D, up to 216 slots) and a <b>canal drill</b>. Switch the drill on in the ship menu and the ship cuts a water-filled canal through land. It never cuts chests or bedrock, but it does cut houses!",
          "Menu → <b>Gun deck</b>: slot Cannons into the four gun ports, then man one from the same menu.",
          "Menu → <b>Bunks</b>: slot a bed into one of the two berths on the foredeck, then lie down at night. Sleep while anchored; Shift gets you up.",
          "Done sailing? Open the menu and choose <b>Bottle it up</b>. Name, cargo and cannons stay inside."],
