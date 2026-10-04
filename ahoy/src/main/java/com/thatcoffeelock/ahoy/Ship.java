@@ -40,6 +40,8 @@ public final class Ship implements AhoyApi.ShipView {
 	}
 
 	private static final double MAX_SPEED = 0.4;
+	/** Top speed while the drill is cutting a canal. */
+	static final double DRILL_SPEED = 0.12;
 
 	final ServerLevel level;
 	final Entity root;
@@ -56,6 +58,7 @@ public final class Ship implements AhoyApi.ShipView {
 	private float sentYaw = Float.NaN;
 	private boolean lastJump;
 	private int bellCooldown;
+	private int drillWork;
 	private boolean removed;
 	@Nullable Controls testControls;
 
@@ -96,7 +99,7 @@ public final class Ship implements AhoyApi.ShipView {
 
 	@Override
 	public List<Container> holds() {
-		return List.of(data.cargoA, data.cargoB);
+		return List.copyOf(data.holds());
 	}
 
 	@Override
@@ -245,7 +248,7 @@ public final class Ship implements AhoyApi.ShipView {
 			double way = Mth.clamp(Math.abs(speed) / 0.12, 0.3, 1.0);
 			float delta = (float) (rudder * 1.5 * way * (speed < 0 ? -1 : 1));
 			float newYaw = Mth.wrapDegrees(yaw + delta);
-			if (hullFits(level, data.surface, x, z, newYaw)) {
+			if (hullFits(level, data.surface, x, z, newYaw) || (drilling() && drill(x, z, newYaw))) {
 				yaw = newYaw;
 			}
 		}
@@ -254,7 +257,12 @@ public final class Ship implements AhoyApi.ShipView {
 			double rad = Math.toRadians(yaw);
 			double nx = x - Math.sin(rad) * speed;
 			double nz = z + Math.cos(rad) * speed;
-			if (hullFits(level, data.surface, nx, nz, yaw) && afloat(level, data.surface, nx, nz, yaw)) {
+			boolean free = hullFits(level, data.surface, nx, nz, yaw) && afloat(level, data.surface, nx, nz, yaw);
+			if (!free && drilling() && drill(nx, nz, yaw)) {
+				free = true;
+				speed = Math.copySign(Math.min(Math.abs(speed), DRILL_SPEED), speed);
+			}
+			if (free) {
 				x = nx;
 				z = nz;
 			} else {
@@ -283,6 +291,29 @@ public final class Ship implements AhoyApi.ShipView {
 		}
 	}
 
+	boolean drilling() {
+		return data.drillLevel > 0 && data.drillOn;
+	}
+
+	/** Cuts a canal for the hull at this position. True if the ship fits there afterwards. */
+	private boolean drill(double nx, double nz, float yaw) {
+		Canal.Result result = Canal.dig(level, data.surface, nx, nz, yaw);
+		if (result == Canal.Result.CUT) {
+			drillWork++;
+			if (drillWork % 3 == 0) {
+				double[] bow = toWorld(nx, nz, yaw, 0, 9);
+				Cmd.particles(level, "minecraft:poof", bow[0], data.surface + 0.8, bow[1], 1.2, 0.05, 12);
+				Cmd.sound(level, "minecraft:block.stone.break", bow[0], data.surface + 1, bow[1], 1.2f, 0.7f);
+			}
+		} else if (result == Canal.Result.REFUSED && age % 40 == 0) {
+			ServerPlayer captain = rider(0);
+			if (captain != null) {
+				captain.sendSystemMessage(Component.literal("The drill won't cut chests, other storage or bedrock.").withStyle(ChatFormatting.GRAY));
+			}
+		}
+		return hullFits(level, data.surface, nx, nz, yaw) && afloat(level, data.surface, nx, nz, yaw);
+	}
+
 	void ringBell() {
 		bellCooldown = 20;
 		Cmd.sound(level, "minecraft:block.bell.use", root.getX(), data.surface + 3, root.getZ(), 2.0f, 1.0f);
@@ -291,6 +322,9 @@ public final class Ship implements AhoyApi.ShipView {
 	private void hud(ServerPlayer captain) {
 		int kmh = (int) Math.round(Math.abs(speed) * 20 * 3.6);
 		MutableComponent line = Component.literal("⛵ " + kmh + " km/h").withStyle(ChatFormatting.AQUA);
+		if (drilling()) {
+			line.append(Component.literal("  ⛏ Drill on").withStyle(ChatFormatting.RED));
+		}
 		if (data.speedLevel > 0) {
 			line.append(Component.literal("  ⚓" + Shipwright.roman(data.speedLevel)).withStyle(ChatFormatting.GOLD));
 		}
@@ -573,8 +607,7 @@ public final class Ship implements AhoyApi.ShipView {
 		}
 		ItemStack bottle = Bottle.packed(level, data);
 		remove();
-		data.cargoA.clearContent();
-		data.cargoB.clearContent();
+		data.clearCargo();
 		data.guns.clearContent();
 		data.bunks.clearContent();
 		return bottle;

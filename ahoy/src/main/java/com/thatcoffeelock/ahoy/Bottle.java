@@ -58,9 +58,12 @@ public final class Bottle {
 		stack.set(DataComponents.ITEM_NAME, Component.literal("Ship in a Bottle: " + data.name).withStyle(ChatFormatting.AQUA));
 		List<Component> lore = new ArrayList<>();
 		lore.add(text("Right-click open water to launch it.", ChatFormatting.GRAY));
-		lore.add(text("Cargo: " + data.usedSlots() + " / " + (ShipData.BAY * 2) + " slots used", ChatFormatting.YELLOW));
+		lore.add(text("Cargo: " + data.usedSlots() + " / " + data.capacity() + " slots used", ChatFormatting.YELLOW));
 		if (data.speedLevel > 0) {
-			lore.add(text("Rigging: " + Shipwright.LEVELS.get(Shipwright.clamp(data.speedLevel)).name() + " (" + Shipwright.roman(data.speedLevel) + ")", ChatFormatting.GOLD));
+			lore.add(text("Rigging: " + Shipwright.SPEED.levels().get(Shipwright.SPEED.level(data)).name() + " (" + Shipwright.roman(data.speedLevel) + ")", ChatFormatting.GOLD));
+		}
+		if (data.drillLevel > 0) {
+			lore.add(text("Canal drill fitted", ChatFormatting.GOLD));
 		}
 		lore.add(text("Captain: " + (data.ownerName.isEmpty() ? "nobody yet" : data.ownerName), ChatFormatting.DARK_GRAY));
 		stack.set(DataComponents.LORE, new ItemLore(lore));

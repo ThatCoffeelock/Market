@@ -43,14 +43,20 @@ final class ShipMenu extends ChestMenu {
 	}
 
 	static void openCargo(ServerPlayer player, Ship ship, int bay) {
-		SimpleContainer cargo = bay == 0 ? ship.data.cargoA : ship.data.cargoB;
+		List<SimpleContainer> holds = ship.data.holds();
+		if (bay < 0 || bay >= holds.size()) {
+			return;
+		}
+		SimpleContainer cargo = holds.get(bay);
 		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x6, id, inv, cargo, 6) {
 			@Override
 			public boolean stillValid(Player who) {
 				return canUse(ship, who);
 			}
-		}, Component.literal(ship.data.name + " · Cargo " + (bay == 0 ? "A (port)" : "B (starboard)"))));
+		}, Component.literal(ship.data.name + " · " + HOLD_NAMES[bay])));
 	}
+
+	static final String[] HOLD_NAMES = {"Cargo A (port)", "Cargo B (starboard)", "Cargo C (aft)", "Cargo D (bow)"};
 
 	static boolean canUse(Ship ship, Player player) {
 		return !ship.isRemoved() && (Ships.shipOf(player) == ship || player.distanceToSqr(ship.root) <= 24 * 24);
@@ -114,7 +120,7 @@ final class ShipMenu extends ChestMenu {
 
 		button(4, icon(Items.FILLED_MAP, t(data.name, ChatFormatting.GOLD, ChatFormatting.BOLD),
 			t("Captain: " + (data.ownerName.isEmpty() ? "nobody" : data.ownerName), ChatFormatting.GRAY),
-			t("Cargo: " + data.usedSlots() + " / " + (ShipData.BAY * 2) + " slots", ChatFormatting.GRAY),
+			t("Cargo: " + data.usedSlots() + " / " + data.capacity() + " slots", ChatFormatting.GRAY),
 			t("Wind: " + Wind.arrow(ship.level, ship.root.getYRot()) + " " + Wind.label(ship.level, ship.root.getYRot()), ChatFormatting.GRAY),
 			t("W/S sails · A/D rudder · Space bell · Shift ashore", ChatFormatting.DARK_GRAY)), null);
 
@@ -123,14 +129,34 @@ final class ShipMenu extends ChestMenu {
 			t(mine >= 0 ? "You're at: " + ship.seatName(mine) : "Takes the first free spot.", ChatFormatting.GRAY),
 			t("Moving to the wheel makes you captain (if allowed).", ChatFormatting.DARK_GRAY)), this::switchSeat);
 
-		button(12, icon(Items.BARREL, t("Cargo A (port)", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			t("54 slots below deck.", ChatFormatting.GRAY)), () -> cargo(0));
-		button(13, icon(Items.BARREL, t("Cargo B (starboard)", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			t("54 slots below deck.", ChatFormatting.GRAY)), () -> cargo(1));
+		int holds = data.holds().size();
+		for (int bay = 0; bay < holds; bay++) {
+			final int b = bay;
+			button(11 + bay, icon(bay < 2 ? Items.BARREL : Items.CHEST, t(HOLD_NAMES[bay], ChatFormatting.AQUA, ChatFormatting.BOLD),
+				t("54 slots below deck.", ChatFormatting.GRAY)), () -> cargo(b));
+		}
 		button(15, icon(Items.BELL, t("Ring the bell", ChatFormatting.YELLOW, ChatFormatting.BOLD),
 			t("Ding. Absolutely necessary.", ChatFormatting.GRAY)), ship::ringBell);
+		if (ship.gunDeck != null) {
+			button(16, icon(Items.IRON_BLOCK, t("Gun deck", ChatFormatting.RED, ChatFormatting.BOLD),
+				t("Four gun ports: slot cannons in, man them.", ChatFormatting.GRAY),
+				t("Cannons: " + gunCount() + " / " + ShipData.GUNS, ChatFormatting.GRAY)), () -> AhoyMod.nextTick(() -> GunMenu.open(viewer, ship)));
+		}
+		button(17, icon(Items.BED.red(), t("Bunks", ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD),
+			t("Two berths on the foredeck: slot beds in, sleep at night.", ChatFormatting.GRAY)), () -> AhoyMod.nextTick(() -> BunkMenu.open(viewer, ship)));
 
-		shipwright();
+		button(22, icon(Items.ANVIL, t("Shipwright", ChatFormatting.GOLD, ChatFormatting.BOLD),
+			t("Rigging " + Shipwright.roman(data.speedLevel) + " · " + holds + " holds" + (data.drillLevel > 0 ? " · canal drill" : ""), ChatFormatting.GRAY),
+			t("Refit for speed, cargo and a canal drill.", ChatFormatting.DARK_GRAY)), () -> AhoyMod.nextTick(() -> ShipwrightMenu.open(viewer, ship)));
+		if (data.drillLevel > 0 && command) {
+			button(20, icon(data.drillOn ? Items.DIAMOND_PICKAXE : Items.WOODEN_PICKAXE,
+				t("Canal drill: " + (data.drillOn ? "ON" : "off"), data.drillOn ? ChatFormatting.RED : ChatFormatting.GRAY, ChatFormatting.BOLD),
+				t(data.drillOn ? "The ship cuts through land and leaves a canal." : "Land stops the ship as usual.", ChatFormatting.GRAY),
+				t("Click to switch. Careful near your base!", ChatFormatting.YELLOW)), () -> {
+				data.drillOn = !data.drillOn;
+				render();
+			});
+		}
 
 		if (owner) {
 			button(21, icon(data.locked ? Items.IRON_BARS : Items.TRIPWIRE_HOOK,
@@ -159,13 +185,6 @@ final class ShipMenu extends ChestMenu {
 				});
 			});
 		}
-		if (ship.gunDeck != null) {
-			button(14, icon(Items.IRON_BLOCK, t("Gun deck", ChatFormatting.RED, ChatFormatting.BOLD),
-				t("Four gun ports: slot cannons in, man them.", ChatFormatting.GRAY),
-				t("Cannons: " + gunCount() + " / " + ShipData.GUNS, ChatFormatting.GRAY)), () -> AhoyMod.nextTick(() -> GunMenu.open(viewer, ship)));
-		}
-		button(16, icon(Items.BED.red(), t("Bunks", ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD),
-			t("Two berths on the foredeck: slot beds in, sleep at night.", ChatFormatting.GRAY)), () -> AhoyMod.nextTick(() -> BunkMenu.open(viewer, ship)));
 		button(26, icon(Items.BARRIER, t("Close", ChatFormatting.RED)), () -> AhoyMod.nextTick(viewer::closeContainer));
 		extraButtons();
 	}
@@ -190,42 +209,6 @@ final class ShipMenu extends ChestMenu {
 		}
 	}
 
-	/** Slot 22: the rigging level, and the next refit with its price. */
-	private void shipwright() {
-		ShipData data = ship.data;
-		int level = Shipwright.clamp(data.speedLevel);
-		Shipwright.Upgrade now = Shipwright.LEVELS.get(level);
-		Shipwright.Upgrade next = Shipwright.next(data);
-		int percent = (int) Math.round((Shipwright.factor(level) - 1) * 100);
-		List<Component> lore = new java.util.ArrayList<>();
-		lore.add(t("Now: " + now.name() + (level > 0 ? " (" + Shipwright.roman(level) + ", +" + percent + "% speed)" : ""), ChatFormatting.GRAY));
-		if (next == null) {
-			lore.add(t("Fully rigged. Nothing on the seven seas is faster.", ChatFormatting.GOLD));
-		} else {
-			int nextPercent = (int) Math.round((next.factor() - 1) * 100);
-			lore.add(t("Next: " + next.name() + " (+" + nextPercent + "% speed)", ChatFormatting.YELLOW));
-			lore.add(t(next.blurb(), ChatFormatting.DARK_GRAY));
-			for (Shipwright.Cost cost : next.costs()) {
-				int have = Shipwright.count(viewer, cost.item());
-				lore.add(t("  " + cost.count() + " × " + cost.name() + "  (you have " + have + ")",
-					have >= cost.count() || viewer.isCreative() ? ChatFormatting.GREEN : ChatFormatting.RED));
-			}
-			lore.add(t(ship.isOwner(viewer) || viewer.isCreative() ? "Click to refit." : "Only the captain can refit.", ChatFormatting.YELLOW));
-		}
-		button(22, icon(Items.ANVIL, t("Shipwright" + (level > 0 ? " · Rigging " + Shipwright.roman(level) : ""), ChatFormatting.GOLD, ChatFormatting.BOLD),
-			lore.toArray(new Component[0])), next == null ? null : () -> {
-			String why = Shipwright.upgrade(viewer, ship);
-			if (why != null) {
-				nope(why);
-				return;
-			}
-			Shipwright.Upgrade done = Shipwright.LEVELS.get(Shipwright.clamp(ship.data.speedLevel));
-			Cmd.sound(ship.level, "minecraft:block.anvil.use", viewer.getX(), viewer.getY(), viewer.getZ(), 0.8f, 1.1f);
-			viewer.sendSystemMessage(Component.literal("Refitted: " + done.name() + ". The " + ship.data.name + " is faster now!").withStyle(ChatFormatting.GOLD));
-			render();
-		});
-	}
-
 	private int gunCount() {
 		int n = 0;
 		for (int i = 0; i < ShipData.GUNS; i++) {
@@ -235,6 +218,9 @@ final class ShipMenu extends ChestMenu {
 	}
 
 	private void cargo(int bay) {
+		if (bay >= ship.data.holds().size()) {
+			return;
+		}
 		if (!ship.mayCommand(viewer)) {
 			nope("The cargo is locked by the captain.");
 			return;

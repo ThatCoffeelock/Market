@@ -148,6 +148,49 @@ final class SmokeTest {
 		check(why == null && ship.data.speedLevel == 1, "with 16 white wool and 8 string the ship gets Extra canvas (" + why + ")");
 		check(Shipwright.count(player, Items.WOOL.white()) == 0 && Shipwright.count(player, Items.STRING) == 0, "and the materials are used up");
 		check(Shipwright.factor(1) > 1.0 && Shipwright.factor(Shipwright.MAX_LEVEL) > Shipwright.factor(1), "each refit makes the ship faster");
+
+		// extra cargo: a third hold, that other mods (Warehouse, cannons) see too
+		check(ship.holds().size() == 2, "two holds to start with");
+		player.getInventory().add(new ItemStack(Items.CHEST, 8));
+		player.getInventory().add(new ItemStack(Items.IRON_INGOT, 16));
+		why = Shipwright.upgrade(player, ship, Shipwright.CARGO);
+		check(why == null && ship.data.cargoLevel == 1 && ship.holds().size() == 3, "the Extra hold refit adds Cargo C (" + why + ")");
+		ship.data.cargoC.setItem(5, new ItemStack(Items.EMERALD, 7));
+
+		// the canal drill: bought switched off
+		player.getInventory().add(new ItemStack(Items.DIAMOND_PICKAXE, 2));
+		player.getInventory().add(new ItemStack(Items.IRON_BLOCK, 8));
+		player.getInventory().add(new ItemStack(Items.REDSTONE_BLOCK, 4));
+		why = Shipwright.upgrade(player, ship, Shipwright.DRILL);
+		check(why == null && ship.data.drillLevel == 1 && !ship.drilling(), "the canal drill is fitted, switched off (" + why + ")");
+		canal(level);
+	}
+
+	/** Cuts a canal through a block of stone; a chest in the way is left alone and stops the drill. */
+	private static void canal(ServerLevel level) {
+		int water = (int) Math.floor(SURFACE - 0.5);
+		Cmd.run(level, "fill 28 " + (water - 3) + " -8 46 " + (water + 6) + " 8 minecraft:stone");
+		double x = 37;
+		check(!Ship.hullFits(level, SURFACE, x, 0, 0) || !Ship.afloat(level, SURFACE, x, 0, 0), "solid stone: no room for a ship");
+		Canal.Result result = Canal.dig(level, SURFACE, x, 0, 0);
+		check(result == Canal.Result.CUT, "the drill cuts into the stone (" + result + ")");
+		for (int i = 0; i < 4 && result == Canal.Result.CUT; i++) {
+			result = Canal.dig(level, SURFACE, x, 0, 0); // a big cut can take a few goes
+		}
+		check(Ship.hullFits(level, SURFACE, x, 0, 0) && Ship.afloat(level, SURFACE, x, 0, 0), "after the drill the ship fits and floats there");
+		BlockPos wet = BlockPos.containing(x, water, 0);
+		check(level.getBlockState(wet).is(Blocks.WATER) && level.getFluidState(wet).isSource(), "the canal is filled with still water");
+		check(level.getBlockState(wet.above(2)).isAir(), "with clear air above the water");
+		check(level.getBlockState(BlockPos.containing(x, water + 6, 0)).is(Blocks.STONE), "and the stone above the headroom is left alone");
+
+		// a chest where the canal would go
+		Cmd.run(level, "fill 28 " + (water - 3) + " -8 46 " + (water + 6) + " 8 minecraft:stone");
+		BlockPos chest = BlockPos.containing(x, water + 1, 0);
+		level.setBlockAndUpdate(chest, Blocks.CHEST.defaultBlockState());
+		Canal.dig(level, SURFACE, x, 0, 0);
+		check(level.getBlockState(chest).is(Blocks.CHEST), "the drill never cuts a chest");
+		check(!Ship.hullFits(level, SURFACE, x, 0, 0), "so the ship can't pass there");
+		Cmd.run(level, "fill 28 " + (water - 3) + " -8 46 " + (water + 6) + " 8 minecraft:air");
 	}
 
 	private static double portDistance(int port) {
@@ -246,6 +289,8 @@ final class SmokeTest {
 		check(CannonItems.isCannon(back.guns.getItem(0)), "the slotted cannon survives the bottle");
 		check(back.bunks.getItem(0).is(Items.BED.blue()), "the slotted bed survives the bottle");
 		check(back.speedLevel == 1, "the rigging upgrade survives the bottle (level " + back.speedLevel + ")");
+		check(back.cargoLevel == 1 && back.cargoC.getItem(5).is(Items.EMERALD) && back.cargoC.getItem(5).getCount() == 7, "the extra hold and its cargo survive the bottle");
+		check(back.drillLevel == 1 && !back.drillOn, "the drill survives the bottle, switched off");
 		AhoyMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
 	}
 
