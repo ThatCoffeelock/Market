@@ -1,0 +1,28 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"PCP",
+		"CTC",
+		"PCP"
+	],
+	"key": {
+		"P": "minecraft:paper",
+		"C": "minecraft:copper_ingot",
+		"T": "minecraft:crafting_table"
+	},
+	"result": {
+		"id": "minecraft:fletching_table",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"bounty_station": true},
+			"minecraft:item_name": {"text": "Bounty Station", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Place it, then right-click it to sell", "color": "gray", "italic": false},
+				{"text": "illager trophies and take on contracts.", "color": "gray", "italic": false},
+				{"text": "Wanted: dead, not alive.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

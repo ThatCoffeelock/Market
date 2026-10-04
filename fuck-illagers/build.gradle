@@ -1,0 +1,53 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = "${project.mod_version}+mc${project.minecraft_version}"
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	// The Market mod (built from the repo root first): its bank pays out bounties and trophies.
+	implementation fileTree(dir: '../build/libs', include: 'market-*.jar', exclude: '*-sources.jar')
+}
+
+loom {
+	runs {
+		// Boots a real dedicated server with the mod, runs the bounty self-checks, then shuts down.
+		smoke {
+			server()
+			name = "Fuck Illagers Smoke Test"
+			vmArg "-Dfuckillagers.smokeTest=true"
+			programArg "nogui"
+			runDir = "run/smoke"
+		}
+	}
+}
+
+processResources {
+	inputs.property "version", project.mod_version
+	inputs.property "minecraft_version", project.minecraft_version
+	inputs.property "loader_version", project.loader_version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.mod_version,
+			"minecraft_version": project.minecraft_version,
+			"loader_version": project.loader_version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}

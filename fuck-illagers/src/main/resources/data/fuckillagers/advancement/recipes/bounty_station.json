@@ -1,0 +1,15 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_copper": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:copper_ingot"}]}
+		},
+		"has_paper": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:paper"}]}
+		}
+	},
+	"requirements": [["has_copper", "has_paper"]],
+	"rewards": {"recipes": ["fuckillagers:bounty_station"]}
+}

@@ -29,6 +29,7 @@ def bundled = [
 	skills     : '../skills',
 	hamlets    : '../hamlets',
 	overenchant: '../overenchant',
+	fuckillagers: '../fuck-illagers',
 ]
 
 def here = projectDir

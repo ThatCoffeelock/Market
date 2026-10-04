@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "fuckillagers",
+	"version": "${version}",
+	"name": "Fuck Illagers",
+	"description": "Bounty hunting: illagers drop fingers you sell at a Bounty Station, and the station posts contracts on named illager bosses 1000-2000 blocks away, in wagons, towers, camps, fortresses, dungeons and castles. Bring back the skull for the reward in Marks. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.fuckillagers.FuckIllagersMod"]
+	},
+	"mixins": ["fuckillagers.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*",
+		"market": ">=1.0.0"
+	}
+}
