@@ -73,7 +73,7 @@ final class Showcases {
 			return lines;
 		}
 		Relic relic = RichesItems.relicOf(s.item);
-		lines.add(new String[] {clean(s.item.getHoverName().getString()), relic != null ? relic.collection.color.getName() : "gold", "b"});
+		lines.add(new String[] {clean(s.item.getHoverName().getString()), relic != null ? relic.collection.color.name().toLowerCase(java.util.Locale.ROOT) : "gold", "b"});
 		if (relic != null) {
 			lines.add(new String[] {clean("Relic · " + relic.collection.title), "gray", ""});
 		}
