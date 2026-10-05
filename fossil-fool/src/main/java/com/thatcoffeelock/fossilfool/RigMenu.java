@@ -93,7 +93,9 @@ final class RigMenu extends MachineMenu {
 
 		button(4, Gui.glow(Gui.icon(Items.PISTON, Gui.text("Drill Rig", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
 			Gui.text("Owner: " + (rig.ownerName.isEmpty() ? "nobody" : rig.ownerName), ChatFormatting.GRAY),
-			Gui.text("Row 2: firebox. Rows 3-4: ores. Rows 5-6: stone.", ChatFormatting.DARK_GRAY)))), null);
+			Gui.text("Row 2: firebox. Rows 3-4: ores. Rows 5-6: stone.", ChatFormatting.DARK_GRAY),
+			Gui.text("Hoppers around the shaft (on the ground or one up)", ChatFormatting.DARK_GRAY),
+			Gui.text("get the holds' contents: ores first, then stone.", ChatFormatting.DARK_GRAY)))), null);
 
 		button(5, Gui.icon(Items.COBBLESTONE, Gui.text("Keep stone: " + (rig.keepStone ? "ON" : "OFF"), rig.keepStone ? ChatFormatting.GREEN : ChatFormatting.RED,
 			ChatFormatting.BOLD), List.of(Gui.text(rig.keepStone ? "Stone, dirt and gravel go to the stone hold." : "Stone, dirt and gravel are thrown away.",

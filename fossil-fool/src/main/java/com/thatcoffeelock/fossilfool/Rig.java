@@ -205,6 +205,9 @@ final class Rig {
 		if (age % 100 == 0 && !(ores.isEmpty() && stone.isEmpty())) {
 			unload(level);
 		}
+		if (age % HOPPER_TICKS == 0 && !(ores.isEmpty() && stone.isEmpty())) {
+			feedHoppers(level);
+		}
 		if (!on) {
 			state = State.OFF;
 			return;
@@ -343,6 +346,97 @@ final class Rig {
 		cell = 0;
 		Store.changed();
 		showHead(level);
+	}
+
+	// ---------------------------------------------------------------- hoppers
+
+	/** How often the rig hands items to hoppers next to it, and how many per hopper each time. */
+	static final int HOPPER_TICKS = 8;
+	static final int HOPPER_BATCH = 8;
+	/** Hoppers count when they stand around the shaft, within this many blocks of its middle. */
+	static final int HOPPER_REACH = 4;
+
+	private final List<BlockPos> hoppers = new ArrayList<>();
+	private int hopperScan = -1;
+
+	/** Is this spot where a rig looks for output hoppers? Around the shaft (not over it), on the ground or one above. */
+	boolean isHopperSpot(BlockPos pos) {
+		int dx = Math.abs(pos.getX() - cx);
+		int dz = Math.abs(pos.getZ() - cz);
+		boolean overShaft = dx <= 2 && dz <= 2;
+		return !overShaft && dx <= HOPPER_REACH && dz <= HOPPER_REACH && (pos.getY() == top || pos.getY() == top + 1);
+	}
+
+	/**
+	 * Hands the holds' contents to hoppers standing around the shaft: ores first, then stone. The hoppers pass it on
+	 * the vanilla way, so a hopper line can carry it to a chest, a Cargo Train Pickup Station, anything.
+	 */
+	void feedHoppers(ServerLevel level) {
+		if (hopperScan < 0 || age - hopperScan >= 100) {
+			hopperScan = age;
+			hoppers.clear();
+			for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
+				for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
+					for (int y = top; y <= top + 1; y++) {
+						BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
+						if (isHopperSpot(pos) && level.isLoaded(pos) && isHopper(level, pos)) {
+							hoppers.add(pos);
+						}
+					}
+				}
+			}
+		}
+		for (BlockPos pos : hoppers) {
+			if (!(level.getBlockEntity(pos) instanceof Container hopper) || !isHopper(level, pos)) {
+				continue;
+			}
+			int budget = HOPPER_BATCH;
+			for (Container hold : holds()) {
+				budget -= move(hold, hopper, budget);
+				if (budget <= 0) {
+					break;
+				}
+			}
+		}
+	}
+
+	private static boolean isHopper(ServerLevel level, BlockPos pos) {
+		return BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock()).getPath().equals("hopper");
+	}
+
+	/** Moves up to n items from one container to another, filling existing stacks first. Returns how many moved. */
+	static int move(Container from, Container to, int n) {
+		int moved = 0;
+		for (int i = 0; i < from.getContainerSize() && moved < n; i++) {
+			ItemStack stack = from.getItem(i);
+			if (stack.isEmpty()) {
+				continue;
+			}
+			for (int pass = 0; pass < 2 && moved < n && !stack.isEmpty(); pass++) {
+				for (int j = 0; j < to.getContainerSize() && moved < n && !stack.isEmpty(); j++) {
+					ItemStack slot = to.getItem(j);
+					int max = Math.min(to.getMaxStackSize(), stack.getMaxStackSize());
+					if (pass == 0 && !slot.isEmpty() && ItemStack.isSameItemSameComponents(slot, stack) && slot.getCount() < max) {
+						int k = Math.min(Math.min(stack.getCount(), max - slot.getCount()), n - moved);
+						slot.grow(k);
+						stack.shrink(k);
+						moved += k;
+					} else if (pass == 1 && slot.isEmpty() && to.canPlaceItem(j, stack)) {
+						int k = Math.min(Math.min(stack.getCount(), max), n - moved);
+						to.setItem(j, stack.split(k));
+						moved += k;
+					}
+				}
+			}
+			if (stack.isEmpty()) {
+				from.setItem(i, ItemStack.EMPTY);
+			}
+		}
+		if (moved > 0) {
+			from.setChanged();
+			to.setChanged();
+		}
+		return moved;
 	}
 
 	/** Ores, ancient debris and raw ore blocks go to the ore hold. */

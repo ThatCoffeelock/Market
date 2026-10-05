@@ -27,6 +27,8 @@ final class SmokeTest {
 	private static final BlockPos LEAK = new BlockPos(3, 76, 0);
 	private static final BlockPos TANK = new BlockPos(5, 81, 0);
 	private static final BlockPos REFINERY = new BlockPos(5, 81, 4);
+	/** A hopper beside the derrick, one block above the ground, with a chest under it (the ring around the shaft). */
+	private static final BlockPos HOPPER = new BlockPos(-3, 81, 3);
 	private static final BlockPos HAND_POCKET = new BlockPos(20, 60, 20);
 
 	private SmokeTest() {
@@ -133,10 +135,27 @@ final class SmokeTest {
 					Pockets.Reading after = Pockets.dowse(level, RIG.above(), 48);
 					check(after == null || after.pocket().x() != POCKET.getX(), "a dry pocket doesn't twitch the rod");
 					rig.on = false;
-					refinery(server, level, tank, rig);
+					hoppers(server, level, tank, rig);
 				});
 			});
 		});
+	}
+
+	/** A hopper next to the derrick takes the holds' contents into a Pickup Station chest below it. */
+	private static void hoppers(MinecraftServer server, ServerLevel level, Tank tank, Rig rig) {
+		check(rig.isHopperSpot(HOPPER) && !rig.isHopperSpot(new BlockPos(0, 81, 0)) && !rig.isHopperSpot(HOPPER.above(2)),
+			"hoppers count around the shaft, not over it or up in the air");
+		Cmd.run(level, "setblock " + HOPPER.getX() + " " + (HOPPER.getY() - 1) + " " + HOPPER.getZ()
+			+ " minecraft:chest{CustomName:{text:\"Pickup Station\"}}");
+		Cmd.run(level, "setblock " + HOPPER.getX() + " " + HOPPER.getY() + " " + HOPPER.getZ() + " minecraft:hopper");
+		int ores = count(rig.ores, Items.RAW_IRON);
+		waitFor(server, "the rig feeds a hopper into a Pickup Station chest", 600,
+			() -> level.getBlockEntity(HOPPER.below()) instanceof Container chest && count(chest, Items.COBBLESTONE) >= 8, () -> {
+				Container chest = (Container) level.getBlockEntity(HOPPER.below());
+				check(count(chest, Items.RAW_IRON) + count((Container) level.getBlockEntity(HOPPER), Items.RAW_IRON) == ores,
+					"ores went down the hopper first");
+				refinery(server, level, tank, rig);
+			});
 	}
 
 	private static void refinery(MinecraftServer server, ServerLevel level, Tank tank, Rig rig) {

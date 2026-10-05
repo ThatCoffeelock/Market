@@ -273,10 +273,7 @@ final class Rigs {
 		if (hand != InteractionHand.MAIN_HAND) {
 			return InteractionResult.SUCCESS;
 		}
-		if (!rig.isOwner(player) && !player.isCreative()) {
-			player.sendSystemMessage(Component.literal("That's " + rig.ownerName + "'s Drill Rig. Go dig your own hole.").withStyle(ChatFormatting.RED));
-			return InteractionResult.SUCCESS;
-		}
+		// anyone may open a rig: feed it, empty it, switch it. Only packing it up is the owner's business.
 		RigMenu.open(player, rig, level);
 		return InteractionResult.SUCCESS;
 	}
