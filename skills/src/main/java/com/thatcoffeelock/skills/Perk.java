@@ -104,7 +104,7 @@ public enum Perk {
 
 	// Connoisseur
 	GREEN_LEAF(Skill.CONNOISSEUR, "Green Leaf", "fern", 0.06, "%s chance of double tobacco leaves"),
-	MASTER_ROLLER(Skill.CONNOISSEUR, "Master Roller", "paper", 0.06, "%s chance of a bonus cigar when rolling"),
+	MASTER_ROLLER(Skill.CONNOISSEUR, "Master Roller", "map", 0.06, "%s chance of a bonus cigar when rolling"),
 	IRON_LUNGS(Skill.CONNOISSEUR, "Iron Lungs", "campfire", 0.20, "-%s chance to cough");
 
 	public static final int MAX_RANK = 5;
