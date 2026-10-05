@@ -1,0 +1,46 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"GIG",
+		"ILI",
+		"GIG"
+	],
+	"key": {
+		"G": "minecraft:gold_block",
+		"I": "minecraft:iron_block",
+		"L": "minecraft:lodestone"
+	},
+	"result": {
+		"id": "minecraft:lodestone",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"riches": "vault_ledger"
+			},
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {
+				"text": "Vault Ledger",
+				"color": "gold"
+			},
+			"minecraft:lore": [
+				{
+					"text": "Put it on the floor of your vault.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Your Market balance piles up around it in gold.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Walk in. Wade around. You earned it.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}
