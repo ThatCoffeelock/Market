@@ -17,6 +17,8 @@ dependencies {
 	// Both are optional at runtime; Warehouse only talks to them when they're installed.
 	implementation fileTree(dir: '../ahoy/build/libs', include: 'ahoy-*.jar', exclude: '*-sources.jar')
 	implementation fileTree(dir: '../cargo-train/build/libs', include: 'cargo-train-*.jar', exclude: '*-sources.jar')
+	// Fossil Fool (also built first): Drill Rigs unload their ore and stone holds into warehouses nearby. Optional too.
+	implementation fileTree(dir: '../fossil-fool/build/libs', include: 'fossil-fool-*.jar', exclude: '*-sources.jar')
 }
 
 loom {

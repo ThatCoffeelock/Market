@@ -75,7 +75,12 @@ public enum Perk {
 	// Mercantile
 	HAGGLER(Skill.MERCANTILE, "Haggler", "gold_ingot", 0.02, "+%s Market sell prices"),
 	BULK_BUYER(Skill.MERCANTILE, "Bulk Buyer", "chest", 0.02, "-%s Market buy prices"),
-	SILVER_TONGUE(Skill.MERCANTILE, "Silver Tongue", "emerald", 0.05, "-%s villager trade prices");
+	SILVER_TONGUE(Skill.MERCANTILE, "Silver Tongue", "emerald", 0.05, "-%s villager trade prices"),
+
+	// Wildcatting
+	ROUGHNECK(Skill.WILDCATTING, "Roughneck", "iron_pickaxe", 0.06, "+%s Drill Rig speed"),
+	REFINER(Skill.WILDCATTING, "Refiner", "blast_furnace", 0.05, "%s chance of a bonus bucket of diesel"),
+	DOWSER(Skill.WILDCATTING, "Dowser", "stick", 8, "Your Dowsing Rod reaches %s blocks further");
 
 	public static final int MAX_RANK = 5;
 

@@ -16,6 +16,27 @@ final class SmokeTest {
 	private SmokeTest() {
 	}
 
+	/** Another mod (Fossil Fool, say) prices its own custom items through the shared hook list. */
+	@SuppressWarnings("unchecked")
+	private static void priceHooks() {
+		Object hooks = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get(PriceHooks.KEY);
+		check(hooks instanceof java.util.List<?>, "price hook list published");
+		java.util.function.Function<ItemStack, Long> hook = stack -> stack.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA)
+			&& stack.is(Items.PAPER) ? 2_500L : null;
+		var list = (java.util.List<java.util.function.Function<ItemStack, Long>>) hooks;
+		list.add(hook);
+		try {
+			ItemStack custom = new ItemStack(Items.PAPER, 3);
+			net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+			tag.putString("smoke", "oil");
+			custom.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
+			check(PriceBook.stackSellValue(custom) == 7_500, "a price hook prices another mod's item (3 x 25)");
+			check(PriceBook.stackSellValue(new ItemStack(Items.PAPER)) == PriceBook.unitSell(Items.PAPER), "plain paper keeps its own price");
+		} finally {
+			list.remove(hook);
+		}
+	}
+
 	static void run(MinecraftServer server) {
 		try {
 			check(PriceBook.listedCount() > 300, "price list loaded (" + PriceBook.listedCount() + " items)");
@@ -28,6 +49,7 @@ final class SmokeTest {
 			check(MarketItems.isMarketBlock(MarketItems.marketBlock()), "market block item round-trips");
 			check(MarketItems.banknoteValue(MarketItems.banknote(12_345)) == 12_345, "banknote round-trips");
 			check(MarketItems.vanityType(MarketItems.vanity(Vanity.Type.GOLD_PALLET)) == Vanity.Type.GOLD_PALLET, "vanity item round-trips");
+			priceHooks();
 
 			// every buyable item must cost more than the market pays for it
 			int buyable = 0;

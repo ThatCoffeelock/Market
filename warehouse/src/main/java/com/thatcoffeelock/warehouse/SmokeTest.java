@@ -191,6 +191,18 @@ final class SmokeTest {
 		if (WarehouseMod.ahoy()) {
 			check(AhoyLink.nearestShip(level, DOCK, null) == null, "no ship is moored at the dock (yet)");
 		}
+		if (WarehouseMod.fossil()) {
+			// a Fossil Fool Drill Rig next to the warehouse sends its ore and stone holds onto the shelves
+			SimpleContainer ores = new SimpleContainer(18);
+			ores.setItem(0, new ItemStack(Items.RAW_IRON, 12));
+			SimpleContainer stone = new SimpleContainer(18);
+			stone.setItem(3, new ItemStack(Items.COBBLED_DEEPSLATE, 40));
+			long moved = com.thatcoffeelock.fossilfool.FossilFoolApi.unload(level, w.pos.offset(4, 0, 4), List.of(ores, stone));
+			check(moved == 52 && ores.isEmpty() && stone.isEmpty(), "a Drill Rig nearby unloads both holds (" + moved + ")");
+			check(w.count(key(Items.RAW_IRON)) == 12 && w.count(key(Items.COBBLED_DEEPSLATE)) == 40, "ore and stone went onto the shelves");
+		} else {
+			WarehouseMod.LOG.info("[smoke] Fossil Fool isn't loaded; skipping the drill rig checks");
+		}
 
 		Warehouses.labels();
 		then(level, 5, () -> labelled(level));

@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  */
 final class SkillsMenu extends ChestMenu {
 	private static final int SIZE = 54;
-	private static final int[] SKILL_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24};
+	private static final int[] SKILL_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25};
 	private static final int[] PERK_ROWS = {2, 3, 4};
 
 	private final ServerPlayer viewer;

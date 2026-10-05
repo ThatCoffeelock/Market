@@ -2,7 +2,7 @@
 
 A Fabric mod for Minecraft **26.3** that adds an **Elder Scrolls style skill system**: you get better at things by doing them.
 
-- **13 skills**, from Combat and Mining to Sailing and Mercantile. Each levels **0 to 100** as you use it.
+- **14 skills**, from Combat and Mining to Sailing, Mercantile and Wildcatting. Each levels **0 to 100** as you use it.
 - **Every level gives a small passive bonus.** Level 100 makes you about **twice as good** at that thing as a beginner. Demigod tier, not "the server blows up" tier.
 - **Every 10 levels you earn a perk point** for that skill. Each skill has **3 perks with 5 ranks each**: 15 ranks, but only 10 points. Pick what suits you.
 - **A long road.** Early levels come fast, then each level costs 4.5% more than the last. Level 50 is about 10% of the way to 100.
@@ -48,6 +48,7 @@ Admin commands (op level 2): `/skills admin setlevel <player> <skill> <level>`, 
 | **Blacksmithing** | Crafting and upgrading tools, weapons and armor | 25% chance gear takes no wear | **Tempered** +5% no-wear chance (max 50% total) · **Thrifty Smith** 8% material back · **Armorer** -3% damage in 3+ armor pieces |
 | **Brewing** | Potions brewed (the last player to open the stand) | 25% chance the ingredient isn't used up | **Thrifty Alchemist** +5% ingredient saving · **Potent** potions last +8% longer · **Iron Stomach** harmful effects end 10% faster |
 | **Mercantile** | Villager trades (8) and Market sales and purchases | +10% Market sell prices | **Haggler** +2% sell prices · **Bulk Buyer** -2% buy prices · **Silver Tongue** -5% villager prices |
+| **Wildcatting** | Fossil Fool: blocks your Drill Rig drills (0.4, ores 2), striking oil (50), buckets pumped or scooped (1), diesel refined (6), dowsing (0.5) | +25% fuel efficiency in Drill Rigs and Refineries | **Roughneck** +6% Drill Rig speed · **Refiner** 5% chance of a bonus bucket of diesel · **Dowser** Dowsing Rod reaches +8 blocks |
 
 Damage reductions from all perks together are capped at 60%. Market buy prices never drop below 1.25x what the market pays, so even a maxed merchant can't print money.
 
@@ -73,4 +74,5 @@ Skill progress is saved in `<world>/skills.json`. Player-placed blocks are remem
 - **Market**: Mercantile raises your sell prices and lowers your buy prices, and selling and buying gives Mercantile XP. Neither mod needs the other.
 - **Flintlock**: gun damage levels Marksmanship and gets its bonuses.
 - **Ahoy**: sailing the ship levels Sailing.
+- **Fossil Fool**: Wildcatting is the oil skill. Your Drill Rigs and Refineries earn it for you even while you're offline (the level-up message waits until you're back). Neither mod needs the other.
 - **Havana**: Green Thumb never replants potatoes while Havana is installed, so it can't mix up young tobacco plants.

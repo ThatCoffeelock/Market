@@ -7,7 +7,7 @@ A Fabric mod for Minecraft **26.3** that adds warehouses: big, sorted storage yo
 - **Sorted.** Category tabs (ores & minerals, food, gear, building blocks, everything else), sorting by stock or by name, and a search.
 - **As many warehouses as you like.** Every core is its own warehouse. A rack that touches two warehouses counts for neither, so building between them never quietly merges them.
 - **Specialist warehouses.** Make one take only food, another only ores. Docks send each kind of cargo to its specialist first.
-- **Fill it any way you like:** by hand, with hoppers, through an intake chest, with a [Cargo Train](../cargo-train/README.md), or from an [Ahoy](../ahoy/README.md) ship at a **Loading Dock**.
+- **Fill it any way you like:** by hand, with hoppers, through an intake chest, with a [Cargo Train](../cargo-train/README.md), from an [Ahoy](../ahoy/README.md) ship at a **Loading Dock**, or straight from a [Fossil Fool](../fossil-fool/README.md) **Drill Rig**.
 
 It's **server-side only**. Friends join with a plain vanilla client. The blocks are vanilla blocks (a cartography table, barrels and a lantern) and the screens are chest screens.
 
@@ -15,7 +15,7 @@ It's **server-side only**. Friends join with a plain vanilla client. The blocks 
 
 Put **Fabric API** and **`warehouse-<version>.jar`** in your server's `mods/` folder. Get the jar from the [warehouse-latest release](https://github.com/ThatCoffeelock/Market/releases/tag/warehouse-latest), or get everything at once with the [LIB Pack](../lib-pack/README.md).
 
-Ahoy and Cargo Train are optional. With them installed (version 1.1.0 or newer), ships and trains can unload into warehouses.
+Ahoy, Cargo Train and Fossil Fool are optional. With them installed (Ahoy and Cargo Train 1.1.0 or newer), ships, trains and drill rigs can unload into warehouses.
 
 ## Crafting
 
@@ -55,6 +55,7 @@ Rename the core in an anvil before you place it to name the warehouse. Ops can u
 | Hoppers | Point them into any counted Storage Rack. Its barrel gets emptied onto the shelves every second |
 | Chests | Name a chest or barrel **Warehouse Intake** and put it against the core or a rack. Emptied every second |
 | Trains | A Cargo Train **Drop-off Station** touching the core or a rack: the train unloads straight onto the shelves, no 27-slot limit |
+| Drill Rigs | A Fossil Fool **Drill Rig** with a warehouse core within 16 blocks unloads its ore and stone holds every few seconds. An ores-only warehouse gets the ores first |
 | Ships | Build a **Loading Dock** on your pier (see below) |
 
 ## Loading Docks

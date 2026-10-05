@@ -1,0 +1,32 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"BDB",
+		"PFP",
+		"LLL"
+	],
+	"key": {
+		"B": "minecraft:iron_block",
+		"D": "minecraft:diamond_block",
+		"P": "minecraft:piston",
+		"F": "minecraft:blast_furnace",
+		"L": "#minecraft:logs"
+	},
+	"result": {
+		"id": "minecraft:piston",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"fossilfool": "drill_rig"},
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {"text": "Drill Rig", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "A wooden derrick with a steam engine.", "color": "gray", "italic": false},
+				{"text": "Right-click the ground: it sinks a 5×5 shaft", "color": "gray", "italic": false},
+				{"text": "straight down, slowly, and strikes any oil it finds.", "color": "gray", "italic": false},
+				{"text": "Burns coal, lava, crude or diesel. Lots of it.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

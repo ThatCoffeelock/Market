@@ -1,0 +1,30 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"CUC",
+		"CFC",
+		"SSS"
+	],
+	"key": {
+		"C": "minecraft:copper_ingot",
+		"U": "minecraft:cauldron",
+		"F": "minecraft:blast_furnace",
+		"S": "minecraft:bricks"
+	},
+	"result": {
+		"id": "minecraft:blast_furnace",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"fossilfool": "refinery"},
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {"text": "Refinery", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "A copper-pot still for oil.", "color": "gray", "italic": false},
+				{"text": "Cooks 2 buckets of crude into 1 bucket of diesel.", "color": "gray", "italic": false},
+				{"text": "Needs fuel in its firebox, like everything else.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

@@ -9,7 +9,7 @@ A server-side Fabric mod for Minecraft **26.3** that adds an economy you can far
 
 It's **server-side only**. Players join with a plain vanilla client and don't need to install anything. The GUIs are chest screens, the Market block is a lectern with a glow, and the luxury items are built from vanilla display entities.
 
-> **Want all the mods?** The [LIB Pack](lib-pack/README.md) has Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets & Horrors, Overenchant and Fuck Illagers in one jar.
+> **Want all the mods?** The [LIB Pack](lib-pack/README.md) has Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets & Horrors, Overenchant, Fuck Illagers and Fossil Fool in one jar.
 
 ## Install (plug and play)
 
@@ -43,6 +43,7 @@ Admin commands (op level 2): `/market admin give|take|set <player> <amount>`, `/
 - **Buy price = sell price × `buyMarkup` (2.0) × rarity multiplier** (Common 1, Uncommon 1.5, Rare 2.5, Epic 4).
 - Emeralds aren't buyable by default. Otherwise villager trading halls would turn them into infinite money.
 - Creative-mode players can't sell, so nobody can spawn in diamonds and cash out.
+- Other mods can price their own custom items (Fossil Fool's buckets of crude and diesel, for example) through a shared price hook. Those prices are set in that mod's config.
 
 ## Config (`config/market.json`)
 

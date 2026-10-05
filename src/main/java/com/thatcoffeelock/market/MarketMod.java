@@ -26,6 +26,7 @@ public final class MarketMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		MarketConfig.load();
+		PriceHooks.publish();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(s -> {
 			server = s;

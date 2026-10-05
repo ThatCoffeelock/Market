@@ -29,6 +29,7 @@ public final class WarehouseMod implements ModInitializer {
 	private static int ticks;
 	private static boolean ahoy;
 	private static boolean train;
+	private static boolean fossil;
 
 	@Override
 	public void onInitialize() {
@@ -89,7 +90,16 @@ public final class WarehouseMod implements ModInitializer {
 				LOG.warn("This Cargo Train is too old to unload into warehouses; update it to 1.1.0 or newer", e);
 			}
 		}
-		LOG.info("Warehouse loaded. Stack it high{}{}.", ahoy ? ", ships welcome" : "", train ? ", trains welcome" : "");
+		if (FabricLoader.getInstance().isModLoaded("fossilfool")) {
+			try {
+				FossilLink.init();
+				fossil = true;
+			} catch (LinkageError e) {
+				LOG.warn("This Fossil Fool is too old to unload Drill Rigs into warehouses; update it", e);
+			}
+		}
+		LOG.info("Warehouse loaded. Stack it high{}{}{}.", ahoy ? ", ships welcome" : "", train ? ", trains welcome" : "",
+			fossil ? ", drill rigs welcome" : "");
 	}
 
 	/** Is Ahoy installed (and new enough for Loading Docks)? */
@@ -99,6 +109,10 @@ public final class WarehouseMod implements ModInitializer {
 
 	static boolean train() {
 		return train;
+	}
+
+	static boolean fossil() {
+		return fossil;
 	}
 
 	/** Runs a task at the end of the current server tick (used to switch screens safely). */

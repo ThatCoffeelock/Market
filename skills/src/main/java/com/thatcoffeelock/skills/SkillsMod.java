@@ -34,15 +34,18 @@ public final class SkillsMod implements ModInitializer {
 	public void onInitialize() {
 		SkillsConfig.load();
 		Trading.publish();
+		Wildcatting.publish();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			SkillsStore.load(server);
+			Wildcatting.start(server);
 			if (Boolean.getBoolean("skills.smokeTest")) {
 				SmokeTest.run(server);
 			}
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			SkillsStore.save();
+			Wildcatting.stop();
 			NEXT_TICK.clear();
 			LATER.clear();
 		});

@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "fossilfool",
+	"version": "${version}",
+	"name": "Fossil Fool",
+	"description": "Old-timey oil: dowse for hidden oil pockets, sink a 5x5 shaft with a fuel-guzzling Drill Rig, strike crude, store it in riveted tanks and refine it into diesel. Coal, lava, crude and diesel each burn better than the last. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.fossilfool.FossilFoolMod"]
+	},
+	"mixins": ["fossilfool.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"market": ">=1.1.0",
+		"skills": ">=1.1.0",
+		"warehouse": ">=1.1.0"
+	}
+}

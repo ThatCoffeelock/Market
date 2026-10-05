@@ -168,6 +168,10 @@ public final class PriceBook {
 		if (stack.isEmpty()) {
 			return -1;
 		}
+		Long hooked = PriceHooks.unitPrice(stack);
+		if (hooked != null) {
+			return hooked < 0 ? -1 : hooked * stack.getCount();
+		}
 		long note = MarketItems.banknoteValue(stack);
 		if (note > 0) {
 			return note * stack.getCount();

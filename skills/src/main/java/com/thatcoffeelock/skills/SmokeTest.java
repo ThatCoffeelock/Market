@@ -159,6 +159,21 @@ final class SmokeTest {
 		Object buy = FabricLoader.getInstance().getObjectShare().get(Trading.MARKET_BUY);
 		check(sell instanceof java.util.function.BiFunction && buy instanceof java.util.function.BiFunction, "Market hooks published");
 		log("market hooks");
+		Object bonus = FabricLoader.getInstance().getObjectShare().get(Wildcatting.BONUS);
+		Object xp = FabricLoader.getInstance().getObjectShare().get(Wildcatting.XP);
+		check(bonus instanceof java.util.function.BiFunction && xp instanceof java.util.function.BiConsumer, "Fossil Fool hooks published");
+		UUID oilman = UUID.fromString("00000000-0000-0000-0000-0000000011ee");
+		SkillsStore.Profile profile = SkillsStore.create(oilman, "Oilman");
+		profile.xp.put(Skill.WILDCATTING.id(), Skill.totalFor(40));
+		profile.perks.put(Perk.ROUGHNECK.id(), 2);
+		profile.perks.put(Perk.DOWSER.id(), 1);
+		var bonusFn = (java.util.function.BiFunction<UUID, String, Double>) bonus;
+		check(Math.abs(bonusFn.apply(oilman, "fuel") - 0.10) < 1e-9, "Wildcatting 40 burns fuel 10% better");
+		check(Math.abs(bonusFn.apply(oilman, "speed") - 0.12) < 1e-9 && bonusFn.apply(oilman, "dowse") == 8.0, "Roughneck 2, Dowser 1");
+		check(bonusFn.apply(UUID.randomUUID(), "fuel") == 0.0, "strangers get no bonus");
+		((java.util.function.BiConsumer<UUID, Double>) xp).accept(oilman, 500.0);
+		check(profile.xp(Skill.WILDCATTING) > Skill.totalFor(40), "offline owners still earn Wildcatting XP");
+		log("fossil fool hooks");
 	}
 
 	private static void store(MinecraftServer server) {
