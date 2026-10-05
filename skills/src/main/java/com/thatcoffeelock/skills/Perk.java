@@ -80,7 +80,32 @@ public enum Perk {
 	// Wildcatting
 	ROUGHNECK(Skill.WILDCATTING, "Roughneck", "iron_pickaxe", 0.06, "+%s Drill Rig speed"),
 	REFINER(Skill.WILDCATTING, "Refiner", "blast_furnace", 0.05, "%s chance of a bonus bucket of diesel"),
-	DOWSER(Skill.WILDCATTING, "Dowser", "stick", 8, "Your Dowsing Rod reaches %s blocks further");
+	DOWSER(Skill.WILDCATTING, "Dowser", "stick", 8, "Your Dowsing Rod reaches %s blocks further"),
+
+	// Treasure Hunting
+	RELIC_HUNTER(Skill.TREASURE_HUNTING, "Relic Hunter", "golden_helmet", 0.10, "+%s chance to find a Riches relic"),
+	GILDED_FIND(Skill.TREASURE_HUNTING, "Gilded Find", "gold_nugget", 0.05, "%s chance of hidden gold and emeralds in structure chests"),
+	PATRON(Skill.TREASURE_HUNTING, "Patron of the Arts", "item_frame", 0.10, "+%s Riches collection rewards"),
+
+	// Bounty Hunting
+	FENCE(Skill.BOUNTY_HUNTING, "Fence", "emerald", 0.06, "+%s for illager fingers at a Bounty Station"),
+	DEAD_OR_ALIVE(Skill.BOUNTY_HUNTING, "Dead or Alive", "skeleton_skull", 0.08, "+%s for contract skulls"),
+	ILLAGER_BANE(Skill.BOUNTY_HUNTING, "Illager Bane", "shield", 0.04, "-%s damage taken from illagers"),
+
+	// Artillery
+	GUNNERS_EYE(Skill.ARTILLERY, "Gunner's Eye", "spyglass", 0.04, "+%s cannonball range"),
+	POWDER_MONKEY(Skill.ARTILLERY, "Powder Monkey", "gunpowder", 0.06, "%s chance a shot doesn't use up a cannonball"),
+	BIG_BORE(Skill.ARTILLERY, "Big Bore", "fire_charge", 0.05, "+%s cannonball blast"),
+
+	// Governance
+	ARCHITECT(Skill.GOVERNANCE, "Architect", "bricks", 0.04, "-%s colony building and upgrade prices"),
+	TASKMASTER(Skill.GOVERNANCE, "Taskmaster", "barrel", 0.05, "+%s colony harvests"),
+	IRON_FIST(Skill.GOVERNANCE, "Iron Fist", "iron_bars", 0.10, "+%s prisoner ransoms and bounties"),
+
+	// Connoisseur
+	GREEN_LEAF(Skill.CONNOISSEUR, "Green Leaf", "fern", 0.06, "%s chance of double tobacco leaves"),
+	MASTER_ROLLER(Skill.CONNOISSEUR, "Master Roller", "paper", 0.06, "%s chance of a bonus cigar when rolling"),
+	IRON_LUNGS(Skill.CONNOISSEUR, "Iron Lungs", "campfire", 0.20, "-%s chance to cough");
 
 	public static final int MAX_RANK = 5;
 

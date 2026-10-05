@@ -53,7 +53,9 @@ final class Relics {
 		if (!available(relic)) {
 			return null;
 		}
-		if (!force && Math.random() >= relic.chance * c.relicChanceMultiplier) {
+		// Treasure Hunting (Skills mod): Relic Hunter makes every relic a bit likelier
+		double hunter = 1.0 + SkillsLink.bonus(player.getUUID(), "treasure_hunting/relic_hunter");
+		if (!force && Math.random() >= relic.chance * c.relicChanceMultiplier * hunter) {
 			return null;
 		}
 		found(relic, player);
@@ -73,6 +75,7 @@ final class Relics {
 
 	static void found(Relic relic, ServerPlayer player) {
 		record(relic, player.getUUID().toString(), player.getName().getString());
+		SkillsLink.xp(player.getUUID(), "treasure_hunting", 200);
 		int n = FOUND.size();
 		((ServerLevel) player.level()).getServer().getPlayerList().broadcastSystemMessage(Component.literal("★ ").withStyle(ChatFormatting.GOLD)
 			.append(Component.literal(player.getName().getString() + " found ").withStyle(ChatFormatting.YELLOW))
@@ -165,12 +168,16 @@ final class Relics {
 				continue;
 			}
 			Store.changed();
-			long reward = Bank.cents(RichesConfig.get().collectionReward);
+			UUID id;
 			try {
-				Bank.credit(UUID.fromString(owner), ownerName, reward);
+				id = UUID.fromString(owner);
 			} catch (IllegalArgumentException e) {
 				continue;
 			}
+			// Treasure Hunting (Skills mod): Patron of the Arts raises the reward
+			long reward = Math.round(Bank.cents(RichesConfig.get().collectionReward) * (1.0 + SkillsLink.bonus(id, "treasure_hunting/patron")));
+			Bank.credit(id, ownerName, reward);
+			SkillsLink.xp(id, "treasure_hunting", 500);
 			level.getServer().getPlayerList().broadcastSystemMessage(Component.literal("🏛 ").withStyle(ChatFormatting.GOLD)
 				.append(Component.literal(ownerName + " completed ").withStyle(ChatFormatting.YELLOW))
 				.append(Component.literal(c.title).withStyle(c.color, ChatFormatting.BOLD))

@@ -24,7 +24,14 @@ public final class Fighting {
 	/** Damage modifications done, for the smoke test (proves the LivingEntity mixin is live). */
 	static int calls;
 
+	/** What counts as an illager for Bounty Hunting (the ravager rides with them, so it counts too). */
+	static final java.util.Set<String> ILLAGERS = java.util.Set.of("pillager", "vindicator", "evoker", "illusioner", "ravager");
+
 	private Fighting() {
+	}
+
+	static boolean isIllager(Entity entity) {
+		return entity != null && ILLAGERS.contains(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).getPath());
 	}
 
 	private static boolean ranged(ServerPlayer attacker, DamageSource source) {
@@ -54,6 +61,9 @@ public final class Fighting {
 					bonus += Skills.perk(attacker, Perk.CAVALRY);
 				}
 			}
+			if (isIllager(victim)) {
+				bonus += Skills.passive(attacker, Skill.BOUNTY_HUNTING);
+			}
 			result *= (float) (1.0 + bonus);
 		}
 
@@ -61,6 +71,9 @@ public final class Fighting {
 		if (victim instanceof ServerPlayer player) {
 			if (source.getEntity() instanceof Mob) {
 				reduction += Skills.perk(player, Perk.THICK_SKIN);
+			}
+			if (isIllager(source.getEntity())) {
+				reduction += Skills.perk(player, Perk.ILLAGER_BANE);
 			}
 			if (source.is(DamageTypeTags.IS_DROWNING)) {
 				reduction += Skills.perk(player, Perk.SEA_LEGS);
@@ -144,6 +157,9 @@ public final class Fighting {
 
 	/** Butcher: animals you kill can drop their loot twice. The loot is copied right after it spawns. */
 	static void afterDeath(LivingEntity victim, DamageSource source) {
+		if (source.getEntity() instanceof ServerPlayer hunter && isIllager(victim)) {
+			Skills.award(hunter, Skill.BOUNTY_HUNTING, victim.getType() == net.minecraft.world.entity.EntityType.EVOKER ? 20 : 8);
+		}
 		if (!(source.getEntity() instanceof ServerPlayer killer) || victim.getType().getCategory() != MobCategory.CREATURE) {
 			return;
 		}

@@ -88,6 +88,8 @@ public final class Cannon {
 	@Nullable UUID gunner;
 
 	int reload;
+	/** How long the current reload takes in total (shorter with the Artillery skill). */
+	private int reloadTotal = RELOAD_TICKS;
 	private int recoil;
 	private int age;
 	private boolean lastJump;
@@ -275,7 +277,9 @@ public final class Cannon {
 			Cmd.sound(level, "minecraft:block.dispenser.fail", root.getX(), root.getY() + 1, root.getZ(), 0.6f, 1.4f);
 			return;
 		}
-		if (!player.isCreative() && !(crew != null ? crew.takeBall(player) : CannonItems.takeCannonball(player))) {
+		// Powder Monkey: sometimes the shot doesn't use up a ball
+		boolean free = player.isCreative() || SkillsLink.roll(player.getUUID(), "artillery/powder_monkey");
+		if (!free && !(crew != null ? crew.takeBall(player) : CannonItems.takeCannonball(player))) {
 			Cmd.sound(level, "minecraft:block.dispenser.fail", root.getX(), root.getY() + 1, root.getZ(), 0.8f, 0.8f);
 			player.sendSystemMessage(Component.literal("*click* Out of cannonballs. "
 				+ (crew != null ? "Put some in the cargo hold, or in your pockets." : "Craft some: 1 iron ingot + 1 gunpowder = 2 balls."))
@@ -293,10 +297,14 @@ public final class Cannon {
 		}
 		Vec3 dir = direction();
 		Vec3 muzzle = muzzle();
-		if (Cannonball.launch(level, muzzle, dir.scale(MUZZLE_SPEED), shooter) == null) {
+		java.util.UUID gunner = shooter instanceof ServerPlayer p ? p.getUUID() : null;
+		double speed = MUZZLE_SPEED * (1.0 + SkillsLink.bonus(gunner, "artillery/gunners_eye"));
+		if (Cannonball.launch(level, muzzle, dir.scale(speed), shooter) == null) {
 			return false;
 		}
-		reload = RELOAD_TICKS;
+		reloadTotal = Math.max(10, (int) Math.round(RELOAD_TICKS * (1.0 - SkillsLink.bonus(gunner, "artillery/passive"))));
+		reload = reloadTotal;
+		SkillsLink.xp(gunner, "artillery", 2);
 		recoil = 3;
 		sendBarrel(data.elevation, 0.35, 1);
 		Cmd.sound(level, "minecraft:entity.generic.explode", muzzle.x, muzzle.y, muzzle.z, 4.0f, 0.6f);
@@ -321,7 +329,7 @@ public final class Cannon {
 			line.append(Component.literal(String.valueOf(balls)).withStyle(balls > 0 ? ChatFormatting.WHITE : ChatFormatting.RED));
 		}
 		if (reload > 0) {
-			int done = (RELOAD_TICKS - reload) * 10 / RELOAD_TICKS;
+			int done = Math.max(0, (reloadTotal - reload) * 10 / reloadTotal);
 			line.append(Component.literal("   Reloading ").withStyle(ChatFormatting.GOLD))
 				.append(Component.literal("█".repeat(done)).withStyle(ChatFormatting.GOLD))
 				.append(Component.literal("█".repeat(10 - done)).withStyle(ChatFormatting.DARK_GRAY));

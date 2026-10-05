@@ -150,6 +150,13 @@ final class Crops {
 		}
 		boolean ripe = isRipe(level.getBlockState(base));
 		harvest(level, base, !player.isCreative());
+		if (ripe && !player.isCreative() && player instanceof ServerPlayer grower) {
+			SkillsLink.xp(grower.getUUID(), "connoisseur", 6);
+			// Green Leaf: a second helping of leaves
+			if (SkillsLink.roll(grower.getUUID(), "connoisseur/green_leaf")) {
+				Block.popResource(level, base, HavanaItems.leaf(3 + RANDOM.nextInt(3)));
+			}
+		}
 		if (!ripe && player instanceof ServerPlayer sp) {
 			sp.connection.send(new ClientboundSetActionBarTextPacket(
 				Component.literal("Not ripe yet. You get your seed back, impatient one.").withStyle(ChatFormatting.YELLOW)));

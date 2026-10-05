@@ -472,11 +472,17 @@ public final class Prison {
 		Cmd.sound(level, "minecraft:entity.player.attack.sweep", x, spot.getY(), z, 1f, 0.6f);
 		Cmd.particles(level, "minecraft:soul", x, spot.getY() + 1, z, 0.3, 0.02, 20);
 		Cmd.run(level, "kill " + p.id()); // gets through Invulnerable; no loot table, no weapons, so nothing drops
-		long bounty = Bank.cents(BOUNTY.getOrDefault(p.type(), 0.0));
+		long bounty = ironFist(b.colony, Bank.cents(BOUNTY.getOrDefault(p.type(), 0.0)));
 		if (bounty > 0) {
 			Bank.credit(b.colony.owner, b.colony.ownerName, bounty);
 		}
 		return bounty;
+	}
+
+	/** Governance (Skills mod): Iron Fist pays more for prisoners, and dealing with one is worth XP. */
+	static long ironFist(Colony colony, long cents) {
+		SkillsLink.xp(colony.owner, "governance", 25);
+		return Math.round(cents * (1.0 + SkillsLink.bonus(colony.owner, "governance/iron_fist")));
 	}
 
 	// ---------------------------------------------------------------- ransom
@@ -502,7 +508,7 @@ public final class Prison {
 		if (prisoner == null) {
 			return -1;
 		}
-		long paid = ransomValue(p.type(), daysHeld(p, level.getGameTime()));
+		long paid = ironFist(b.colony, ransomValue(p.type(), daysHeld(p, level.getGameTime())));
 		free(b, cell);
 		Cmd.sound(level, "minecraft:entity.evoker.celebrate", prisoner.getX(), prisoner.getY(), prisoner.getZ(), 1f, 1f);
 		Cmd.sound(level, "minecraft:block.iron_door.open", prisoner.getX(), prisoner.getY(), prisoner.getZ(), 1f, 0.8f);
@@ -578,7 +584,7 @@ public final class Prison {
 		prisoner.setYHeadRot(yaw);
 		prisoner.setCustomName(Component.literal(p.name()).withStyle(ChatFormatting.DARK_RED));
 		SHOWS.add(new Show(level, scaffold, p.id(), p.name(), p.type()));
-		long paid = Bank.cents(BOUNTY.getOrDefault(p.type(), 0.0) * publicFactor(scaffold.tier));
+		long paid = ironFist(b.colony, Bank.cents(BOUNTY.getOrDefault(p.type(), 0.0) * publicFactor(scaffold.tier)));
 		Bank.credit(b.colony.owner, b.colony.ownerName, paid);
 		level.getServer().getPlayerList().broadcastSystemMessage(Component.literal("Hear ye! ").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
 			.append(Component.literal(p.name() + " faces justice on the scaffold of " + b.colony.name + " ("

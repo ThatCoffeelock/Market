@@ -118,6 +118,12 @@ final class RollerMenu extends ChestMenu {
 		}
 		box.setChanged();
 		HavanaItems.give(viewer, plan.cigars().copy());
+		SkillsLink.xp(viewer.getUUID(), "connoisseur", 4.0 * plan.cigars().getCount());
+		// Master Roller: a little extra out of the same leaves
+		if (SkillsLink.roll(viewer.getUUID(), "connoisseur/master_roller")) {
+			HavanaItems.give(viewer, plan.cigars().copyWithCount(1));
+			viewer.sendSystemMessage(Component.literal("Master Roller: you squeeze an extra cigar out of the scraps.").withStyle(ChatFormatting.GOLD));
+		}
 		if (!plan.remainder().isEmpty()) {
 			HavanaItems.give(viewer, plan.remainder().copy());
 		}

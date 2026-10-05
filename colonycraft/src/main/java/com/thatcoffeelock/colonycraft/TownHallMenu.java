@@ -216,8 +216,13 @@ final class TownHallMenu extends ChestMenu {
 		}
 	}
 
+	/** Governance (Skills mod): Architect knocks a share off building and upgrade prices. */
+	private long architect(long price) {
+		return Math.round(price * (1.0 - SkillsLink.bonus(viewer.getUUID(), "governance/architect")));
+	}
+
 	private void shopButton(int slot, BuildingType type) {
-		long price = Bank.cents(type.price);
+		long price = architect(Bank.cents(type.price));
 		List<Component> lore = new ArrayList<>();
 		lore.add(money("Price: ", price));
 		lore.add(t(describe(type), ChatFormatting.GRAY));
@@ -305,7 +310,7 @@ final class TownHallMenu extends ChestMenu {
 
 		// upgrade
 		if (b.tier < BuildingType.MAX_TIER) {
-			long price = Bank.cents(b.type.upgradePrice(b.tier));
+			long price = architect(Bank.cents(b.type.upgradePrice(b.tier)));
 			String why = Colonies.whyNoUpgrade(b);
 			List<Component> lore = new ArrayList<>();
 			lore.add(money("Price: ", price));
@@ -399,6 +404,7 @@ final class TownHallMenu extends ChestMenu {
 			return;
 		}
 		Blueprints.give(viewer, Blueprints.of(type));
+		SkillsLink.xp(viewer.getUUID(), "governance", price / 100.0 / 20);
 		kaching();
 		viewer.sendSystemMessage(Component.literal("Bought: " + (type == BuildingType.TOWN_HALL ? "Colony Charter" : "Blueprint: " + type.displayName)
 			+ ". Right-click the ground to build it.").withStyle(ChatFormatting.GREEN));

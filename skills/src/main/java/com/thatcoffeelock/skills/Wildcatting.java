@@ -5,9 +5,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Wildcatting, the oil skill. The XP and the bonuses all happen inside Fossil Fool (drilling, pumping, refining,
@@ -21,8 +18,6 @@ final class Wildcatting {
 	/** (owner, xp) -> awards Wildcatting XP. */
 	static final String XP = "skills:wildcatting_xp";
 
-	private static @Nullable MinecraftServer server;
-
 	private Wildcatting() {
 	}
 
@@ -30,14 +25,6 @@ final class Wildcatting {
 		var share = FabricLoader.getInstance().getObjectShare();
 		share.put(BONUS, (BiFunction<UUID, String, Double>) Wildcatting::bonus);
 		share.put(XP, (BiConsumer<UUID, Double>) Wildcatting::xp);
-	}
-
-	static void start(MinecraftServer srv) {
-		server = srv;
-	}
-
-	static void stop() {
-		server = null;
 	}
 
 	static Double bonus(UUID player, String what) {
@@ -55,25 +42,8 @@ final class Wildcatting {
 	}
 
 	static void xp(UUID player, Double amount) {
-		if (player == null || amount == null || amount <= 0) {
-			return;
+		if (amount != null) {
+			SkillsApi.xp(player, Skill.WILDCATTING, amount);
 		}
-		ServerPlayer online = server == null ? null : server.getPlayerList().getPlayer(player);
-		if (online != null) {
-			Skills.award(online, Skill.WILDCATTING, amount);
-			return;
-		}
-		SkillsStore.Profile profile = SkillsStore.of(player);
-		if (profile == null) {
-			return;
-		}
-		double max = Skill.totalFor(Skill.MAX_LEVEL);
-		double before = profile.xp(Skill.WILDCATTING);
-		double gained = amount * SkillsConfig.get().multiplier(Skill.WILDCATTING);
-		if (gained <= 0 || before >= max) {
-			return;
-		}
-		profile.xp.put(Skill.WILDCATTING.id(), Math.min(max, before + gained));
-		SkillsStore.changed();
 	}
 }

@@ -35,17 +35,18 @@ public final class SkillsMod implements ModInitializer {
 		SkillsConfig.load();
 		Trading.publish();
 		Wildcatting.publish();
+		SkillsApi.publish();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			SkillsStore.load(server);
-			Wildcatting.start(server);
+			SkillsApi.start(server);
 			if (Boolean.getBoolean("skills.smokeTest")) {
 				SmokeTest.run(server);
 			}
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			SkillsStore.save();
-			Wildcatting.stop();
+			SkillsApi.stop();
 			NEXT_TICK.clear();
 			LATER.clear();
 		});
@@ -98,6 +99,7 @@ public final class SkillsMod implements ModInitializer {
 				if (Gathering.id(level.getBlockState(pos)).equals("brewing_stand")) {
 					Brewing.opened(level, pos, sp);
 				}
+				Treasure.opening(level, sp, pos);
 			}
 			return InteractionResult.PASS;
 		});

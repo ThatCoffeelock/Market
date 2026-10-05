@@ -242,22 +242,28 @@ final class Bounties {
 	/** Sells every finger and skull the player carries. Returns what it paid, in cents (0 if nothing to sell). */
 	static long sellAll(ServerPlayer player) {
 		Inventory inv = player.getInventory();
-		long total = 0;
+		long fingerTotal = 0;
+		long skullTotal = 0;
 		int fingers = 0;
 		int skulls = 0;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack stack = inv.getItem(i);
 			if (Trophies.isFinger(stack)) {
 				fingers += stack.getCount();
-				total += fingerPrice() * stack.getCount();
+				fingerTotal += fingerPrice() * stack.getCount();
 				inv.setItem(i, ItemStack.EMPTY);
 			} else if (Trophies.isSkull(stack)) {
 				skulls += stack.getCount();
-				total += Trophies.rewardOf(stack) * stack.getCount();
+				skullTotal += Trophies.rewardOf(stack) * stack.getCount();
 				inv.setItem(i, ItemStack.EMPTY);
 			}
 		}
+		// Bounty Hunting (Skills mod): Fence pays more for fingers, Dead or Alive more for skulls
+		java.util.UUID id = player.getUUID();
+		long total = Math.round(fingerTotal * (1.0 + SkillsLink.bonus(id, "bounty_hunting/fence")))
+			+ Math.round(skullTotal * (1.0 + SkillsLink.bonus(id, "bounty_hunting/dead_or_alive")));
 		if (total > 0) {
+			SkillsLink.xp(id, "bounty_hunting", 2.0 * fingers + skullTotal / 500.0);
 			MarketData.deposit(player, total);
 			MutableComponent msg = Component.literal("Sold " + fingers + (fingers == 1 ? " finger" : " fingers")).withStyle(ChatFormatting.GOLD);
 			if (skulls > 0) {

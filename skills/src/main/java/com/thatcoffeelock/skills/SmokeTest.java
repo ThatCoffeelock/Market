@@ -174,6 +174,29 @@ final class SmokeTest {
 		((java.util.function.BiConsumer<UUID, Double>) xp).accept(oilman, 500.0);
 		check(profile.xp(Skill.WILDCATTING) > Skill.totalFor(40), "offline owners still earn Wildcatting XP");
 		log("fossil fool hooks");
+
+		// the general skills API every other mod uses
+		Object apiBonus = FabricLoader.getInstance().getObjectShare().get(SkillsApi.BONUS);
+		Object apiXp = FabricLoader.getInstance().getObjectShare().get(SkillsApi.XP);
+		check(apiBonus instanceof java.util.function.BiFunction && apiXp instanceof java.util.function.BiConsumer, "skills API published");
+		var api = (java.util.function.BiFunction<UUID, String, Double>) apiBonus;
+		profile.xp.put(Skill.ARTILLERY.id(), Skill.totalFor(50));
+		profile.perks.put(Perk.POWDER_MONKEY.id(), 3);
+		check(Math.abs(api.apply(oilman, "artillery/passive") - 0.15) < 1e-9, "Artillery 50 reloads 15% faster");
+		check(Math.abs(api.apply(oilman, "artillery/powder_monkey") - 0.18) < 1e-9, "Powder Monkey 3 = 18%");
+		check(api.apply(oilman, "artillery/haggler") == 0.0 && api.apply(oilman, "nonsense") == 0.0, "wrong keys give nothing");
+		((java.util.function.BiConsumer<UUID, java.util.Map.Entry<String, Double>>) apiXp).accept(oilman, java.util.Map.entry("governance", 300.0));
+		check(profile.level(Skill.GOVERNANCE) >= 2, "offline Governance XP is banked");
+		check(Skill.values().length == 19 && Perk.values().length == 57, "19 skills, 57 perks");
+		for (Skill skill : Skill.values()) {
+			check(Perk.of(skill).size() == 3, skill.id() + " has 3 perks");
+		}
+		check(Fighting.ILLAGERS.contains("pillager") && Fighting.ILLAGERS.contains("evoker") && !Fighting.ILLAGERS.contains("zombie"),
+			"illagers are illagers, zombies aren't");
+		net.minecraft.world.SimpleContainer box = new net.minecraft.world.SimpleContainer(3);
+		box.setItem(1, new net.minecraft.world.item.ItemStack(Items.BREAD, 5));
+		check(Treasure.grow(box) && box.getItem(1).getCount() == 6, "Treasure Hunting's bonus item grows a stack");
+		log("skills API and the five new skills");
 	}
 
 	private static void store(MinecraftServer server) {

@@ -192,7 +192,14 @@ final class Cannonball {
 
 	private void explode(Vec3 at) {
 		remove();
-		level.explode(null, at.x, at.y, at.z, POWER, Level.ExplosionInteraction.NONE);
+		// Artillery XP for every mob caught in the blast, and Big Bore makes the blast bigger
+		if (shooter != null) {
+			int caught = level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+				new net.minecraft.world.phys.AABB(at.x - 4, at.y - 4, at.z - 4, at.x + 4, at.y + 4, at.z + 4)).size();
+			SkillsLink.xp(shooter, "artillery", 6.0 * caught);
+		}
+		float power = (float) (POWER * (1.0 + SkillsLink.bonus(shooter, "artillery/big_bore")));
+		level.explode(null, at.x, at.y, at.z, power, Level.ExplosionInteraction.NONE);
 	}
 
 	private void splash(Vec3 at) {

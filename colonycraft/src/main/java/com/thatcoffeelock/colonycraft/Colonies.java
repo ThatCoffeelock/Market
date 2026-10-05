@@ -960,7 +960,8 @@ public final class Colonies {
 	}
 
 	static void payday(Colony c) {
-		long wages = c.dailyWages();
+		// Governance (Skills mod): cheaper wages, and every payday is experience
+		long wages = Math.round(c.dailyWages() * (1.0 - SkillsLink.bonus(c.owner, "governance/passive")));
 		if (wages > 0 && !Bank.charge(c.owner, wages)) {
 			if (!c.striking && server != null) {
 				ServerPlayer owner = server.getPlayerList().getPlayer(c.owner);
@@ -974,6 +975,8 @@ public final class Colonies {
 			return;
 		}
 		c.striking = false;
+		SkillsLink.xp(c.owner, "governance", wages / 100.0 * 1.5);
+		double taskmaster = SkillsLink.bonus(c.owner, "governance/taskmaster");
 
 		List<Colony.Building> stores = new ArrayList<>();
 		for (Colony.Building b : c.buildings) {
@@ -984,6 +987,9 @@ public final class Colonies {
 		// gather
 		for (Colony.Building b : c.buildings) {
 			for (ItemStack stack : Production.gather(b.type, b.tier, b.alive(), RANDOM)) {
+				if (taskmaster > 0) {
+					stack.setCount(Math.min(stack.getMaxStackSize(), (int) Math.round(stack.getCount() * (1.0 + taskmaster))));
+				}
 				stow(stores, stack);
 			}
 		}

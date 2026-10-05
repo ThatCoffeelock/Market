@@ -6,7 +6,7 @@ import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The fourteen skills. Every level gives a small passive bonus ({@link #perLevel} percent per level, so level 100 is
+ * The nineteen skills. Every level gives a small passive bonus ({@link #perLevel} percent per level, so level 100 is
  * 100x that), and every 10 levels gives one perk point to spend in this skill's own perks. A maxed skill (passive +
  * all the perks you can afford) makes you roughly twice as good at that thing as an unskilled player.
  */
@@ -52,7 +52,22 @@ public enum Skill {
 		"+%s Market sell prices"),
 	WILDCATTING("Wildcatting", "bucket", ChatFormatting.DARK_RED, 0.25,
 		"Striking, pumping and refining oil, and drilling with a Drill Rig (Fossil Fool).",
-		"+%s fuel efficiency in Drill Rigs and Refineries");
+		"+%s fuel efficiency in Drill Rigs and Refineries"),
+	TREASURE_HUNTING("Treasure Hunting", "filled_map", ChatFormatting.YELLOW, 0.3,
+		"Opening structure chests nobody has opened yet, and finding Riches relics.",
+		"%s chance of a bonus item in unopened structure chests"),
+	BOUNTY_HUNTING("Bounty Hunting", "crossbow", ChatFormatting.DARK_RED, 0.3,
+		"Killing illagers, and selling fingers and skulls at a Bounty Station.",
+		"+%s damage against illagers"),
+	ARTILLERY("Artillery", "tnt", ChatFormatting.RED, 0.3,
+		"Firing cannons, and catching mobs in the blast.",
+		"%s faster cannon reloads"),
+	GOVERNANCE("Governance", "bell", ChatFormatting.GOLD, 0.2,
+		"Running a colony: paying wages, building, and dealing with prisoners.",
+		"-%s colony wages"),
+	CONNOISSEUR("Connoisseur", "brown_dye", ChatFormatting.DARK_GREEN, 0.5,
+		"Growing tobacco, rolling cigars and smoking them.",
+		"+%s cigar effect duration");
 
 	public static final int MAX_LEVEL = 100;
 	/** One perk point per this many levels: 10 points at level 100. */

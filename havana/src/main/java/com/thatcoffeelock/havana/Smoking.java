@@ -195,9 +195,11 @@ final class Smoking {
 		ServerLevel level = (ServerLevel) player.level();
 		ItemStack cigar = player.getItemInHand(hand);
 		String who = uuid.toString();
+		double longer = 1.0 + SkillsLink.bonus(uuid, "connoisseur/passive");
 		for (Effect effect : effects(cigar)) {
-			Cmd.effect(level, who, effect.id(), effect.seconds(), effect.amplifier());
+			Cmd.effect(level, who, effect.id(), (int) Math.round(effect.seconds() * longer), effect.amplifier());
 		}
+		SkillsLink.xp(uuid, "connoisseur", 1);
 		Vec3 tip = tip(player);
 		Cmd.particles(level, "minecraft:flame", tip.x, tip.y, tip.z, 0.01, 0.005, 1);
 		Cmd.run(level, "particle minecraft:campfire_cosy_smoke " + Cmd.pos(tip.x, tip.y + 0.1, tip.z) + " 0.05 0.05 0.05 0.008 2 force");
@@ -205,6 +207,10 @@ final class Smoking {
 		Cmd.sound(level, "minecraft:block.fire.extinguish", tip.x, tip.y, tip.z, 0.15f, 1.9f);
 		Cmd.sound(level, "minecraft:entity.player.breath", tip.x, tip.y, tip.z, 0.5f, 0.7f);
 
+		// Iron Lungs: sometimes you just don't cough
+		if (rush >= COUGH_AFTER - 1 && SkillsLink.roll(uuid, "connoisseur/iron_lungs")) {
+			rush = 0;
+		}
 		if (rush >= COUGH_AFTER - 1) {
 			rush = 0;
 			Cmd.effect(level, who, "nausea", 6, 0);
@@ -227,6 +233,7 @@ final class Smoking {
 		ServerLevel level = (ServerLevel) player.level();
 		boolean granReserva = HavanaItems.grade(cigar) == HavanaItems.Grade.AGED;
 		player.setItemInHand(hand, ItemStack.EMPTY);
+		SkillsLink.xp(player.getUUID(), "connoisseur", granReserva ? 10 : 5);
 		Cmd.sound(level, "minecraft:block.candle.extinguish", player.getX(), player.getEyeY(), player.getZ(), 1f, 0.8f);
 		Vec3 tip = tip(player);
 		Cmd.particles(level, "minecraft:ash", tip.x, tip.y, tip.z, 0.15, 0.02, 12);
