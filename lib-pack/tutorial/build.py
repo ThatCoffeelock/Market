@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.11.0"
+VERSION = "1.12.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -22,6 +22,9 @@ I = {
  "diamondblock": ("DiB", "#5fd8cf", "Block of Diamond", True), "piston": ("Pstn", "#9a7d4f", "Piston", False),
  "blastfurnace": ("BlF", "#4e4e55", "Blast Furnace", False), "cauldron": ("Cldn", "#3f3f44", "Cauldron", False),
  "bricks": ("Brk", "#a5533d", "Bricks", False), "stick": ("Stk", "#8a6a3a", "Stick", False),
+ "goldblock": ("AuB", "#f2c84b", "Block of Gold", True), "lodestone": ("Lode", "#77787d", "Lodestone", False),
+ "irondoor": ("Door", "#b8b8b8", "Iron Door", True), "goldnugget": ("AuN", "#f0cf5a", "Gold Nugget", True),
+ "quartzpillar": ("QzP", "#ece6dc", "Quartz Pillar", True),
 }
 
 def shaped(name, rows, key, out, count=None): return dict(name=name, rows=rows, key=key, out=out, count=count)
@@ -220,6 +223,21 @@ MODS = [
         "Broke into oil by hand? Right-click the black crude with an empty bucket. Mine it and it oozes away.",
         "Sell crude (₥25) and diesel (₥45) at the Market. Only the owner can pack a rig up. About one pocket in ten is a gusher."],
   cmds="/fossilfool"),
+ dict(name="Riches", colour="#b8860b", tag="Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics.",
+  recipes=[shaped("Vault Ledger", ["GIG","ILI","GIG"], dict(G="goldblock",I="ironblock",L="lodestone"), "Ldgr"),
+           shaped("Vault Door", ["III","IDI","III"], dict(I="iron",D="irondoor"), "Door"),
+           shaped("Display Case", ["GGG","GNG","GGG"], dict(G="glass",N="goldnugget"), "Case", 8),
+           shaped("Pedestal", [" N "," Q "," Q "], dict(N="goldnugget",Q="quartzpillar"), "Pdst", 2)],
+  steps=["Build a vault room with a clear floor and put the <b>Vault Ledger</b> in the middle.",
+         "Your <b>Market balance piles up around it in gold</b>: a scattering at ₥1,000, waist-deep at ₥100,000. Walk in and wade.",
+         "Hang a <b>Vault Door</b>. It opens only for you and the players you <code>/riches trust</code>, and swings shut by itself.",
+         "Right-click a <b>Display Case</b> or <b>Pedestal</b> with an item to put it on show under a brass plaque. Empty hand takes it back.",
+         "Hunt the <b>24 relics</b>: <code>/riches relics</code> shows who found what, and hints for the rest."],
+  tips=["Each relic exists <b>once per server</b>. Whoever finds it first has the only one. Don't drop it in lava.",
+        "Relics come from mobs a player kills (evokers, the Wither, glow squid…), mined blocks (ancient debris, deepslate…) and the first look in structure chests.",
+        "Show a whole collection of 6 in your own cases and the <b>Royal Society pays ₥5,000</b>.",
+        "Relics can't be sold to the Market. Trade them with players instead. Needs the Market mod (it's in the pack)."],
+  cmds="/riches · /riches relics · /riches trust"),
 ]
 
 def item(k, big=False):
@@ -312,7 +330,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Fifteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Sixteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>
