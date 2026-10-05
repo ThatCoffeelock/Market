@@ -165,6 +165,8 @@ final class SmokeTest {
 		// a structure chest still holding its loot table is spotted
 		Cmd.run(level, "setblock -8 101 0 minecraft:chest{LootTable:\"minecraft:chests/simple_dungeon\"}");
 		check(Relics.lootKey(level, CHEST).contains("simple_dungeon"), "an unopened loot chest is spotted (" + Relics.lootKey(level, CHEST) + ")");
+		// setblock skips a chest that's already a chest, so clear it first
+		Cmd.run(level, "setblock -8 101 0 minecraft:air");
 		Cmd.run(level, "setblock -8 101 0 minecraft:chest");
 		check(Relics.lootKey(level, CHEST).isEmpty(), "a plain chest isn't");
 		log("loot chests");
