@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.12.0"
+VERSION = "1.13.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -162,7 +162,7 @@ MODS = [
   cmds="/warehouse · /warehouse list"),
  dict(name="Skills", colour="#6a4fb3", tag="Elder Scrolls style skills: you get better at things by doing them.",
   recipes=[], getit="No recipe: just play. Type <code>/skills</code> to open the menu.",
-  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 14 skills, levels 0–100.",
+  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 19 skills, levels 0–100.",
          "Every level gives a small passive bonus. Level 100 is about twice as good as a beginner.",
          "Every 10 levels you earn a <b>perk point</b> for that skill. Open <code>/skills</code>, click the skill, click a perk.",
          "Each skill has 3 perks × 5 ranks but only 10 points, so choose."],
@@ -170,7 +170,7 @@ MODS = [
         "Blocks you placed yourself give no XP. No cheesing.",
         "Changed your mind? <b>Forget perks</b> on a skill page (costs 5 XP levels).",
         "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices.",
-        "<b>Wildcatting</b> levels from Fossil Fool's drilling, pumping and refining, even while you're offline: better fuel use, faster rigs, bonus diesel."],
+        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
   cmds="/skills · /skills top"),
  dict(name="Hamlets & Horrors", colour="#4f6b3a", tag="Random cottages, castles and dungeons. Some lived in by villagers, some overrun by monsters.",
   recipes=[], getit="Nothing to craft: they generate in <b>new, unexplored terrain</b>.",
