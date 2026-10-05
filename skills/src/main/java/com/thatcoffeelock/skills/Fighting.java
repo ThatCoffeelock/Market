@@ -158,7 +158,7 @@ public final class Fighting {
 	/** Butcher: animals you kill can drop their loot twice. The loot is copied right after it spawns. */
 	static void afterDeath(LivingEntity victim, DamageSource source) {
 		if (source.getEntity() instanceof ServerPlayer hunter && isIllager(victim)) {
-			Skills.award(hunter, Skill.BOUNTY_HUNTING, victim.getType() == net.minecraft.world.entity.EntityType.EVOKER ? 20 : 8);
+			Skills.award(hunter, Skill.BOUNTY_HUNTING, BuiltInRegistries.ENTITY_TYPE.getKey(victim.getType()).getPath().equals("evoker") ? 20 : 8);
 		}
 		if (!(source.getEntity() instanceof ServerPlayer killer) || victim.getType().getCategory() != MobCategory.CREATURE) {
 			return;
