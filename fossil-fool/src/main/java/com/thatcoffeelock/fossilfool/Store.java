@@ -73,8 +73,9 @@ final class Store {
 		}
 	}
 
+	/** Firebox and hold contents change through screens without telling us, so machines get saved every time. */
 	static void saveIfDirty() {
-		if (dirty) {
+		if (dirty || !Rigs.BY_ID.isEmpty() || !Machines.REFINERIES.isEmpty()) {
 			save();
 		}
 	}

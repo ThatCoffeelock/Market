@@ -88,6 +88,9 @@ final class Rig {
 		new Part("minecraft:polished_blackstone", -0.4, 0.35, -0.4, 0.8, 0.6, 0.8),
 		new Part("minecraft:gold_block", -0.2, 0.0, -0.2, 0.4, 0.35, 0.4));
 	static final double STRING_TOP = 6.35;
+	/** Which moving part a display is (see {@link FossilFoolMod#RIG_PART}): the drill string, then the head parts. */
+	static final int STRING_PART = 1;
+	static final int HEAD_PART = 2;
 
 	static final String ROOT_TAG = "fossilfool_rig";
 	static final String PART_TAG = "fossilfool_rig_part";
@@ -144,9 +147,6 @@ final class Rig {
 		this.top = top;
 		this.cz = cz;
 		this.layer = top;
-		firebox.addListener(c -> Store.changed());
-		ores.addListener(c -> Store.changed());
-		stone.addListener(c -> Store.changed());
 	}
 
 	BlockPos center() {
@@ -532,15 +532,12 @@ final class Rig {
 		}
 		shownLayer = layer;
 		for (Entity part : new ArrayList<>(root.getPassengers())) {
+			Integer which = part.getAttached(FossilFoolMod.RIG_PART);
 			String nbt = null;
-			if (part.getTags().contains(STRING_TAG)) {
+			if (which != null && which == STRING_PART) {
 				nbt = stringTransformation();
-			} else {
-				for (int i = 0; i < HEAD.size(); i++) {
-					if (part.getTags().contains(HEAD_TAG + i)) {
-						nbt = transformation(HEAD.get(i), headY());
-					}
-				}
+			} else if (which != null && which >= HEAD_PART && which - HEAD_PART < HEAD.size()) {
+				nbt = transformation(HEAD.get(which - HEAD_PART), headY());
 			}
 			if (nbt != null) {
 				Cmd.run(level, "data merge entity " + part.getUUID() + " {transformation:" + nbt + ",start_interpolation:0,interpolation_duration:20}");

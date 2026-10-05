@@ -78,6 +78,15 @@ final class Rigs {
 			return false;
 		}
 		root.setAttached(FossilFoolMod.RIG, rig.id);
+		// passengers come out in the order they were summoned: hitbox, frame, string, head
+		List<Entity> parts = root.getPassengers();
+		int string = 1 + Rig.FRAME.size();
+		if (string < parts.size()) {
+			parts.get(string).setAttached(FossilFoolMod.RIG_PART, Rig.STRING_PART);
+		}
+		for (int i = 0; i < Rig.HEAD.size() && string + 1 + i < parts.size(); i++) {
+			parts.get(string + 1 + i).setAttached(FossilFoolMod.RIG_PART, Rig.HEAD_PART + i);
+		}
 		PENDING.remove(root);
 		rig.root = root;
 		rig.missing = 0;

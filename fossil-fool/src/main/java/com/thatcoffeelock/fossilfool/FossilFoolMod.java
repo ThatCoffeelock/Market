@@ -33,6 +33,10 @@ public final class FossilFoolMod implements ModInitializer {
 	public static final AttachmentType<String> RIG = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "rig"), builder -> builder.persistent(Codec.STRING));
 
+	/** Marks the moving parts of a rig's model: 1 = the drill string, 2 and up = drill head parts. */
+	public static final AttachmentType<Integer> RIG_PART = AttachmentRegistry.create(
+		Identifier.fromNamespaceAndPath(MOD_ID, "rig_part"), builder -> builder.persistent(Codec.INT));
+
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();
 	private static int ticks;

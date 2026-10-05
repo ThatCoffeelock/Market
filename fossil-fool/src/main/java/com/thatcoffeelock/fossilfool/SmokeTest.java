@@ -242,7 +242,7 @@ final class SmokeTest {
 		check(!Pockets.isOil(level, HAND_POCKET), "a pocket is just rock until someone breaks in");
 		Pockets.Pocket p = Pockets.breach(level, HAND_POCKET.above(2), null);
 		check(p != null && Pockets.left(p) > 5 && Pockets.isOil(level, HAND_POCKET), "breaking in next to it turns it into crude");
-		check(level.getBlockState(HAND_POCKET).is(Blocks.BLACK_CONCRETE), "crude looks like crude");
+		check(Pockets.isCrudeBlock(level.getBlockState(HAND_POCKET)) && Pockets.crudeBlock() != Blocks.COAL_BLOCK, "crude looks like crude (black concrete)");
 		int before = Pockets.left(p);
 		check(Pockets.drain(level, HAND_POCKET.east()) && Pockets.left(p) == before - 1 && level.getBlockState(HAND_POCKET.east()).isAir(),
 			"a bucket takes one block of crude");

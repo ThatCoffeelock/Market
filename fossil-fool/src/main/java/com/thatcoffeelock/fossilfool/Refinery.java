@@ -53,7 +53,6 @@ final class Refinery {
 	Refinery(String dimension, BlockPos pos) {
 		this.dimension = dimension;
 		this.pos = pos;
-		firebox.addListener(c -> Store.changed());
 	}
 
 	static int capacity() {

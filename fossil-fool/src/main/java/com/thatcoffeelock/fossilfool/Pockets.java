@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -66,7 +67,29 @@ final class Pockets {
 	/** Oil block -> its pocket. */
 	private static final Map<Long, Long> OWNER = new HashMap<>();
 
+	private static @Nullable Block crude;
+
 	private Pockets() {
+	}
+
+	/** Crude in the ground is black concrete. Looked up by id: 26.3 doesn't have a field for every coloured block. */
+	static Block crudeBlock() {
+		if (crude == null) {
+			for (Block block : BuiltInRegistries.BLOCK) {
+				if (BuiltInRegistries.BLOCK.getKey(block).getPath().equals("black_concrete")
+					&& BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals("minecraft")) {
+					crude = block;
+				}
+			}
+			if (crude == null) {
+				crude = Blocks.COAL_BLOCK;
+			}
+		}
+		return crude;
+	}
+
+	static boolean isCrudeBlock(BlockState state) {
+		return state.is(crudeBlock());
 	}
 
 	static void clearCache() {
@@ -162,7 +185,7 @@ final class Pockets {
 		if (owner == null || !level.isLoaded(pos)) {
 			return false;
 		}
-		if (!level.getBlockState(pos).is(Blocks.BLACK_CONCRETE)) {
+		if (!isCrudeBlock(level.getBlockState(pos))) {
 			forget(pos.asLong());
 			return false;
 		}
@@ -214,7 +237,7 @@ final class Pockets {
 			if (!level.isLoaded(pos)) {
 				continue;
 			}
-			if (!level.getBlockState(pos).is(Blocks.BLACK_CONCRETE)) {
+			if (!isCrudeBlock(level.getBlockState(pos))) {
 				stale.add(l);
 				continue;
 			}
@@ -266,16 +289,16 @@ final class Pockets {
 	static int open(ServerLevel level, Pocket p, @Nullable BlockPos broken, @Nullable ServerPlayer by) {
 		Set<Long> set = new LinkedHashSet<>();
 		for (int bx = p.x() - p.rx(); bx <= p.x() + p.rx(); bx++) {
-			for (int by = p.y() - p.ry(); by <= p.y() + p.ry(); by++) {
+			for (int bY = p.y() - p.ry(); bY <= p.y() + p.ry(); bY++) {
 				for (int bz = p.z() - p.rz(); bz <= p.z() + p.rz(); bz++) {
-					if (!p.contains(bx, by, bz)) {
+					if (!p.contains(bx, bY, bz)) {
 						continue;
 					}
-					BlockPos at = new BlockPos(bx, by, bz);
+					BlockPos at = new BlockPos(bx, bY, bz);
 					if (at.equals(broken) || !level.isLoaded(at) || !soaks(level.getBlockState(at))) {
 						continue;
 					}
-					level.setBlock(at, Blocks.BLACK_CONCRETE.defaultBlockState(), 2);
+					level.setBlock(at, crudeBlock().defaultBlockState(), 2);
 					set.add(at.asLong());
 					OWNER.put(at.asLong(), p.key());
 				}
