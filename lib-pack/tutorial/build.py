@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.10.0"
+VERSION = "1.11.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -19,6 +19,9 @@ I = {
  "paper": ("Ppr", "#f2efe6", "Paper", True), "workbench": ("Wbn", "#9c6b3a", "Crafting Table", False), "nugget": ("Nug", "#d6d6d6", "Iron Nugget", True), "gravel": ("Grv", "#8a8580", "Gravel", False),
  "book": ("Book", "#7a3b2a", "Book", False), "carto": ("Map", "#7b5a3a", "Cartography Table", False), "lantern": ("Lntn", "#e0a33a", "Lantern", True),
  "lead": ("Lead", "#a58a5e", "Lead", False),
+ "diamondblock": ("DiB", "#5fd8cf", "Block of Diamond", True), "piston": ("Pstn", "#9a7d4f", "Piston", False),
+ "blastfurnace": ("BlF", "#4e4e55", "Blast Furnace", False), "cauldron": ("Cldn", "#3f3f44", "Cauldron", False),
+ "bricks": ("Brk", "#a5533d", "Bricks", False), "stick": ("Stk", "#8a6a3a", "Stick", False),
 }
 
 def shaped(name, rows, key, out, count=None): return dict(name=name, rows=rows, key=key, out=out, count=count)
@@ -150,19 +153,21 @@ MODS = [
          "Deposit: drop items on the stock, shift-click from your inventory, or click <b>Deposit your backpack</b>."],
   tips=["Hoppers into a rack, a chest named <b>Warehouse Intake</b>, or a train's Drop-off Station touching it all fill it automatically.",
         "A <b>Loading Dock</b> on your pier unloads Ahoy ships into nearby warehouses.",
+        "A Fossil Fool <b>Drill Rig</b> within 16 blocks of the core unloads its ore and stone onto the shelves by itself.",
         "Make specialist warehouses (food only, ores only) in Settings.",
         "Break the core to pack it up. The stock stays inside."],
   cmds="/warehouse · /warehouse list"),
  dict(name="Skills", colour="#6a4fb3", tag="Elder Scrolls style skills: you get better at things by doing them.",
   recipes=[], getit="No recipe: just play. Type <code>/skills</code> to open the menu.",
-  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 13 skills, levels 0–100.",
+  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 14 skills, levels 0–100.",
          "Every level gives a small passive bonus. Level 100 is about twice as good as a beginner.",
          "Every 10 levels you earn a <b>perk point</b> for that skill. Open <code>/skills</code>, click the skill, click a perk.",
          "Each skill has 3 perks × 5 ranks but only 10 points, so choose."],
   tips=["Vein Miner and Timber only work while you <b>sneak</b>.",
         "Blocks you placed yourself give no XP. No cheesing.",
         "Changed your mind? <b>Forget perks</b> on a skill page (costs 5 XP levels).",
-        "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices."],
+        "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices.",
+        "<b>Wildcatting</b> levels from Fossil Fool's drilling, pumping and refining, even while you're offline: better fuel use, faster rigs, bonus diesel."],
   cmds="/skills · /skills top"),
  dict(name="Hamlets & Horrors", colour="#4f6b3a", tag="Random cottages, castles and dungeons. Some lived in by villagers, some overrun by monsters.",
   recipes=[], getit="Nothing to craft: they generate in <b>new, unexplored terrain</b>.",
@@ -200,6 +205,21 @@ MODS = [
         "Raid farms count as illagers too. Your fingers, your call.",
         "Ops: <code>/bounty build castle</code> builds a hideout where you stand (for testing, no skull)."],
   cmds="/bounty"),
+ dict(name="Fossil Fool", colour="#3a3a3a", tag="Old-timey oil: dowse for it, sink a 5×5 shaft with a Drill Rig, strike crude, tank it, refine it into diesel and burn it.",
+  recipes=[shaped("Drill Rig", ["BDB","PFP","LLL"], dict(B="ironblock",D="diamondblock",P="piston",F="blastfurnace",L="log"), "Rig"),
+           shaped("Oil Tank", ["I I","IUI","III"], dict(I="iron",U="cauldron"), "Tank"),
+           shaped("Refinery", ["CUC","CFC","SSS"], dict(C="copper",U="cauldron",F="blastfurnace",S="bricks"), "Ref"),
+           shaped("Dowsing Rod", ["S S"," S "," G "], dict(S="stick",G="gold"), "Rod")],
+  steps=["Right-click with the <b>Dowsing Rod</b>. It twitches towards the nearest oil pocket: which way, how far, how deep. Walk until it points straight down.",
+         "Right-click the ground with the <b>Drill Rig</b>. It sinks a <b>5×5 shaft</b> centred on that block, one block at a time, all the way to bedrock.",
+         "Right-click the derrick (anyone can) and put fuel in the <b>firebox</b> (row 2). Ores land in rows 3–4, stone in rows 5–6.",
+         "When it hits a pocket: <b>STRUCK OIL!</b> It pumps the pocket dry into its tank and into any <b>Oil Tank</b> within 9 blocks, then keeps drilling.",
+         "Put a <b>Refinery</b> next to the tank. With fuel in its firebox, it turns 2 crude into 1 diesel and pipes the diesel back into an empty tank."],
+  tips=["Fuel ladder, each better than the last: <b>coal</b> 2 blocks (0.5× speed) → <b>lava</b> 40 (0.75×) → <b>crude</b> 60 (1×) → <b>diesel</b> 200 (1.5×). A full shaft is about 16 buckets of diesel.",
+        "<b>Hoppers</b> around the shaft (on the ground or one up) get the holds: ores first, then stone. Lead them into a Cargo Train <b>Pickup Station</b>.",
+        "Broke into oil by hand? Right-click the black crude with an empty bucket. Mine it and it oozes away.",
+        "Sell crude (₥25) and diesel (₥45) at the Market. Only the owner can pack a rig up. About one pocket in ten is a gusher."],
+  cmds="/fossilfool"),
 ]
 
 def item(k, big=False):
@@ -292,7 +312,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Fourteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Fifteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>
