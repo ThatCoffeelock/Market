@@ -1003,7 +1003,7 @@ public enum BuildingType {
 	 * hay, the compost and a few pumpkins and melons. Lanterns on the corner posts.
 	 */
 	private static void farm(Plan p) {
-		p.fillMix(-6, 0, -6, 6, 0, 6, "minecraft:coarse_dirt", "minecraft:rooted_dirt", "minecraft:grass_block");
+		p.fillMix(-6, 0, -6, 6, 0, 6, "minecraft:coarse_dirt", "minecraft:rooted_dirt", "minecraft:moss_block");
 		p.fill(0, 0, -6, 0, 0, 6, "minecraft:dirt_path");
 		p.fill(-6, 0, 0, 6, 0, 0, "minecraft:dirt_path");
 		field(p, -5, -5, "minecraft:wheat[age=7]", "minecraft:carrots[age=7]");
@@ -1055,10 +1055,9 @@ public enum BuildingType {
 		p.set(2, 1, 2, "minecraft:spruce_fence");
 		p.set(2, 2, 2, "minecraft:lantern[hanging=false]");
 		p.set(3, 1, 3, "minecraft:grindstone[face=floor,facing=north]");
-		// the gourds by the barn
-		p.set(-1, 1, 5, "minecraft:pumpkin");
-		p.set(-2, 1, 5, "minecraft:melon");
-		p.set(-1, 1, 4, "minecraft:melon");
+		// gourds in the barn (not on the fields: farmland under a solid block turns back into dirt)
+		p.set(2, 1, 3, "minecraft:pumpkin");
+		p.set(3, 1, 2, "minecraft:melon");
 	}
 
 	/**
@@ -1067,7 +1066,7 @@ public enum BuildingType {
 	 * spruce fence with log posts and lanterns round it all.
 	 */
 	private static void lumberCamp(Plan p) {
-		p.fillMix(-6, 0, -6, 6, 0, 6, "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:rooted_dirt", "minecraft:grass_block");
+		p.fillMix(-6, 0, -6, 6, 0, 6, "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:rooted_dirt", "minecraft:moss_block");
 		p.fill(0, 0, -6, 0, 0, 1, "minecraft:dirt_path");
 		p.fill(-1, 0, 1, 1, 0, 1, "minecraft:dirt_path");
 		for (int x = -6; x <= 6; x++) {
@@ -1528,7 +1527,7 @@ public enum BuildingType {
 	 * oak with louvred vents, wide doors, bales of leaves on the rafters and curing barrels inside.
 	 */
 	private static void tobaccoFarm(Plan p) {
-		p.fillMix(-6, 0, -6, 6, 0, 6, "minecraft:coarse_dirt", "minecraft:rooted_dirt", "minecraft:grass_block");
+		p.fillMix(-6, 0, -6, 6, 0, 6, "minecraft:coarse_dirt", "minecraft:rooted_dirt", "minecraft:moss_block");
 		for (int x = -5; x <= 5; x += 2) {
 			for (int z = -5; z <= -2; z++) {
 				p.set(x, 0, z, "minecraft:podzol");
