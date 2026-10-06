@@ -15,6 +15,11 @@ dependencies {
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	// The Market mod (built from the repo root first): its bank pays wages and buys what the storehouses auto-sell.
 	implementation fileTree(dir: '../build/libs', include: 'market-*.jar', exclude: '*-sources.jar')
+	// Optional mods it works with, only on the smoke test's server (CI builds them first; locally they're there if you
+	// built them, and Colonycraft runs without them too). Nothing of theirs ends up in the Colonycraft jar.
+	runtimeOnly fileTree(dir: '../warehouse/build/libs', include: 'warehouse-*.jar', exclude: '*-sources.jar')
+	runtimeOnly fileTree(dir: '../havana/build/libs', include: 'havana-*.jar', exclude: '*-sources.jar')
+	runtimeOnly fileTree(dir: '../burlap-sack/build/libs', include: 'burlap-sack-*.jar', exclude: '*-sources.jar')
 }
 
 loom {

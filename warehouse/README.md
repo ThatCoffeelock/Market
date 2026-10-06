@@ -7,6 +7,7 @@ A Fabric mod for Minecraft **26.3** that adds warehouses: big, sorted storage yo
 - **Sorted.** Category tabs (ores & minerals, food, gear, building blocks, everything else), sorting by stock or by name, and a search.
 - **As many warehouses as you like.** Every core is its own warehouse. A rack that touches two warehouses counts for neither, so building between them never quietly merges them.
 - **Specialist warehouses.** Make one take only food, another only ores. Docks send each kind of cargo to its specialist first.
+- **Networks.** Link warehouses to a central one: open every branch from the central warehouse, wherever it is, and let branches send their stock home.
 - **Fill it any way you like:** by hand, with hoppers, through an intake chest, with a [Cargo Train](../cargo-train/README.md), from an [Ahoy](../ahoy/README.md) ship at a **Loading Dock**, or straight from a [Fossil Fool](../fossil-fool/README.md) **Drill Rig**.
 
 It's **server-side only**. Friends join with a plain vanilla client. The blocks are vanilla blocks (a cartography table, barrels and a lantern) and the screens are chest screens.
@@ -58,6 +59,17 @@ Rename the core in an anvil before you place it to name the warehouse. Ops can u
 | Drill Rigs | A Fossil Fool **Drill Rig** with a warehouse core within 16 blocks unloads its ore and stone holds every few seconds. An ores-only warehouse gets the ores first |
 | Ships | Build a **Loading Dock** on your pier (see below) |
 
+## Networks
+
+Open a warehouse's **Settings** and click **Network: link to a central warehouse**, then pick one of your other warehouses. This one is now a **branch** of it.
+
+- The central warehouse's settings get a **Branches** button: click a branch to open its stock from right there, however far away it is (another island, another dimension).
+- A branch **sends everything it gets on to the central warehouse** every five seconds, as far as the central one has room and accepts it. Switch that off (left-click the Network button on the branch, or right-click the branch in the list) to keep the branch's stock where it is but still reach it from home.
+- Right-click the Network button on a branch to unlink it.
+- A central warehouse can't be a branch itself, so there are no loops. Stock is counted, not kept in chunks, so sending works while both ends are unloaded.
+
+[Colonycraft](../colonycraft/README.md) storehouses are warehouses too: link them to your home warehouse and the colonies' harvest comes home on its own.
+
 ## Loading Docks
 
 A **Loading Dock** serves every warehouse whose core is within 48 blocks of it. Sail an Ahoy ship within 16 blocks and the captain's menu gets a **Loading Dock** button. You can also right-click the dock itself.
@@ -69,5 +81,6 @@ A **Loading Dock** serves every warehouse whose core is within 48 blocks of it. 
 
 - If a rack is removed and the warehouse ends up over capacity, nothing is lost: it only lets things out until there's room again.
 - If a core disappears without being broken by a player (an explosion, a piston), it drops as a packed-up core on the spot, with the stock inside.
+- Other mods can build warehouses through the `warehouse:api` ObjectShare hook (see `WarehouseApi`): Colonycraft's storehouses and harbor dock use it.
 - Everything is saved in `<world>/warehouses.json`. Sizes and distances are in `config/warehouse.json`.
 - CI builds the mod, then boots a real server and builds two warehouses side by side. It checks that racks join the right one, that a rack between them is disputed and that a second core in the same building is refused. Then it fills them by hand, through an intake chest, a rack's barrel, a Cargo Train Drop-off Station and a Loading Dock (bread to the food warehouse, the rest to the general one), saves and reloads, packs a warehouse up and unpacks it somewhere else, and checks that a core that vanished drops its stock instead of losing it.

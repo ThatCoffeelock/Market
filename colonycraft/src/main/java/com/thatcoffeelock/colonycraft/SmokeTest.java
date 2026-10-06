@@ -263,7 +263,23 @@ final class SmokeTest {
 	/** The new buildings, a train at the station, wall stairs and a wall tower, and a villager out of a Burlap Sack. */
 	private static void newBuildings(ServerLevel level) {
 		Colony.Building store = find(BuildingType.STOREHOUSE);
-		store.storage.clearContent();
+		empty(store);
+		if (WarehouseLink.present()) {
+			// with the Warehouse mod, the storehouse is a real warehouse: a core and six racks at tier 2
+			String warehouse = Colonies.warehouseOf(store);
+			check(warehouse != null, "the storehouse is a warehouse");
+			Map<String, Object> info = WarehouseLink.info(warehouse);
+			check(Integer.valueOf(6).equals(info.get("racks")), "a tier 2 storehouse's warehouse counts six racks (" + info.get("racks") + ")");
+			check(info.get("capacity") instanceof Number n && n.longValue() > 20_000, "and has room for over 20,000 items (" + info.get("capacity") + ")");
+			Colonies.stow(List.of(store), new ItemStack(Items.BRICKS, 40));
+			check(count(store, Items.BRICKS) == 40 && store.storage.isEmpty(), "the colony's goods go onto the shelves, not into the old slots");
+			store.storage.setItem(0, new ItemStack(Items.FLINT, 9));
+			Colonies.migrate(store);
+			check(store.storage.isEmpty() && count(store, Items.FLINT) == 9, "what's left in the old slots moves onto the shelves");
+			empty(store);
+		} else {
+			ColonycraftMod.LOG.info("[smoke] Warehouse isn't loaded; skipping the warehouse checks");
+		}
 
 		Colony.Building fishery = Colonies.construct(level, colony, BuildingType.FISHERY, new BlockPos(-24, 99, 30), 0,
 			Bank.cents(BuildingType.FISHERY.price), true);
@@ -288,6 +304,7 @@ final class SmokeTest {
 		check(Colonies.whyNoUpgrade(station) != null, "a train station has only one tier");
 		Container dropBox = (Container) level.getBlockEntity(drop);
 		Container pickBox = (Container) level.getBlockEntity(pickup);
+		empty(store);
 		dropBox.setItem(0, new ItemStack(Items.IRON_INGOT, 20));
 		Colonies.stations();
 		check(dropBox.isEmpty() && count(store, Items.IRON_INGOT) == 20, "what a train drops off goes into the storehouse");
@@ -305,6 +322,11 @@ final class SmokeTest {
 		if (!HavanaLink.present()) {
 			check(!BuildingType.TOBACCO_FARM.available() && Production.tobacco(1, 2, new Random(7)).isEmpty(),
 				"without Havana, tobacco farms aren't for sale and grow nothing");
+		} else {
+			List<ItemStack> crop = Production.tobacco(3, 4, new Random(7));
+			check(BuildingType.TOBACCO_FARM.available() && crop.size() >= 3, "with Havana, a tier 3 tobacco farm brings in leaves, cured and aged tobacco ("
+				+ crop.size() + " stacks)");
+			check(crop.get(0).is(Items.PAPER) && crop.get(0).getCount() > 0, "and it's Havana's tobacco");
 		}
 
 		Colony.Building wallTower = Colonies.construct(level, colony, BuildingType.WALL_TOWER, new BlockPos(-8, 99, 48), 0,
@@ -341,6 +363,10 @@ final class SmokeTest {
 		Entity bob = level.getEntity(fishery.villagers.get(0));
 		check(bob != null && bob.getCustomName() != null && bob.getCustomName().getString().equals("Bob the Fisher"), "and is called Bob the Fisher");
 		check(!Colonies.hiresVillagers(BuildingType.BARRACKS), "iron golems don't come in sacks");
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("burlapsack")) {
+			ItemStack back = SackLink.emptySack();
+			check(back != null && !SackLink.isVillagerSack(back) && back.is(Items.BUNDLE), "Burlap Sack hands back an empty sack");
+		}
 	}
 
 	private static int countIn(Container box, Item item) {
@@ -557,19 +583,26 @@ final class SmokeTest {
 		throw new IllegalStateException("no " + type.id);
 	}
 
+	/** How many of the item a storehouse holds: on its warehouse shelves (with the Warehouse mod) and in its own slots. */
 	private static int count(Colony.Building store, Item item) {
-		int n = 0;
-		for (int i = 0; i < store.storage.getContainerSize(); i++) {
-			ItemStack stack = store.storage.getItem(i);
-			if (stack.is(item)) {
-				n += stack.getCount();
-			}
-		}
-		return n;
+		return (int) Colonies.count(List.of(store), item);
 	}
 
+	/** Empties a storehouse completely, warehouse and all. */
+	private static void empty(Colony.Building store) {
+		store.storage.clearContent();
+		String warehouse = Colonies.warehouseOf(store);
+		if (warehouse != null) {
+			for (Map.Entry<ItemStack, Long> e : WarehouseLink.stock(warehouse)) {
+				WarehouseLink.take(warehouse, e.getKey(), e.getValue());
+			}
+		}
+	}
+
+	/** Slots in use, or kinds of items on the shelves of its warehouse. */
 	private static int used(Colony.Building store) {
-		int n = 0;
+		String warehouse = Colonies.warehouseOf(store);
+		int n = warehouse == null ? 0 : WarehouseLink.stock(warehouse).size();
 		for (int i = 0; i < store.storage.getContainerSize(); i++) {
 			n += store.storage.getItem(i).isEmpty() ? 0 : 1;
 		}

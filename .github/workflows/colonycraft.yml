@@ -5,11 +5,17 @@ on:
     paths:
       - 'colonycraft/**'
       - 'src/**'
+      - 'warehouse/**'
+      - 'havana/**'
+      - 'burlap-sack/**'
       - '.github/workflows/colonycraft.yml'
   pull_request:
     paths:
       - 'colonycraft/**'
       - 'src/**'
+      - 'warehouse/**'
+      - 'havana/**'
+      - 'burlap-sack/**'
       - '.github/workflows/colonycraft.yml'
   workflow_dispatch:
 
@@ -37,6 +43,17 @@ jobs:
       - name: Build the Market mod (Colonycraft uses its bank)
         working-directory: .
         run: ./gradlew build
+
+      - name: Build Warehouse, Havana and Burlap Sack (the smoke test runs Colonycraft with them too)
+        working-directory: .
+        run: |
+          (cd cannon && ./gradlew build -x test)
+          (cd ahoy && ./gradlew build -x test)
+          (cd cargo-train && ./gradlew build -x test)
+          (cd fossil-fool && ./gradlew build -x test)
+          (cd warehouse && ./gradlew build -x test)
+          (cd havana && ./gradlew build -x test)
+          (cd burlap-sack && ./gradlew build -x test)
 
       - name: Build
         run: |

@@ -29,6 +29,10 @@ Get the jar from this repo's **Releases** page (the `havana-latest` pre-release 
 | **7. Light** | Right-click with the cigar while holding **flint and steel** (or a **fire charge**) in your other hand. Or right-click a lit campfire, a torch, a lantern, a lit candle or a fire with it |
 | **8. Smoke** | Right-click the lit cigar to take a puff. **8 puffs** per cigar; the durability bar shows how many are left |
 
+### Tobacco farms
+
+With [Colonycraft](../colonycraft/README.md), buy a **Tobacco Farm** at your Town Hall: planters bring in tobacco leaves every morning, and from tier 2 its curing barn cures (and at tier 3 ages) some of them for you.
+
 ### Curing Barrel
 
 Craft one from a **Barrel + Hay Bale** (any shape), or rename any **barrel, chest or trapped chest** in an anvil to something with **"Curing"** or **"Humidor"** in it.

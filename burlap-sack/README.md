@@ -38,6 +38,7 @@ Details:
 - **Iron golems** within 24 blocks go for you when you bag someone (not in creative).
 - **Grudge:** the captive charges *you* a bit more for a few in-game days. It fades on its own. Stockholm syndrome is included.
 - **Colonycraft workers** can't be bagged. Poaching staff from a colony is beneath you.
+- **Bringing staff to a colony** is fine, though: with [Colonycraft](../colonycraft/README.md), a villager in a sack fills an empty job at any colony building for free (the building's page at the Town Hall). You get the sack back.
 - The captive only exists inside the item. **If you drop the sack in lava, that's on you.**
 
 ## Commands
