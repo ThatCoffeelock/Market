@@ -48,6 +48,10 @@ final class Warehouse {
 	BlockPos pos;
 	/** Picked up: the stock waits inside the core item until it's placed again. */
 	boolean packed;
+	/** The central warehouse this one is a branch of ("" if none). A central warehouse can open its branches from anywhere. */
+	String central = "";
+	/** A branch that sends everything it gets on to its central warehouse. */
+	boolean forward;
 	final Map<Key, Long> items = new LinkedHashMap<>();
 	private long total;
 
@@ -106,6 +110,25 @@ final class Warehouse {
 		stack.shrink(n);
 		changed();
 		return n;
+	}
+
+	/** Takes up to n of this kind, as far as there's room and the filter allows. Returns how many went in. */
+	long put(Key key, long n) {
+		if (packed || !accepts(key.stack)) {
+			return 0;
+		}
+		long in = Math.min(Math.max(0, n), space());
+		if (in <= 0) {
+			return 0;
+		}
+		items.merge(key, in, Long::sum);
+		total += in;
+		changed();
+		return in;
+	}
+
+	boolean isBranch() {
+		return !central.isEmpty();
 	}
 
 	/** Puts back stock without any checks (loading from disk). */

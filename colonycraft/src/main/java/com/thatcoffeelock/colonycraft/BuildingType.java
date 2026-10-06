@@ -21,8 +21,9 @@ import org.jetbrains.annotations.Nullable;
  * placed it), y up with 0 being the floor, which replaces the ground layer. A building covers
  * x in [-half, half] and z in [-depth, depth]; most are square, walls are long and thin.
  *
- * Fortifications (walls, gatehouses, watchtowers) don't use a building slot, may touch each other
- * and are built in the colony's stone of their tier: cobblestone, then stone bricks, then deepslate.
+ * Fortifications (walls, wall stairs, wall towers, gatehouses, watchtowers) don't use a building slot, may touch
+ * each other and are built in the colony's stone of their tier: cobblestone, then stone bricks on a cobbled foot,
+ * then dressed stone bricks with chiseled trim.
  */
 public enum BuildingType {
 	TOWN_HALL("town_hall", "Town Hall", Items.BELL, 2500, 5, 5, 17, new int[] {1, 1, 1}, new int[] {2, 3, 4}, 3, false, BuildingType::townHall),
@@ -33,8 +34,14 @@ public enum BuildingType {
 	WORKSHOP("workshop", "Workshop", Items.CRAFTING_TABLE, 1500, 3, 3, 10, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::workshop),
 	STOREHOUSE("storehouse", "Storehouse", Items.BARREL, 500, 3, 3, 10, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 3, false, BuildingType::storehouse),
 	BARRACKS("barracks", "Barracks", Items.IRON_SWORD, 2000, 4, 4, 9, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 15, false, BuildingType::barracks),
+	FISHERY("fishery", "Fishery", Items.FISHING_ROD, 1000, 4, 4, 8, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::fishery),
+	TOBACCO_FARM("tobacco_farm", "Tobacco Farm", Items.FERN, 1200, 4, 4, 8, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::tobaccoFarm),
+	HARBOR_OFFICE("harbor_office", "Harbor Office", Items.OAK_BOAT, 2500, 4, 6, 15, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 4, false, BuildingType::harborOffice),
+	TRAIN_STATION("train_station", "Train Station", Items.RAIL, 1500, 5, 3, 6, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 3, false, BuildingType::trainStation),
 	WATCHTOWER("watchtower", "Watchtower", Items.CROSSBOW, 1800, 3, 3, 16, new int[] {1, 2, 3}, new int[] {1, 2, 3}, 10, true, BuildingType::watchtower),
 	WALL("wall", "Wall", Items.STONE_BRICK_WALL, 300, 4, 2, 8, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::wall),
+	WALL_STAIRS("wall_stairs", "Wall Stairs", Items.COBBLESTONE_STAIRS, 350, 4, 2, 8, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::wallStairs),
+	WALL_TOWER("wall_tower", "Wall Tower", Items.STONE_BRICKS, 800, 3, 3, 12, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::wallTower),
 	GATEHOUSE("gatehouse", "Gatehouse", Items.SPRUCE_FENCE_GATE, 1200, 3, 3, 9, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, true, BuildingType::gatehouse),
 	CELLBLOCK("cellblock", "Cellblock", Items.IRON_BARS, 2200, 5, 6, 18, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 5, false, BuildingType::cellblock),
 	SCAFFOLD("scaffold", "Scaffold", Items.WITHER_SKELETON_SKULL, 1200, 3, 3, 7, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, false, BuildingType::scaffold);
@@ -82,9 +89,30 @@ public enum BuildingType {
 		return housing[Math.max(1, Math.min(MAX_TIER, tier)) - 1];
 	}
 
-	/** Fortifications are rebuilt in better stone when upgraded, and the cellblock unbricks two more cells. */
+	/**
+	 * Fortifications are rebuilt in better stone when upgraded, the cellblock unbricks two more cells and the
+	 * storehouse gets more storage racks.
+	 */
 	public boolean rebuildsOnUpgrade() {
-		return fortification || this == CELLBLOCK;
+		return fortification || this == CELLBLOCK || this == STOREHOUSE;
+	}
+
+	/** The highest tier this building goes to. A train station is as good as it gets straight away. */
+	public int maxTier() {
+		return this == TRAIN_STATION ? 1 : MAX_TIER;
+	}
+
+	/**
+	 * Built at the water's edge: no complaint about water in the footprint, and the ground is only shored up under
+	 * what the design puts down, so a pier doesn't fill in the harbor.
+	 */
+	public boolean waterfront() {
+		return this == HARBOR_OFFICE || this == FISHERY;
+	}
+
+	/** Can it be bought here? The tobacco farm needs the Havana mod for its tobacco. */
+	public boolean available() {
+		return this != TOBACCO_FARM || HavanaLink.present();
 	}
 
 	/** Iron golems don't sleep. Everyone else needs a bed somewhere in the colony. */
@@ -140,9 +168,10 @@ public enum BuildingType {
 		return switch (this) {
 			case FARM -> new BlockPos(1, 1, 0);
 			case LUMBER_CAMP -> new BlockPos(0, 1, 1);
-			case RESIDENCE, MINE, WORKSHOP -> new BlockPos(0, 1, -1);
-			case BARRACKS -> new BlockPos(0, 1, -2);
-			case WALL -> new BlockPos(0, 6, 0);
+			case RESIDENCE, MINE, WORKSHOP, TRAIN_STATION -> new BlockPos(0, 1, -1);
+			case BARRACKS, FISHERY -> new BlockPos(0, 1, -2);
+			case HARBOR_OFFICE -> new BlockPos(0, 1, -3);
+			case WALL, WALL_STAIRS -> new BlockPos(0, 6, 0);
 			case SCAFFOLD -> SCAFFOLD_SPOT;
 			default -> new BlockPos(0, 1, 0);
 		};
@@ -190,6 +219,22 @@ public enum BuildingType {
 	public static BlockPos cellSpot(int cell) {
 		int[] c = CELLS[cell];
 		return new BlockPos(3 * c[0], 1, c[1] + 1);
+	}
+
+	/** The storehouse's Warehouse Core (a cartography table against the back wall). */
+	public static final BlockPos STORE_CORE = new BlockPos(0, 1, 2);
+	/** The storehouse's Storage Racks, in the order the tiers add them: 2, then 6, then 12. Each touches the core or an earlier rack. */
+	private static final BlockPos[] STORE_RACKS = {new BlockPos(-1, 1, 2), new BlockPos(1, 1, 2),
+		new BlockPos(-2, 1, 2), new BlockPos(2, 1, 2), new BlockPos(-1, 2, 2), new BlockPos(1, 2, 2),
+		new BlockPos(0, 2, 2), new BlockPos(-2, 2, 2), new BlockPos(2, 2, 2), new BlockPos(-2, 1, 1), new BlockPos(2, 1, 1), new BlockPos(0, 3, 2)};
+
+	/** How many storage racks a storehouse of this tier has: 2, 6, then 12. */
+	public static int racks(int tier) {
+		return tier <= 1 ? 2 : tier == 2 ? 6 : 12;
+	}
+
+	public static BlockPos rack(int index) {
+		return STORE_RACKS[index];
 	}
 
 	/** Where crew member number {@code index} belongs: archers at their post, everyone else at home. */
@@ -416,31 +461,6 @@ public enum BuildingType {
 		h ^= h >>> 15;
 		int roll = Math.floorMod(h, 100);
 		return roll < 24 ? alts[roll % alts.length] : base;
-	}
-
-	/** The stone a fortification of a given tier is built from. */
-	record Palette(String body, String[] weathered, String plinth, String quoin, String stairs, String wall, String floor, String wood) {
-		static Palette of(int tier) {
-			return switch (tier) {
-				case 1 -> new Palette("minecraft:cobblestone", new String[] {"minecraft:mossy_cobblestone"}, "minecraft:mossy_cobblestone",
-					"minecraft:stripped_spruce_log[axis=y]", "minecraft:cobblestone_stairs", "minecraft:cobblestone_wall",
-					"minecraft:spruce_planks", "spruce");
-				case 2 -> new Palette("minecraft:stone_bricks", new String[] {"minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks"},
-					"minecraft:polished_andesite", "minecraft:polished_andesite", "minecraft:stone_brick_stairs", "minecraft:stone_brick_wall",
-					"minecraft:smooth_stone", "spruce");
-				default -> new Palette("minecraft:deepslate_bricks", new String[] {"minecraft:cracked_deepslate_bricks", "minecraft:deepslate_tiles"},
-					"minecraft:polished_deepslate", "minecraft:polished_deepslate", "minecraft:deepslate_brick_stairs", "minecraft:deepslate_brick_wall",
-					"minecraft:polished_deepslate", "dark_oak");
-			};
-		}
-
-		String stone(int x, int y, int z) {
-			return mix(x, y, z, body, weathered);
-		}
-
-		String log() {
-			return "minecraft:" + wood + "_log[axis=y]";
-		}
 	}
 
 	private static final Map<String, BlockState> STATES = new HashMap<>();
@@ -1054,7 +1074,10 @@ public enum BuildingType {
 		p.set(2, 1, -1, "minecraft:stonecutter[facing=west]");
 	}
 
-	/** A brick warehouse with a stepped gable, a hayloft door, barrel portholes in the sides and crates inside. */
+	/**
+	 * A brick warehouse with a stepped gable, a hayloft door and barrel portholes in the sides. Inside, against the
+	 * back wall, a Warehouse Core (the cartography table) with its Storage Racks (barrels): more of them every tier.
+	 */
 	private static void storehouse(Plan p) {
 		p.fill(-3, 0, -3, 3, 0, 3, PLINTH);
 		p.fill(-2, 0, -2, 2, 0, 2, "minecraft:spruce_planks");
@@ -1088,17 +1111,16 @@ public enum BuildingType {
 		p.set(0, 6, -3, "minecraft:spruce_trapdoor[facing=north,half=bottom,open=true]");
 		p.set(0, 7, -3, TRIM);
 		p.set(0, 7, 3, "minecraft:glass_pane");
-		// inside: a tie beam with a lantern, hay, sacks of wool and stacked crates
+		// inside: a tie beam with a lantern, the warehouse core and its racks, a sack of wool by the door
 		p.fill(-2, 5, 0, 2, 5, 0, "minecraft:dark_oak_log[axis=x]");
 		p.set(0, 4, 0, "minecraft:lantern[hanging=true]");
-		p.set(-2, 1, 2, "minecraft:hay_block[axis=y]");
-		p.set(-2, 2, 2, "minecraft:white_carpet");
-		p.set(-2, 1, 1, "minecraft:white_wool");
-		p.set(-1, 1, 2, "minecraft:barrel[facing=up]");
-		p.set(2, 1, 2, "minecraft:barrel[facing=up]");
-		p.set(2, 2, 2, "minecraft:barrel[facing=up]");
-		p.set(2, 1, 1, "minecraft:barrel[facing=up]");
-		p.set(1, 1, 2, "minecraft:spruce_slab[type=bottom]");
+		p.set(STORE_CORE.getX(), STORE_CORE.getY(), STORE_CORE.getZ(), "minecraft:cartography_table");
+		for (int i = 0; i < racks(p.tier); i++) {
+			BlockPos r = STORE_RACKS[i];
+			p.set(r.getX(), r.getY(), r.getZ(), "minecraft:barrel[facing=up]");
+		}
+		p.set(-2, 1, -2, "minecraft:white_wool");
+		p.set(2, 1, -2, "minecraft:hay_block[axis=y]");
 	}
 
 	/** A brick guardhouse with sandstone battlements and a flag, behind a walled drill yard with a dummy and a target. */
@@ -1172,46 +1194,433 @@ public enum BuildingType {
 		p.set(3, 1, 0, "minecraft:water_cauldron[level=3]");
 	}
 
+
+	// ---------------------------------------------------------------- new colony buildings
+
 	/**
-	 * A stone tower: a door and a ladder inside, a bunk room at wall-walk height with openings on all four
-	 * sides (so walls run straight into it), a battlemented top for the archers and a pointed roof.
+	 * A fishery: a timber fish shack with a lean-to roof at the front, and out back a stone-edged basin split by a
+	 * boardwalk, with nets drying on the posts. Build it by the water if you like the look; the fish don't mind.
 	 */
-	private static void watchtower(Plan p) {
+	private static void fishery(Plan p) {
+		p.fillMix(-4, 0, -4, 4, 0, 4, "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:gravel");
+		// the basin and the boardwalk
+		p.fill(-4, 0, 0, 4, 0, 4, "minecraft:mud_bricks");
+		p.fill(-3, 0, 1, 3, 0, 3, "minecraft:water");
+		p.fill(0, 0, 0, 0, 0, 4, "minecraft:spruce_planks");
+		p.set(-2, 1, 2, "minecraft:lily_pad");
+		p.set(2, 1, 3, "minecraft:lily_pad");
+		p.set(0, 1, 4, "minecraft:spruce_fence");
+		p.set(0, 2, 4, "minecraft:lantern[hanging=false]");
+		// nets drying between posts along the sides
+		for (int x : new int[] {-4, 4}) {
+			p.fill(x, 1, 1, x, 2, 1, "minecraft:spruce_fence");
+			p.fill(x, 1, 3, x, 2, 3, "minecraft:spruce_fence");
+			p.set(x, 2, 2, "minecraft:cobweb");
+		}
+		// the shack: spruce planks between stripped log corners
+		p.fill(-3, 0, -4, 3, 0, -1, "minecraft:spruce_planks");
+		for (int y = 1; y <= 3; y++) {
+			p.rect(-3, -4, 3, -1, y, "minecraft:spruce_planks");
+			for (int[] c : new int[][] {{-3, -4}, {3, -4}, {-3, -1}, {3, -1}}) {
+				p.set(c[0], y, c[1], "minecraft:stripped_spruce_log[axis=y]");
+			}
+		}
+		p.door(-4, "spruce");
+		p.set(-2, 2, -4, "minecraft:glass_pane");
+		p.set(2, 2, -4, "minecraft:glass_pane");
+		p.set(-3, 2, -2, "minecraft:glass_pane");
+		p.set(3, 2, -2, "minecraft:glass_pane");
+		// a lean-to roof rising towards the back, the back wall and the sides filled up under it
+		for (int k = 0; k <= 3; k++) {
+			int z = -4 + k;
+			for (int x = -4; x <= 4; x++) {
+				p.stairs(x, 4 + k, z, "minecraft:spruce_stairs", "south", false);
+			}
+			for (int y = 4; y < 4 + k; y++) {
+				p.set(-3, y, z, "minecraft:spruce_planks");
+				p.set(3, y, z, "minecraft:spruce_planks");
+			}
+		}
+		p.fill(-2, 4, -1, 2, 6, -1, "minecraft:spruce_planks");
+		// inside: a fish barrel with a lamp, a smoker, a wash tub
+		p.set(-2, 1, -2, "minecraft:barrel[facing=up]");
+		p.set(-2, 2, -2, "minecraft:lantern[hanging=false]");
+		p.set(2, 1, -2, "minecraft:smoker[facing=south,lit=false]");
+		p.set(2, 1, -3, "minecraft:water_cauldron[level=3]");
+		// crates and kelp outside
+		p.set(4, 1, -3, "minecraft:barrel[facing=up]");
+		p.set(4, 1, -2, "minecraft:barrel[facing=up]");
+		p.set(-4, 1, -3, "minecraft:dried_kelp_block");
+	}
+
+	/**
+	 * A tobacco farm: four rows of tall leafy plants behind a fence, and a dark curing barn at the back with slatted
+	 * vents and bales on the rafters.
+	 */
+	private static void tobaccoFarm(Plan p) {
+		p.fillMix(-4, 0, -4, 4, 0, 4, "minecraft:coarse_dirt", "minecraft:rooted_dirt");
+		for (int x : new int[] {-3, -1, 1, 3}) {
+			for (int z = -3; z <= -1; z++) {
+				p.set(x, 0, z, "minecraft:podzol");
+				p.set(x, 1, z, "minecraft:large_fern[half=lower]");
+				p.set(x, 2, z, "minecraft:large_fern[half=upper]");
+			}
+		}
+		for (int x : new int[] {-2, 0, 2}) {
+			p.fill(x, 0, -4, x, 0, 0, "minecraft:dirt_path");
+		}
+		for (int x = -4; x <= 4; x++) {
+			p.set(x, 1, -4, x == 0 ? "minecraft:dark_oak_fence_gate[facing=south,open=false]" : "minecraft:dark_oak_fence");
+		}
+		for (int z = -3; z <= 0; z++) {
+			p.set(-4, 1, z, "minecraft:dark_oak_fence");
+			p.set(4, 1, z, "minecraft:dark_oak_fence");
+		}
+		p.set(-4, 2, -4, "minecraft:lantern[hanging=false]");
+		p.set(4, 2, -4, "minecraft:lantern[hanging=false]");
+		// the curing barn
+		p.fill(-4, 0, 1, 4, 0, 4, "minecraft:dark_oak_planks");
+		for (int y = 1; y <= 4; y++) {
+			p.rect(-4, 1, 4, 4, y, "minecraft:dark_oak_planks");
+			for (int[] c : new int[][] {{-4, 1}, {4, 1}, {-4, 4}, {4, 4}}) {
+				p.set(c[0], y, c[1], "minecraft:dark_oak_log[axis=y]");
+			}
+		}
+		for (int x : new int[] {-3, -2, 2, 3}) {
+			p.set(x, 3, 1, "minecraft:dark_oak_fence");
+			p.set(x, 3, 4, "minecraft:dark_oak_fence");
+		}
+		p.door(1, "dark_oak");
+		p.set(0, 3, 1, "minecraft:dark_oak_planks");
+		for (int x = -4; x <= 4; x++) {
+			p.stairs(x, 5, 1, "minecraft:dark_oak_stairs", "south", false);
+			p.stairs(x, 5, 4, "minecraft:dark_oak_stairs", "north", false);
+			p.stairs(x, 6, 2, "minecraft:dark_oak_stairs", "south", false);
+			p.stairs(x, 6, 3, "minecraft:dark_oak_stairs", "north", false);
+		}
+		p.fill(-4, 5, 2, -4, 5, 3, "minecraft:dark_oak_planks");
+		p.fill(4, 5, 2, 4, 5, 3, "minecraft:dark_oak_planks");
+		// inside: leaves drying on the rafters, curing barrels, the rolling bench
+		for (int x = -3; x <= 3; x += 2) {
+			p.set(x, 4, 2, "minecraft:hay_block[axis=z]");
+			p.set(x, 4, 3, "minecraft:hay_block[axis=z]");
+		}
+		p.set(-3, 1, 3, "minecraft:barrel[facing=up]");
+		p.set(3, 1, 3, "minecraft:barrel[facing=up]");
+		p.set(3, 2, 3, "minecraft:lantern[hanging=false]");
+		p.set(-3, 1, 2, "minecraft:crafting_table");
+	}
+
+	/** Where the harbor's Loading Dock stands: a lantern at the end of the pier. */
+	public static final BlockPos HARBOR_DOCK = new BlockPos(0, 1, 6);
+
+	/**
+	 * The harbor office: a brick customs house in the colony style at the front, and out of its back door a timber
+	 * pier with a Loading Dock lantern at the end, crates and a ship's bell. The pier is built over whatever is there,
+	 * water included; the water either side of it stays.
+	 */
+	private static void harborOffice(Plan p) {
+		p.fill(-4, 0, -6, 4, 0, -6, PAVING);
+		p.fill(-4, 0, -5, 4, 0, 0, PLINTH);
+		p.fill(-3, 0, -4, 3, 0, -1, "minecraft:dark_oak_planks");
+		for (int y = 1; y <= 6; y++) {
+			p.rect(-4, -5, 4, 0, y, y == 1 ? PLINTH : y == 6 ? TRIM : BRICK);
+		}
+		p.quoin(-4, -5, 1, 1, 2, 5);
+		p.quoin(4, -5, -1, 1, 2, 5);
+		p.quoin(-4, 0, 1, -1, 2, 5);
+		p.quoin(4, 0, -1, -1, 2, 5);
+		// the front: a door between pilasters, windows under lintels, lamps and hedges
+		p.fill(-1, 1, -5, -1, 4, -5, TRIM);
+		p.fill(1, 1, -5, 1, 4, -5, TRIM);
+		p.door(-5, "dark_oak");
+		p.set(0, 3, -5, "minecraft:glass_pane");
+		p.set(0, 4, -5, ACCENT);
+		p.windowX(-5, -3, -2, 2, 4);
+		p.windowX(-5, 2, 3, 2, 4);
+		p.windowZ(-4, -3, -2, 2, 4);
+		p.windowZ(4, -3, -2, 2, 4);
+		p.windowX(0, -3, -2, 2, 4);
+		p.windowX(0, 2, 3, 2, 4);
+		p.door(0, "dark_oak");
+		p.set(0, 3, 0, "minecraft:glass_pane");
+		for (int x : new int[] {-2, 2}) {
+			p.set(x, 1, -6, RAIL);
+			p.set(x, 2, -6, "minecraft:lantern[hanging=false]");
+		}
+		p.set(0, 0, -6, "minecraft:smooth_quartz");
+		for (int x : new int[] {-4, -3, 3, 4}) {
+			p.set(x, 1, -6, mix(x, 1, -6, "minecraft:azalea_leaves[persistent=true]", "minecraft:flowering_azalea_leaves[persistent=true]"));
+		}
+		// a mansard with dormers, a flagpole
+		p.fill(-3, 6, -4, 3, 6, -1, "minecraft:dark_oak_planks");
+		p.mansard(-4, -5, 4, 0, 7);
+		p.dormerX(-2, -4, 8);
+		p.dormerX(2, -4, 8);
+		p.dormerX(0, -1, 8);
+		p.fill(0, 13, -3, 0, 15, -3, "minecraft:dark_oak_fence");
+		p.fill(1, 14, -3, 2, 15, -3, "minecraft:blue_wool");
+		// the customs hall: a long counter, the harbor master's lectern, charts on the shelves
+		p.fill(-3, 1, -4, -3, 1, -1, "minecraft:dark_oak_slab[type=top]");
+		p.set(2, 1, -3, "minecraft:lectern[facing=west]");
+		p.fill(3, 1, -4, 3, 3, -4, "minecraft:bookshelf");
+		p.fill(3, 1, -1, 3, 2, -1, "minecraft:barrel[facing=up]");
+		p.fill(-1, 1, -4, 1, 1, -2, "minecraft:blue_carpet");
+		p.set(-2, 5, -3, "minecraft:lantern[hanging=true]");
+		p.set(2, 5, -3, "minecraft:lantern[hanging=true]");
+		// the pier: planks on posts, rails, crates, the bell, the Loading Dock at the end
+		p.fill(-2, 0, 1, 2, 0, 6, "minecraft:spruce_planks");
+		for (int z = 2; z <= 5; z++) {
+			p.set(-2, 1, z, z == 4 ? "minecraft:spruce_log[axis=y]" : "minecraft:spruce_fence");
+			p.set(2, 1, z, z == 4 ? "minecraft:spruce_log[axis=y]" : "minecraft:spruce_fence");
+		}
+		p.set(-2, 1, 1, "minecraft:barrel[facing=up]");
+		p.set(2, 1, 1, "minecraft:barrel[facing=up]");
+		p.set(2, 2, 1, "minecraft:barrel[facing=up]");
+		p.set(-2, 1, 6, "minecraft:spruce_log[axis=y]");
+		p.set(2, 1, 6, "minecraft:spruce_log[axis=y]");
+		p.set(-1, 1, 6, "minecraft:bell[attachment=floor,facing=east]");
+		p.set(HARBOR_DOCK.getX(), HARBOR_DOCK.getY(), HARBOR_DOCK.getZ(), "minecraft:lantern[hanging=false]");
+	}
+
+	/** The train station's Pickup Station (filled from the storehouses) and Drop-off Station (emptied into them). */
+	public static final BlockPos PICKUP = new BlockPos(-2, 1, 0);
+	public static final BlockPos DROP_OFF = new BlockPos(3, 1, 0);
+
+	/**
+	 * A train station: a straight line of track through the building from end to end (carry it on outside), a
+	 * platform under a slate canopy with benches and lamps, a little brick ticket office, and two station chests by
+	 * the track: a Pickup Station and a Drop-off Station.
+	 */
+	private static void trainStation(Plan p) {
+		p.fill(-5, 0, -3, 5, 0, 3, PAVING);
+		p.fill(-5, 0, 0, 5, 0, 0, "minecraft:smooth_stone");
+		p.fill(-5, 0, 1, 5, 0, 1, "minecraft:gravel");
+		p.fill(-5, 0, 2, 5, 0, 3, PLINTH);
+		p.fill(-5, 1, 1, 5, 1, 1, "minecraft:rail[shape=east_west]");
+		// the ticket office
+		for (int y = 1; y <= 3; y++) {
+			p.rect(-5, -3, -3, -1, y, y == 1 ? PLINTH : BRICK);
+		}
+		p.fill(-5, 1, -3, -5, 3, -3, TRIM);
+		p.fill(-3, 1, -3, -3, 3, -3, TRIM);
+		p.set(-3, 1, -2, "minecraft:dark_oak_door[facing=west,half=lower,hinge=left,open=false]");
+		p.set(-3, 2, -2, "minecraft:dark_oak_door[facing=west,half=upper,hinge=left,open=false]");
+		p.set(-4, 2, -3, "minecraft:glass_pane");
+		p.set(-4, 1, -2, "minecraft:barrel[facing=up]");
+		p.fill(-5, 4, -3, -3, 4, -1, SLATE_SLAB);
+		// the canopy: posts either side of the track, a slate roof, lamps and benches
+		for (int x : new int[] {-1, 2, 5}) {
+			p.fill(x, 1, -2, x, 3, -2, "minecraft:dark_oak_fence");
+			p.fill(x, 1, 3, x, 3, 3, "minecraft:dark_oak_fence");
+		}
+		p.fill(-2, 4, -3, 5, 4, 3, SLATE_SLAB);
+		p.set(0, 3, -1, "minecraft:lantern[hanging=true]");
+		p.set(4, 3, -1, "minecraft:lantern[hanging=true]");
+		p.stairs(3, 1, -2, "minecraft:dark_oak_stairs", "north", false);
+		p.stairs(4, 1, -2, "minecraft:dark_oak_stairs", "north", false);
+		p.stairs(0, 1, -2, "minecraft:dark_oak_stairs", "north", false);
+		for (int x = -5; x <= 5; x++) {
+			if (x != -1 && x != 2 && x != 5) {
+				p.set(x, 1, 3, mix(x, 1, 3, "minecraft:azalea_leaves[persistent=true]", "minecraft:flowering_azalea_leaves[persistent=true]"));
+			}
+		}
+		// the station chests (they get their names when the station opens)
+		p.set(PICKUP.getX(), PICKUP.getY(), PICKUP.getZ(), "minecraft:barrel[facing=up]");
+		p.set(DROP_OFF.getX(), DROP_OFF.getY(), DROP_OFF.getZ(), "minecraft:chest[facing=north]");
+	}
+
+	// ---------------------------------------------------------------- fortifications
+	// Generic medieval curtain walls: a rubble footing, coursed stone above, dressed quoins at the joints and a
+	// walkway behind a crenellated parapet. Tier 1 is cobblestone, tier 2 stone bricks on a cobbled foot, tier 3
+	// dressed stone bricks with chiseled trim. Every walkway floor is at y = WALK, so walls, gates and towers join up.
+
+	static final int WALK = 5;
+
+	/** The stone a fortification of a given tier is built from. */
+	record Palette(String body, String[] weathered, String foot, String[] footWeathered, String trim, String trimStairs, String trimSlab,
+		String stairs, String wall, String floor, String wood) {
+		static Palette of(int tier) {
+			String[] rubble = {"minecraft:mossy_cobblestone"};
+			return switch (tier) {
+				case 1 -> new Palette("minecraft:cobblestone", new String[] {"minecraft:mossy_cobblestone", "minecraft:andesite"},
+					"minecraft:cobblestone", rubble, "minecraft:stone_bricks", "minecraft:stone_brick_stairs", "minecraft:stone_brick_slab",
+					"minecraft:cobblestone_stairs", "minecraft:cobblestone_wall", "minecraft:cobblestone", "spruce");
+				case 2 -> new Palette("minecraft:stone_bricks", new String[] {"minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks"},
+					"minecraft:cobblestone", rubble, "minecraft:polished_andesite", "minecraft:polished_andesite_stairs",
+					"minecraft:polished_andesite_slab", "minecraft:stone_brick_stairs", "minecraft:stone_brick_wall", "minecraft:stone_bricks", "spruce");
+				default -> new Palette("minecraft:stone_bricks", new String[] {"minecraft:cracked_stone_bricks"},
+					"minecraft:cobblestone", rubble, "minecraft:chiseled_stone_bricks", "minecraft:stone_brick_stairs", "minecraft:stone_brick_slab",
+					"minecraft:stone_brick_stairs", "minecraft:stone_brick_wall", "minecraft:polished_andesite", "dark_oak");
+			};
+		}
+
+		String stone(int x, int y, int z) {
+			return mix(x, y, z, body, weathered);
+		}
+
+		/** The bottom two courses: rubble. */
+		String footing(int x, int y, int z) {
+			return mix(x, y, z, foot, footWeathered);
+		}
+
+		String log() {
+			return "minecraft:" + wood + "_log[axis=y]";
+		}
+	}
+
+	/**
+	 * The solid body every wall segment shares: nine blocks long and five thick. Outside, rubble footings, quoins
+	 * up both joints, a corbel table under the parapet and merlons (the joint ones in dressed stone, so long runs
+	 * read as bays). On top, a three-wide walkway with a low railing along the inside.
+	 */
+	private static void curtain(Plan p, Palette s) {
+		p.fillMix(-4, 0, -2, 4, 0, 2, s.foot, s.footWeathered);
+		for (int x = -4; x <= 4; x++) {
+			for (int z = -2; z <= 2; z++) {
+				for (int y = 1; y <= WALK; y++) {
+					p.set(x, y, z, y <= 2 ? s.footing(x, y, z) : s.stone(x, y, z));
+				}
+			}
+		}
+		p.fill(-4, WALK, -1, 4, WALK, 1, s.floor);
+		for (int x : new int[] {-4, 4}) {
+			p.fill(x, 1, 2, x, 7, 2, s.trim);
+		}
+		for (int x = -3; x <= 3; x++) {
+			p.stairs(x, WALK, 2, s.trimStairs, "north", true);
+			p.set(x, 6, 2, s.stone(x, 6, 2));
+			if (x % 2 == 0) {
+				p.set(x, 7, 2, s.stone(x, 7, 2));
+			}
+		}
+		if (p.tier >= 3) {
+			for (int x = -4; x <= 4; x += 2) {
+				p.set(x, 8, 2, s.trimSlab + "[type=bottom]");
+			}
+		}
+		p.fill(-4, 6, -2, 4, 6, -2, s.wall);
+		if (p.tier >= 2) {
+			p.set(0, 7, -2, "minecraft:lantern[hanging=false]");
+		}
+	}
+
+	/** A buttress up the inside face. */
+	private static void innerPier(Plan p, Palette s, int x) {
+		p.fill(x, 1, -2, x, WALK, -2, s.trim);
+	}
+
+	/** A blind arch in the inside face, from x1 to x2 (two or three wide), with a torch in the three-wide ones. */
+	private static void arch(Plan p, Palette s, int x1, int x2) {
+		p.fill(x1, 1, -2, x2, 2, -2, "minecraft:air");
+		p.stairs(x1, 3, -2, s.stairs, "west", true);
+		p.stairs(x2, 3, -2, s.stairs, "east", true);
+		if (x2 - x1 == 2) {
+			int mid = (x1 + x2) / 2;
+			p.set(mid, 3, -2, "minecraft:air");
+			p.set(mid, 2, -2, "minecraft:wall_torch[facing=north]");
+		}
+	}
+
+	/**
+	 * Nine blocks of curtain wall. The side facing whoever places it is the inside: two blind arches between
+	 * buttresses. Segments tile end to end, the buttresses at the joints pairing up with the next segment's.
+	 */
+	private static void wall(Plan p) {
 		Palette s = Palette.of(p.tier);
-		p.fill(-3, 0, -3, 3, 0, 3, s.plinth);
+		curtain(p, s);
+		innerPier(p, s, -4);
+		innerPier(p, s, 0);
+		innerPier(p, s, 4);
+		arch(p, s, -3, -1);
+		arch(p, s, 1, 3);
+	}
+
+	/** A wall segment with a flight of steps up the inside face to the walkway. */
+	private static void wallStairs(Plan p) {
+		Palette s = Palette.of(p.tier);
+		curtain(p, s);
+		innerPier(p, s, -4);
+		innerPier(p, s, 4);
+		for (int i = 0; i < 4; i++) {
+			int x = -3 + i;
+			int y = 1 + i;
+			p.stairs(x, y, -2, s.stairs, "east", false);
+			p.fill(x, y + 1, -2, x, y + 2, -2, "minecraft:air");
+		}
+		p.set(1, 6, -2, "minecraft:air");
+		p.set(0, 7, -2, "minecraft:air");
+		arch(p, s, 2, 3);
+	}
+
+	/**
+	 * The body of a tower: one block thick, quoins on the corners, a string course at walkway height, a door at the
+	 * front, arrow slits, floors at walkway height and at the top, openings on all four sides where walls join, a
+	 * ladder all the way up.
+	 */
+	private static void tower(Plan p, Palette s) {
+		p.fillMix(-3, 0, -3, 3, 0, 3, s.foot, s.footWeathered);
 		for (int y = 1; y <= 9; y++) {
 			for (int x = -3; x <= 3; x++) {
 				for (int z = -3; z <= 3; z++) {
 					if (Math.abs(x) == 3 || Math.abs(z) == 3) {
-						p.set(x, y, z, y == 1 ? s.plinth : s.stone(x, y, z));
+						p.set(x, y, z, y <= 2 ? s.footing(x, y, z) : s.stone(x, y, z));
 					}
 				}
 			}
 			for (int[] c : new int[][] {{-3, -3}, {3, -3}, {-3, 3}, {3, 3}}) {
-				p.set(c[0], y, c[1], s.quoin);
+				p.set(c[0], y, c[1], s.trim);
 			}
 		}
+		p.ring(3, 3, WALK, s.trim);
 		p.door(-3, s.wood);
-		p.set(0, 4, -3, "minecraft:iron_bars");
-		p.fill(-3, 3, 0, -3, 4, 0, "minecraft:iron_bars");
-		p.fill(3, 3, 0, 3, 4, 0, "minecraft:iron_bars");
-		p.fill(0, 3, 3, 0, 4, 3, "minecraft:iron_bars");
-		// floors, and the openings at wall-walk height
-		p.fill(-2, 5, -2, 2, 5, 2, "minecraft:" + s.wood + "_planks");
+		p.set(0, 3, -3, s.trim);
+		p.set(0, 3, 3, "minecraft:air");
+		p.set(-3, 3, 0, "minecraft:air");
+		p.set(3, 3, 0, "minecraft:air");
+		p.fill(-2, WALK, -2, 2, WALK, 2, "minecraft:" + s.wood + "_planks");
 		p.fill(-2, 9, -2, 2, 9, 2, s.floor);
 		p.fill(-1, 6, -3, 1, 7, -3, "minecraft:air");
 		p.fill(-1, 6, 3, 1, 7, 3, "minecraft:air");
 		p.fill(-3, 6, -1, -3, 7, 1, "minecraft:air");
 		p.fill(3, 6, -1, 3, 7, 1, "minecraft:air");
 		p.fill(2, 1, 2, 2, 9, 2, "minecraft:ladder[facing=north]");
-		// inside: a fletching table downstairs, a bunk upstairs, lanterns under each floor
+		p.set(0, 4, 0, "minecraft:lantern[hanging=true]");
+		p.set(0, 8, 0, "minecraft:lantern[hanging=true]");
+	}
+
+	/** A tower where walls meet or turn a corner: crenellated top, dressed corners standing proud. No crew. */
+	private static void wallTower(Plan p) {
+		Palette s = Palette.of(p.tier);
+		tower(p, s);
+		p.set(-2, 1, 2, "minecraft:barrel[facing=up]");
+		p.ring(3, 3, 10, s.body, s.weathered);
+		for (int x = -3; x <= 3; x++) {
+			for (int z = -3; z <= 3; z++) {
+				if ((Math.abs(x) == 3 || Math.abs(z) == 3) && Math.floorMod(x + z, 2) == 0) {
+					p.set(x, 11, z, s.stone(x, 11, z));
+				}
+			}
+		}
+		for (int[] c : new int[][] {{-3, -3}, {3, -3}, {-3, 3}, {3, 3}}) {
+			p.fill(c[0], 10, c[1], c[0], 11, c[1], s.trim);
+			if (p.tier >= 3) {
+				p.set(c[0], 12, c[1], s.wall);
+			}
+		}
+	}
+
+	/**
+	 * A watchtower: the tower body with a fletching table downstairs and a bunk at walkway height, a parapet with a
+	 * gap at each manned post (front, back, then left), timber corner posts and a pointed roof.
+	 */
+	private static void watchtower(Plan p) {
+		Palette s = Palette.of(p.tier);
+		tower(p, s);
 		p.set(-2, 1, 2, "minecraft:fletching_table");
 		p.set(-2, 1, 1, "minecraft:hay_block[axis=y]");
-		p.set(0, 4, 0, "minecraft:lantern[hanging=true]");
 		p.set(-2, 6, 1, "minecraft:red_bed[facing=south,part=foot]");
 		p.set(-2, 6, 2, "minecraft:red_bed[facing=south,part=head]");
-		p.set(0, 8, 0, "minecraft:lantern[hanging=true]");
-		// the top: a parapet with a gap at each manned post, battlements, corner posts and a roof
 		p.ring(3, 3, 10, s.body, s.weathered);
 		for (int i = 0; i < WATCHTOWER.workers(p.tier); i++) {
 			BlockPos post = POSTS[i];
@@ -1232,103 +1641,64 @@ public enum BuildingType {
 	}
 
 	/**
-	 * Nine blocks of thick wall. The side facing whoever places it is the inside: an arched alcove with a bench
-	 * and a lantern, and a ladder up. On top: a three-wide walkway, a railing inside, battlements outside.
-	 */
-	private static void wall(Plan p) {
-		Palette s = Palette.of(p.tier);
-		p.fill(-4, 0, -2, 4, 0, 2, s.body);
-		for (int x = -4; x <= 4; x++) {
-			for (int z = -2; z <= 2; z++) {
-				for (int y = 1; y <= 5; y++) {
-					p.set(x, y, z, y == 1 ? s.plinth : s.stone(x, y, z));
-				}
-			}
-		}
-		p.fill(-4, 5, -1, 4, 5, 1, s.floor);
-		// outside: pilasters at the joints, a corbelled parapet with battlements and a pinnacle
-		for (int x : new int[] {-4, 4}) {
-			p.fill(x, 1, 2, x, 6, 2, s.quoin);
-		}
-		for (int x = -3; x <= 3; x++) {
-			p.stairs(x, 5, 2, s.stairs, "north", true);
-			p.set(x, 6, 2, s.stone(x, 6, 2));
-		}
-		for (int x = -4; x <= 4; x += 2) {
-			p.set(x, 7, 2, x == 4 ? s.quoin : s.stone(x, 7, 2));
-		}
-		p.set(4, 8, 2, s.wall);
-		// inside: pillars, an arched alcove with a bench, a ladder bay, a railing along the walkway
-		for (int x : new int[] {-4, 0, 4}) {
-			p.fill(x, 1, -2, x, 5, -2, s.quoin);
-		}
-		p.fill(-3, 1, -2, -1, 3, -2, "minecraft:air");
-		p.stairs(-3, 3, -2, s.stairs, "west", true);
-		p.stairs(-1, 3, -2, s.stairs, "east", true);
-		p.set(-2, 3, -2, "minecraft:lantern[hanging=true]");
-		p.stairs(-2, 1, -2, "minecraft:" + s.wood + "_stairs", "south", false);
-		for (int x : new int[] {-3, -2, -1, 1, 3}) {
-			p.stairs(x, 5, -2, s.stairs, "south", true);
-		}
-		p.fill(2, 1, -2, 2, 5, -2, "minecraft:ladder[facing=north]");
-		for (int x = -4; x <= 4; x++) {
-			if (x != 2) {
-				p.set(x, 6, -2, s.wall);
-			}
-		}
-	}
-
-	/**
-	 * Two squat towers either side of an arched passage, closed by fence gates halfway (you can open them,
-	 * monsters can't). The deck on top joins the wall-walk of the walls on either side.
+	 * A gatehouse: two solid towers either side of an arched passage, with a portcullis hanging in the outer arch
+	 * and fence gates halfway (you can open them, monsters can't). On top, a deck behind a thick crenellated
+	 * parapet with corner turrets; it joins the walkway of the walls either side.
 	 */
 	private static void gatehouse(Plan p) {
 		Palette s = Palette.of(p.tier);
-		p.fill(-3, 0, -3, 3, 0, 3, s.body);
-		p.fill(-1, 0, -3, 1, 0, 3, s.plinth);
+		p.fillMix(-3, 0, -3, 3, 0, 3, s.foot, s.footWeathered);
+		p.fill(-1, 0, -3, 1, 0, 3, s.floor);
 		for (int x : new int[] {-3, -2, 2, 3}) {
 			for (int z = -3; z <= 3; z++) {
-				for (int y = 1; y <= 5; y++) {
-					p.set(x, y, z, y == 1 ? s.plinth : s.stone(x, y, z));
+				for (int y = 1; y <= WALK; y++) {
+					p.set(x, y, z, y <= 2 ? s.footing(x, y, z) : s.stone(x, y, z));
 				}
 			}
 		}
-		for (int[] c : new int[][] {{-3, -3}, {3, -3}, {-3, 3}, {3, 3}}) {
-			p.fill(c[0], 1, c[1], c[0], 6, c[1], s.quoin);
+		for (int x : new int[] {-3, 3}) {
+			p.fill(x, 1, 3, x, 8, 3, s.trim);
+			p.fill(x, 1, -3, x, WALK, -3, s.trim);
 		}
-		// the passage: an arch the whole way through, lanterns, and the gates halfway
-		p.fill(-1, 4, -3, 1, 5, 3, s.body);
+		for (int x : new int[] {-2, 2}) {
+			p.fill(x, 1, 3, x, 3, 3, s.trim);
+			p.fill(x, 1, -3, x, 3, -3, s.trim);
+		}
+		// the passage: an arch the whole way through, the portcullis, lanterns, and the gates halfway
+		p.fillMix(-1, 4, -3, 1, WALK, 3, s.body, s.weathered);
 		for (int z = -3; z <= 3; z++) {
 			p.stairs(-1, 3, z, s.stairs, "west", true);
 			p.stairs(1, 3, z, s.stairs, "east", true);
 		}
+		p.set(0, 3, 3, "minecraft:iron_bars");
 		p.set(0, 3, -2, "minecraft:lantern[hanging=true]");
 		p.set(0, 3, 2, "minecraft:lantern[hanging=true]");
 		for (int x = -1; x <= 1; x++) {
 			p.set(x, 1, 0, "minecraft:" + s.wood + "_fence_gate[facing=north,open=false]");
 		}
-		p.set(-2, 3, 3, "minecraft:iron_bars");
-		p.set(2, 3, 3, "minecraft:iron_bars");
-		// the deck: a walkway between battlements outside and a railing inside, and a ladder up the inside
-		p.fill(-3, 5, -1, 3, 5, 1, s.floor);
+		// the deck: a walkway between a thick parapet outside and a railing inside, and a ladder up the inside
+		p.fill(-3, WALK, -1, 3, WALK, 1, s.floor);
 		for (int x = -3; x <= 3; x++) {
+			if (Math.abs(x) <= 2) {
+				p.stairs(x, WALK, 3, s.trimStairs, "north", true);
+			}
 			p.set(x, 6, 3, s.stone(x, 6, 3));
 			p.set(x, 6, 2, s.stone(x, 6, 2));
 			if (Math.floorMod(x, 2) != 0) {
 				p.set(x, 7, 3, s.stone(x, 7, 3));
 			}
 			if (x != -3) {
-				p.set(x, 6, -3, s.wall);
 				p.set(x, 6, -2, s.wall);
 			}
 		}
-		p.fill(-3, 7, 3, -3, 8, 3, s.quoin);
-		p.fill(3, 7, 3, 3, 8, 3, s.quoin);
-		p.set(-3, 9, 3, s.wall);
-		p.set(3, 9, 3, s.wall);
-		p.set(3, 7, -3, s.wall);
-		p.fill(-3, 1, -3, -3, 5, -3, "minecraft:ladder[facing=north]");
+		for (int x : new int[] {-3, 3}) {
+			p.fill(x, 6, 3, x, 8, 3, s.trim);
+			p.set(x, 9, 3, s.wall);
+		}
+		if (p.tier >= 2) {
+			p.set(0, 7, -2, "minecraft:lantern[hanging=false]");
+		}
+		p.fill(-3, 1, -3, -3, WALK, -3, "minecraft:ladder[facing=north]");
 		p.set(-3, 6, -3, "minecraft:air");
-		p.set(-3, 6, -2, "minecraft:air");
 	}
 }

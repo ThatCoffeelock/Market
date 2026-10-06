@@ -60,6 +60,8 @@ final class SmokeTest {
 
 		ItemStack empty = SackItems.empty();
 		check(SackItems.isEmptySack(empty) && !SackItems.isFullSack(empty), "empty sack is recognised");
+		check(net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get(BurlapSackMod.EMPTY_SACK) instanceof java.util.function.Supplier<?> sacks
+			&& sacks.get() instanceof ItemStack fresh && SackItems.isEmptySack(fresh), "the empty-sack hook for Colonycraft is published");
 		check(empty.is(Items.BUNDLE), "the sack is a bundle to vanilla clients");
 		check(empty.get(DataComponents.BUNDLE_CONTENTS) == null, "the sack can't hold items");
 		check(!SackItems.isEmptySack(new ItemStack(Items.BUNDLE)), "a plain bundle is not a sack");

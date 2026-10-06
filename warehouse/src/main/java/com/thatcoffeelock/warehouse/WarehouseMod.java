@@ -34,6 +34,7 @@ public final class WarehouseMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		WarehouseConfig.load();
+		WarehouseApi.publish();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Warehouses.load(server);

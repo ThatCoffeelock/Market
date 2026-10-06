@@ -311,6 +311,8 @@ final class WarehouseMenu extends BaseMenu {
 			});
 		} : null);
 
+		networkButton(22, boss);
+
 		WarehouseConfig config = WarehouseConfig.get();
 		List<Component> rackLore = new ArrayList<>();
 		rackLore.add(Gui.text("Room: " + Gui.n(config.coreCapacity) + " (core) + " + w.racks + " × " + Gui.n(config.rackCapacity)
@@ -346,6 +348,63 @@ final class WarehouseMenu extends BaseMenu {
 		});
 		button(49, infoIcon(w.kinds()), null);
 		button(53, Gui.icon(Items.BARRIER, Gui.text("Close", ChatFormatting.RED)), (b, t) -> WarehouseMod.nextTick(viewer::closeContainer));
+	}
+
+	/**
+	 * Networks: a branch shows its central warehouse (send stock on, or unlink), a central warehouse lists its
+	 * branches, and any other warehouse can be linked to a central one.
+	 */
+	private void networkButton(int slot, boolean boss) {
+		Warehouse central = Warehouses.centralOf(w);
+		List<Warehouse> branches = Warehouses.branchesOf(w);
+		if (w.isBranch()) {
+			List<Component> lore = new ArrayList<>();
+			lore.add(Gui.text("Branch of: " + (central == null ? "a warehouse that's gone" : central.name), ChatFormatting.GRAY));
+			lore.add(Gui.text(w.forward ? "Sends everything it gets on to it." : "Keeps its own stock.",
+				w.forward ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+			lore.add(Gui.text("The central warehouse can open this one from anywhere.", ChatFormatting.DARK_GRAY));
+			lore.add(Component.empty());
+			if (boss) {
+				lore.add(Gui.text("Left-click: switch sending on/off", ChatFormatting.YELLOW));
+				lore.add(Gui.text("Right-click: unlink", ChatFormatting.YELLOW));
+			} else {
+				lore.add(Gui.text("Only " + w.ownerName + " can change this.", ChatFormatting.YELLOW));
+			}
+			ItemStack icon = Gui.icon(Gui.item("minecraft:iron_chain", Items.LEAD), Gui.text("Network: branch", ChatFormatting.AQUA, ChatFormatting.BOLD), lore);
+			button(slot, w.forward ? Gui.glow(icon) : icon, boss ? (b, t) -> {
+				click();
+				if (b == 1) {
+					Warehouses.unlink(w);
+					viewer.sendSystemMessage(Component.literal(w.name + " is on its own again.").withStyle(ChatFormatting.GOLD));
+				} else {
+					w.forward = !w.forward;
+					w.changed();
+				}
+			} : null);
+		} else if (!branches.isEmpty()) {
+			long stock = 0;
+			for (Warehouse branch : branches) {
+				stock += branch.total();
+			}
+			button(slot, Gui.glow(Gui.icon(Items.LECTERN, Gui.text("Network: central warehouse", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				Gui.text(branches.size() + (branches.size() == 1 ? " branch" : " branches") + ", " + Gui.n(stock) + " items between them.", ChatFormatting.GRAY),
+				Gui.text("Branches that send pass their stock on here.", ChatFormatting.GRAY),
+				Component.empty(),
+				Gui.text("Click to see the branches and open them.", ChatFormatting.YELLOW))), (b, t) -> {
+				click();
+				WarehouseMod.nextTick(() -> NetworkMenu.open(viewer, w, still, view, NetworkMenu.Mode.BRANCHES));
+			});
+		} else {
+			button(slot, Gui.icon(Items.LEAD, Gui.text("Network: link to a central warehouse", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				Gui.text("Make this warehouse a branch of another one.", ChatFormatting.GRAY),
+				Gui.text("The central warehouse can open it from anywhere,", ChatFormatting.GRAY),
+				Gui.text("and it sends its stock on there (switchable).", ChatFormatting.GRAY),
+				Component.empty(),
+				Gui.text(boss ? "Click to pick the central warehouse." : "Only " + w.ownerName + " can change this.", ChatFormatting.YELLOW)), boss ? (b, t) -> {
+				click();
+				WarehouseMod.nextTick(() -> NetworkMenu.open(viewer, w, still, view, NetworkMenu.Mode.PICK));
+			} : null);
+		}
 	}
 
 	/** Closes the screen, asks a question in chat, then opens the screen again. */

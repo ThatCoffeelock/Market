@@ -229,6 +229,50 @@ final class SmokeTest {
 		check(w.racks == 4 && w2.racks == 3 && Warehouses.isDisputed(level, BRIDGE), "racks and docks come back after a reload");
 		check(Warehouses.isDock(level, DOCK), "the dock comes back after a reload");
 
+		// a network: the food warehouse becomes a branch of the general one and sends its bread on
+		long bread = w2.count(key(Items.BREAD));
+		check(Warehouses.whyNoLink(w, w) != null, "a warehouse can't be its own central warehouse");
+		Warehouses.link(w2, w);
+		check(Warehouses.branchesOf(w).contains(w2) && Warehouses.centralOf(w2) == w && w2.forward, "the food warehouse is a branch now");
+		check(Warehouses.whyNoLink(w, w2) != null, "a central warehouse can't become a branch of its own branch");
+		Warehouses.forward();
+		check(w2.count(key(Items.BREAD)) == 0 && w.count(key(Items.BREAD)) == bread, "the branch sent its " + bread + " bread on to the central warehouse");
+		Warehouses.save();
+		Warehouses.load(level.getServer());
+		w = Warehouses.byId(id1);
+		w2 = Warehouses.byId(id2);
+		Warehouses.refresh();
+		check(w2.central.equals(w.id) && w2.forward, "the link survives a reload");
+		Warehouses.unlink(w2);
+		check(!w2.isBranch() && Warehouses.branchesOf(w).isEmpty(), "unlinked again");
+		total = w.total();
+		kinds = w.kinds();
+
+		// the API other mods use (Colonycraft builds warehouses into its storehouses)
+		@SuppressWarnings("unchecked")
+		java.util.function.BiFunction<String, java.util.Map<String, Object>, Object> api =
+			(java.util.function.BiFunction<String, java.util.Map<String, Object>, Object>) net.fabricmc.loader.api.FabricLoader.getInstance()
+				.getObjectShare().get(WarehouseApi.KEY);
+		check(api != null, "the warehouse API is published");
+		BlockPos apiCore = new BlockPos(-8, 101, 8);
+		setblock(level, apiCore, "minecraft:cartography_table");
+		setblock(level, apiCore.east(), "minecraft:barrel");
+		String apiId = (String) api.apply("create", java.util.Map.of("level", level, "pos", apiCore, "owner", "", "owner_name", "", "name", "Colony Stores", "locked", true));
+		api.apply("rack", java.util.Map.of("level", level, "pos", apiCore.east()));
+		Warehouse colony = Warehouses.byId(apiId);
+		check(colony != null && colony.locked && colony.racks == 1 && Boolean.TRUE.equals(api.apply("exists", java.util.Map.of("id", apiId))),
+			"the API registers a locked core and its rack");
+		check(apiId.equals(api.apply("create", java.util.Map.of("level", level, "pos", apiCore, "name", "Again"))), "registering the same core twice gives the same warehouse");
+		ItemStack wheat = new ItemStack(Items.WHEAT, 50);
+		check(Integer.valueOf(50).equals(api.apply("deposit", java.util.Map.of("id", apiId, "stack", wheat))) && wheat.isEmpty(), "the API deposits");
+		check(Long.valueOf(50).equals(api.apply("count", java.util.Map.of("id", apiId, "stack", new ItemStack(Items.WHEAT)))), "the API counts");
+		check(Long.valueOf(20).equals(api.apply("take", java.util.Map.of("id", apiId, "stack", new ItemStack(Items.WHEAT), "amount", 20L))), "the API takes");
+		check(api.apply("stock", java.util.Map.of("id", apiId)) instanceof List<?> stock && stock.size() == 1, "the API lists the stock");
+		ItemStack colonyCore = (ItemStack) api.apply("pack", java.util.Map.of("id", apiId));
+		check(Parts.isCore(colonyCore) && colony.packed && colony.total() == 30, "the API packs a warehouse up with its stock");
+		setblock(level, apiCore, "minecraft:air");
+		setblock(level, apiCore.east(), "minecraft:air");
+
 		// pack warehouse 1 up: its racks are free, so they join warehouse 2 through the bridge
 		ItemStack packed = Warehouses.pack(w);
 		setblock(level, CORE, "minecraft:air");

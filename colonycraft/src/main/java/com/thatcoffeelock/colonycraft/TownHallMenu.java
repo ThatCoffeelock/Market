@@ -33,8 +33,9 @@ final class TownHallMenu extends ChestMenu {
 	private static final int SIZE = 54;
 	private static final int PER_PAGE = 18;
 	private static final BuildingType[] SHOP = {BuildingType.RESIDENCE, BuildingType.FARM, BuildingType.LUMBER_CAMP,
-		BuildingType.MINE, BuildingType.WORKSHOP, BuildingType.STOREHOUSE, BuildingType.BARRACKS, BuildingType.TOWN_HALL};
-	private static final BuildingType[] FORTIFICATIONS = {BuildingType.WALL, BuildingType.GATEHOUSE, BuildingType.WATCHTOWER};
+		BuildingType.MINE, BuildingType.FISHERY, BuildingType.TOBACCO_FARM, BuildingType.WORKSHOP, BuildingType.STOREHOUSE};
+	private static final BuildingType[] FORTIFICATIONS = {BuildingType.WALL, BuildingType.WALL_STAIRS, BuildingType.WALL_TOWER,
+		BuildingType.GATEHOUSE, BuildingType.WATCHTOWER};
 
 	@FunctionalInterface
 	private interface Action {
@@ -148,27 +149,33 @@ final class TownHallMenu extends ChestMenu {
 		}
 		button(4, icon(Items.BELL, t(colony.name, ChatFormatting.GOLD, ChatFormatting.BOLD), info), null);
 
+		button(0, icon(Items.COMPASS, t("Trade and transport", ChatFormatting.AQUA, ChatFormatting.BOLD),
+			List.of(t("A harbor with a Loading Dock for ships,", ChatFormatting.GRAY), t("a station for Cargo Trains.", ChatFormatting.GRAY))), null);
+		shopButton(1, BuildingType.HARBOR_OFFICE);
+		shopButton(2, BuildingType.TRAIN_STATION);
+		shopButton(6, BuildingType.BARRACKS);
+		shacklesButton(7);
+		shopButton(8, BuildingType.TOWN_HALL);
+
 		button(9, icon(Items.WRITABLE_BOOK, t("Blueprints for sale", ChatFormatting.AQUA, ChatFormatting.BOLD),
 			List.of(t("Buy one, then right-click the ground", ChatFormatting.GRAY), t("inside the colony to build it.", ChatFormatting.GRAY))), null);
 		for (int i = 0; i < SHOP.length; i++) {
 			shopButton(10 + i, SHOP[i]);
 		}
 		button(18, icon(Items.SHIELD, t("Fortifications", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("Thick walls you can walk on, gates and towers.", ChatFormatting.GRAY),
-				t("They don't use building slots, and snap", ChatFormatting.GRAY), t("together end to end.", ChatFormatting.GRAY))), null);
+			List.of(t("Curtain walls you can walk on, stairs up,", ChatFormatting.GRAY), t("towers for the corners, gates.", ChatFormatting.GRAY),
+				t("They don't use building slots, and snap", ChatFormatting.GRAY), t("together end to end.", ChatFormatting.GRAY),
+				Component.empty(), t("Your buildings are listed below: click one", ChatFormatting.DARK_GRAY),
+				t("to upgrade, repair, staff or demolish it.", ChatFormatting.DARK_GRAY))), null);
 		for (int i = 0; i < FORTIFICATIONS.length; i++) {
 			shopButton(19 + i, FORTIFICATIONS[i]);
 		}
 
-		button(22, icon(Items.IRON_BARS, t("Law and order", ChatFormatting.AQUA, ChatFormatting.BOLD),
+		button(24, icon(Items.IRON_BARS, t("Law and order", ChatFormatting.AQUA, ChatFormatting.BOLD),
 			List.of(t("Lock up the illagers you catch.", ChatFormatting.GRAY), t("Beat one down, shackle them, put the", ChatFormatting.GRAY),
 				t("shackles in a cell's holding block.", ChatFormatting.GRAY), t("Then ransom them, or make a show of it.", ChatFormatting.GRAY))), null);
-		shopButton(23, BuildingType.CELLBLOCK);
-		shopButton(24, BuildingType.SCAFFOLD);
-		shacklesButton(25);
-
-		button(26, icon(Items.OAK_SIGN, t("Your buildings (below)", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("Click one to upgrade it, repair it, hire", ChatFormatting.GRAY), t("replacements, open storage or demolish it.", ChatFormatting.GRAY))), null);
+		shopButton(25, BuildingType.CELLBLOCK);
+		shopButton(26, BuildingType.SCAFFOLD);
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		page = Math.min(page, pages - 1);
@@ -187,6 +194,9 @@ final class TownHallMenu extends ChestMenu {
 			}
 			if (b.type == BuildingType.STOREHOUSE) {
 				lore.add(t("Autosell: " + (b.autosell ? "on" : "off"), b.autosell ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+			}
+			if (b.type == BuildingType.TRAIN_STATION) {
+				lore.add(t("Shipping goods out: " + (b.export ? "on" : "off"), b.export ? ChatFormatting.GREEN : ChatFormatting.GRAY));
 			}
 			if (b.type == BuildingType.CELLBLOCK) {
 				lore.add(t("Prisoners: " + b.prisoners.size() + " / " + BuildingType.cells(b.tier), ChatFormatting.GRAY));
@@ -234,8 +244,13 @@ final class TownHallMenu extends ChestMenu {
 			lore.add(t("Doesn't use a building slot.", ChatFormatting.DARK_GRAY));
 		}
 		lore.add(Component.empty());
-		lore.add(t("Click to buy.", ChatFormatting.YELLOW));
 		String name = type == BuildingType.TOWN_HALL ? "Colony Charter (a new colony)" : type.displayName;
+		if (!type.available()) {
+			lore.add(t("Needs the Havana mod on the server.", ChatFormatting.RED));
+			button(slot, icon(type.icon, t(name, ChatFormatting.DARK_GRAY, ChatFormatting.BOLD), lore), null);
+			return;
+		}
+		lore.add(t("Click to buy.", ChatFormatting.YELLOW));
 		button(slot, icon(type.icon, t(name, ChatFormatting.AQUA, ChatFormatting.BOLD), lore), () -> buy(type, price));
 	}
 
@@ -276,10 +291,17 @@ final class TownHallMenu extends ChestMenu {
 			case LUMBER_CAMP -> "Oak, spruce and birch logs, sticks, saplings, apples.";
 			case MINE -> "Cobblestone, coal, iron, copper, gold, redstone, lapis, the odd diamond.";
 			case WORKSHOP -> "Turns logs, ores, cobble and wheat into planks, ingots, stone and bread.";
-			case STOREHOUSE -> "Everything the colony makes goes here. Can auto-sell to the Market.";
+			case STOREHOUSE -> WarehouseLink.present() ? "A warehouse for everything the colony makes. Can auto-sell to the Market."
+				: "Everything the colony makes goes here. Can auto-sell to the Market.";
 			case BARRACKS -> "Iron golem guards that patrol the colony's land.";
+			case FISHERY -> "Cod, salmon, the odd tropical fish and pufferfish, ink sacs, kelp, now and then a nautilus shell.";
+			case TOBACCO_FARM -> "Tobacco leaves for your cigars. The curing barn cures and ages some from tier 2.";
+			case HARBOR_OFFICE -> "A pier with a Loading Dock for ships, and better prices on everything you auto-sell.";
+			case TRAIN_STATION -> "Track through a platform, with a Pickup and a Drop-off Station for Cargo Trains.";
 			case WATCHTOWER -> "Archers on top shoot monsters up to 24 blocks away.";
-			case WALL -> "9 blocks of thick wall with a walkway on top.";
+			case WALL -> "9 blocks of curtain wall with a walkway behind the battlements.";
+			case WALL_STAIRS -> "A wall segment with steps up the inside to the walkway.";
+			case WALL_TOWER -> "A tower for corners and long runs. Walls join it on every side.";
 			case GATEHOUSE -> "A way through the wall. You can open the gates, monsters can't.";
 			case CELLBLOCK -> "Cells for the illagers you catch. Lock them up, ransom them, or execute them for a bounty.";
 			case SCAFFOLD -> "Public executions on the square: " + factor(1) + " the bounty, and the whole server is invited.";
@@ -309,7 +331,7 @@ final class TownHallMenu extends ChestMenu {
 		button(13, icon(b.type.icon, t(b.title(), ChatFormatting.GOLD, ChatFormatting.BOLD), info), null);
 
 		// upgrade
-		if (b.tier < BuildingType.MAX_TIER) {
+		if (b.tier < b.type.maxTier()) {
 			long price = architect(Bank.cents(b.type.upgradePrice(b.tier)));
 			String why = Colonies.whyNoUpgrade(b);
 			List<Component> lore = new ArrayList<>();
@@ -329,16 +351,48 @@ final class TownHallMenu extends ChestMenu {
 			button(30, icon(Items.EMERALD, t("Hire " + b.dead() + " replacement" + (b.dead() > 1 ? "s" : ""), ChatFormatting.GREEN, ChatFormatting.BOLD),
 				List.of(money("Price: ", price), t("They move in right away.", ChatFormatting.GRAY))), () -> replace(b, price));
 		}
+		// a villager brought in a Burlap Sack takes an empty job for free
+		if (b.dead() > 0 && Colonies.hiresVillagers(b.type)) {
+			int sack = SackLink.find(viewer);
+			if (sack >= 0) {
+				String who = SackLink.name(viewer.getInventory().getItem(sack));
+				button(31, icon(Items.BUNDLE, t("Hire " + who + " from your Burlap Sack", ChatFormatting.GREEN, ChatFormatting.BOLD),
+					List.of(t("Free: they take an empty job here.", ChatFormatting.GRAY), t("You get the empty sack back.", ChatFormatting.DARK_GRAY))),
+					() -> hireFromSack(b));
+			}
+		}
 		// storehouse
-		if (b.type == BuildingType.STOREHOUSE) {
+		String warehouse = Colonies.warehouseOf(b);
+		if (b.type == BuildingType.STOREHOUSE && warehouse != null) {
+			Map<String, Object> stock = WarehouseLink.info(warehouse);
+			long total = stock.get("total") instanceof Number n ? n.longValue() : 0;
+			long capacity = stock.get("capacity") instanceof Number n ? n.longValue() : 0;
+			button(32, icon(Items.CARTOGRAPHY_TABLE, t("Open the warehouse", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t(String.format(java.util.Locale.ROOT, "%,d / %,d items", total, capacity), ChatFormatting.GRAY),
+					t(BuildingType.racks(b.tier) + " storage racks", ChatFormatting.GRAY),
+					t("(or right-click the core or any barrel there)", ChatFormatting.DARK_GRAY),
+					t("Link it to a central warehouse in its settings.", ChatFormatting.DARK_GRAY))),
+				() -> WarehouseLink.open(viewer, warehouse));
+			if (!b.storage.isEmpty()) {
+				button(33, icon(Items.CHEST, t("Old storage", ChatFormatting.YELLOW, ChatFormatting.BOLD),
+					List.of(t("Left over from before it was a warehouse.", ChatFormatting.GRAY), t("It moves onto the shelves every morning.", ChatFormatting.DARK_GRAY))),
+					() -> ColonycraftMod.nextTick(() -> openStorage(viewer, b)));
+			}
+		} else if (b.type == BuildingType.STOREHOUSE) {
 			int used = 0;
 			for (int i = 0; i < b.storage.getContainerSize(); i++) {
 				used += b.storage.getItem(i).isEmpty() ? 0 : 1;
 			}
-			button(32, icon(Items.BARREL, t("Open storage", ChatFormatting.AQUA, ChatFormatting.BOLD),
-				List.of(t(used + " / " + b.storage.getContainerSize() + " slots used", ChatFormatting.GRAY),
-					t("(or right-click any barrel in the storehouse)", ChatFormatting.DARK_GRAY))),
+			List<Component> lore = new ArrayList<>();
+			lore.add(t(used + " / " + b.storage.getContainerSize() + " slots used", ChatFormatting.GRAY));
+			lore.add(t("(or right-click any barrel in the storehouse)", ChatFormatting.DARK_GRAY));
+			if (WarehouseLink.present()) {
+				lore.add(t("Repair & renovate it to make it a warehouse.", ChatFormatting.GOLD));
+			}
+			button(32, icon(Items.BARREL, t("Open storage", ChatFormatting.AQUA, ChatFormatting.BOLD), lore),
 				() -> ColonycraftMod.nextTick(() -> openStorage(viewer, b)));
+		}
+		if (b.type == BuildingType.STOREHOUSE) {
 			button(34, icon(b.autosell ? Items.EMERALD_BLOCK : Items.COAL_BLOCK,
 				t("Autosell: " + (b.autosell ? "ON" : "OFF"), b.autosell ? ChatFormatting.GREEN : ChatFormatting.GRAY, ChatFormatting.BOLD),
 				List.of(t("When on, everything in this storehouse that", ChatFormatting.GRAY),
@@ -353,6 +407,30 @@ final class TownHallMenu extends ChestMenu {
 		// cellblock
 		if (b.type == BuildingType.CELLBLOCK) {
 			shacklesButton(32);
+		}
+		// harbor
+		if (b.type == BuildingType.HARBOR_OFFICE) {
+			int bonus = (int) Math.round(Colonies.harborBonus(colony) * 100);
+			button(32, icon(Items.LANTERN, t("The pier", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("The lantern at the end is a Loading Dock:", ChatFormatting.GRAY),
+					t("moor an Ahoy ship there to unload into the", ChatFormatting.GRAY), t("warehouses nearby, or load up from them.", ChatFormatting.GRAY),
+					t(WarehouseLink.present() ? "" : "(needs the Warehouse mod)", ChatFormatting.RED),
+					t("Auto-sales pay +" + bonus + "% while it's staffed.", ChatFormatting.GOLD))), null);
+		}
+		// train station
+		if (b.type == BuildingType.TRAIN_STATION) {
+			button(32, icon(Items.RAIL, t("The platform", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("Lay your line on from both ends of the track.", ChatFormatting.GRAY),
+					t("Drop-off Station: what a train unloads there", ChatFormatting.GRAY), t("goes into the storehouses.", ChatFormatting.GRAY),
+					t("Pickup Station: a train loads what's in it.", ChatFormatting.GRAY))), null);
+			button(34, icon(b.export ? Items.EMERALD_BLOCK : Items.COAL_BLOCK,
+				t("Ship goods out: " + (b.export ? "ON" : "OFF"), b.export ? ChatFormatting.GREEN : ChatFormatting.GRAY, ChatFormatting.BOLD),
+				List.of(t("When on, the Pickup Station is kept full", ChatFormatting.GRAY), t("from the storehouses, so every train", ChatFormatting.GRAY),
+					t("takes the colony's goods away.", ChatFormatting.GRAY), Component.empty(), t("Click to switch.", ChatFormatting.YELLOW))), () -> {
+				b.export = !b.export;
+				Colonies.markDirty();
+				render();
+			});
 		}
 		// repair and renovate
 		ServerLevel here = level();
@@ -382,17 +460,51 @@ final class TownHallMenu extends ChestMenu {
 		return switch (b.type) {
 			case TOWN_HALL -> "Bigger land and room for " + (8 + 6 * (next - 1)) + " buildings.";
 			case RESIDENCE -> "Beds for " + b.type.housing(next) + " workers.";
-			case STOREHOUSE -> next == 2 ? "54 slots of storage." : "+10% on everything it auto-sells.";
+			case STOREHOUSE -> WarehouseLink.present()
+				? BuildingType.racks(next) + " storage racks" + (next == 3 ? ", and +10% on everything it auto-sells." : ".")
+				: next == 2 ? "54 slots of storage." : "+10% on everything it auto-sells.";
 			case BARRACKS -> b.type.workers(next) + " iron golems.";
-			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
-			case WALL, GATEHOUSE -> "Rebuilt in " + (next == 2 ? "stone bricks." : "deepslate.");
+			case HARBOR_OFFICE -> b.type.workers(next) + " clerks: auto-sales pay +" + 5 * next + "%.";
+			case TOBACCO_FARM -> b.type.workers(next) + " planters, and the barn " + (next == 2 ? "cures some leaves." : "ages some tobacco too.");
+			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + stone(next);
+			case WALL, WALL_STAIRS, WALL_TOWER, GATEHOUSE -> "Rebuilt in " + stone(next);
 			case CELLBLOCK -> BuildingType.cells(next) + " cells: two more get unbricked.";
 			case SCAFFOLD -> "Bigger crowds: public executions pay " + factor(next) + " the bounty.";
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}
 
+	private static String stone(int tier) {
+		return tier == 2 ? "stone bricks on a cobbled foot." : "dressed stone with chiseled trim.";
+	}
+
 	// ---------------------------------------------------------------- actions
+
+	private void hireFromSack(Colony.Building b) {
+		ServerLevel level = level();
+		if (level == null || !level.isLoaded(b.world(b.type.home()))) {
+			nope("Go a bit closer to that building first.");
+			return;
+		}
+		int slot = SackLink.find(viewer);
+		if (slot < 0) {
+			nope("You don't have a villager in a Burlap Sack.");
+			render();
+			return;
+		}
+		String who = SackLink.name(viewer.getInventory().getItem(slot));
+		if (!Colonies.hireFromSack(level, b, who)) {
+			nope("There's no empty job at the " + b.title() + ".");
+			render();
+			return;
+		}
+		ItemStack empty = SackLink.emptySack();
+		viewer.getInventory().setItem(slot, empty == null ? ItemStack.EMPTY : empty);
+		kaching();
+		viewer.sendSystemMessage(Component.literal(who + " climbs out of the sack and gets to work at the " + b.title() + ". Free labour!")
+			.withStyle(ChatFormatting.GREEN));
+		render();
+	}
 
 	private @Nullable ServerLevel level() {
 		return Colonies.level(colony);

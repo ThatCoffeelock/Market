@@ -2,6 +2,7 @@ package com.thatcoffeelock.burlapsack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -9,15 +10,19 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class BurlapSackMod implements ModInitializer {
 	public static final String MOD_ID = "burlapsack";
 	public static final Logger LOG = LoggerFactory.getLogger("Burlap Sack");
+	/** ObjectShare key: a {@code Supplier<ItemStack>} of a fresh empty sack. */
+	public static final String EMPTY_SACK = "burlapsack:empty";
 
 	private static final List<Delayed> LATER = new ArrayList<>();
 	private static int ticks;
@@ -53,6 +58,8 @@ public final class BurlapSackMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register(SackCommands::register);
+		// Colonycraft hires villagers out of full sacks and hands the empty sack back (no compile-time link either way)
+		FabricLoader.getInstance().getObjectShare().put(EMPTY_SACK, (Supplier<ItemStack>) SackItems::empty);
 		LOG.info("Burlap Sack loaded. Lock your doors, villagers.");
 	}
 

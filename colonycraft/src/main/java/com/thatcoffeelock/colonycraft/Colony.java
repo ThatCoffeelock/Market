@@ -25,6 +25,10 @@ public final class Colony {
 		public long spent;
 		/** Storehouses only. */
 		public boolean autosell;
+		/** Storehouses only: the Warehouse mod's warehouse built into it (its id), when Warehouse is installed. */
+		public @Nullable String warehouse;
+		/** Train stations only: keep the Pickup Station topped up from the storehouses, so trains carry the goods away. */
+		public boolean export;
 		public SimpleContainer storage = new SimpleContainer(27);
 		/** Cellblocks only: who's locked up in which cell. */
 		public final Map<Integer, Prison.Prisoner> prisoners = new TreeMap<>();

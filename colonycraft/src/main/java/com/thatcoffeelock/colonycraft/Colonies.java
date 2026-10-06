@@ -172,6 +172,9 @@ public final class Colonies {
 		if (ticks % 30 == 0) {
 			guardDuty();
 		}
+		if (ticks % 40 == 0) {
+			stations();
+		}
 		if (ticks % 6000 == 0 && dirty) {
 			save();
 		}
@@ -283,6 +286,9 @@ public final class Colonies {
 			toWorld(origin, quarter, -h, 0, d), toWorld(origin, quarter, h, 0, -d)};
 		String dim = dim(level);
 		Colony target = null;
+		if (!type.available()) {
+			return "The " + type.displayName + " needs the Havana mod for its tobacco.";
+		}
 		if (type == BuildingType.TOWN_HALL) {
 			for (Colony c : COLONIES) {
 				BlockPos centre = c.centre();
@@ -340,7 +346,7 @@ public final class Colonies {
 				}
 			}
 		}
-		if (wet * 3 > total) {
+		if (wet * 3 > total && !type.waterfront()) {
 			return "Too much water there. Build on dry land.";
 		}
 		return null;
@@ -374,8 +380,11 @@ public final class Colonies {
 			PENDING.put(player.getUUID(), new Pending(type, origin, quarter, ticks + 200));
 			outline(level, type, origin, quarter, "minecraft:happy_villager");
 			String where = switch (type) {
-				case WALL -> " (the side facing you is the inside, with the ladder)";
+				case WALL -> " (the side facing you is the inside, with the arches)";
+				case WALL_STAIRS -> " (the steps go up the side facing you)";
 				case GATEHOUSE -> " (the ladder is on the side facing you)";
+				case HARBOR_OFFICE -> " (the door faces you, the pier points away from you: face the water)";
+				case TRAIN_STATION -> " (the platform faces you, the track runs left to right)";
 				default -> " (the door faces you)";
 			};
 			String snapped = clicked.equals(origin) ? "" : " Lined up with the one next to it.";
@@ -469,7 +478,11 @@ public final class Colonies {
 			for (int x = -h; x <= h; x++) {
 				for (int z = -d; z <= d; z++) {
 					BlockPos pos = toWorld(b.origin, b.quarter, x, y, z);
-					if (!level.getBlockState(pos).isAir()) {
+					BlockState now = level.getBlockState(pos);
+					BlockState wanted = design.get(new BlockPos(x, y, z));
+					// a block that's already the right one stays put: a warehouse core, its racks, a dock or a
+					// station chest must never vanish for a moment while the building goes back up
+					if (!now.isAir() && (wanted == null || !now.is(wanted.getBlock()))) {
 						job.positions.add(pos);
 						job.states.add(air);
 					}
@@ -481,8 +494,11 @@ public final class Colonies {
 			for (int x = -h; x <= h; x++) {
 				for (int z = -d; z <= d; z++) {
 					BlockPos pos = toWorld(b.origin, b.quarter, x, y, z);
+					BlockState floor = design.get(new BlockPos(x, 0, z));
+					if (floor == null && type.waterfront()) {
+						continue; // the water beside the pier stays water
+					}
 					if (level.getBlockState(pos).canBeReplaced()) {
-						BlockState floor = design.get(new BlockPos(x, 0, z));
 						job.positions.add(pos);
 						job.states.add(type.fortification && floor != null ? floor.rotate(rot) : dirt);
 					}
@@ -493,8 +509,13 @@ public final class Colonies {
 		plan.sort((a, c) -> Integer.compare(a.getKey().getY(), c.getKey().getY()));
 		for (Map.Entry<BlockPos, BlockState> e : plan) {
 			BlockPos l = e.getKey();
-			job.positions.add(toWorld(b.origin, b.quarter, l.getX(), l.getY(), l.getZ()));
-			job.states.add(e.getValue().rotate(rot));
+			BlockPos pos = toWorld(b.origin, b.quarter, l.getX(), l.getY(), l.getZ());
+			BlockState state = e.getValue().rotate(rot);
+			if (level.getBlockState(pos) == state && state.hasBlockEntity()) {
+				continue; // already there, with its contents
+			}
+			job.positions.add(pos);
+			job.states.add(state);
 		}
 		return job;
 	}
@@ -540,7 +561,11 @@ public final class Colonies {
 			case RESIDENCE -> "Resident";
 			case BARRACKS -> "Iron Guard";
 			case WATCHTOWER -> "Archer";
-			case WALL, GATEHOUSE -> "Sentry";
+			case WALL, WALL_STAIRS, WALL_TOWER, GATEHOUSE -> "Sentry";
+			case FISHERY -> "Fisher";
+			case TOBACCO_FARM -> "Planter";
+			case HARBOR_OFFICE -> "Harbor Master";
+			case TRAIN_STATION -> "Station Master";
 			case CELLBLOCK -> "Jailer";
 			case SCAFFOLD -> "Executioner";
 		};
@@ -558,6 +583,11 @@ public final class Colonies {
 	 * for a watchtower (a villager with a crossbow who stands at a post and doesn't move or run away).
 	 */
 	static @Nullable UUID spawnVillager(ServerLevel level, Colony.Building b, int index) {
+		return spawnVillager(level, b, index, NAMES[RANDOM.nextInt(NAMES.length)]);
+	}
+
+	/** Hires crew member number {@code index} under this name ("Bob" becomes "Bob the Farmer"). */
+	static @Nullable UUID spawnVillager(ServerLevel level, Colony.Building b, int index, String name) {
 		BlockPos at = b.world(b.type.station(index));
 		if (!level.isLoaded(at)) {
 			return null;
@@ -577,7 +607,7 @@ public final class Colonies {
 			return null;
 		}
 		villager.setAttached(ColonycraftMod.WORKER, true);
-		villager.setCustomName(Component.literal(NAMES[RANDOM.nextInt(NAMES.length)] + " the " + job(b.type)));
+		villager.setCustomName(Component.literal(name + " the " + job(b.type)));
 		if (b.type == BuildingType.WATCHTOWER && villager instanceof LivingEntity archer) {
 			archer.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
 		}
@@ -803,16 +833,87 @@ public final class Colonies {
 
 	/**
 	 * Finishing touches a block state can't carry: the cellblock's holding blocks are vaults, and an empty loot
-	 * table keeps them from showing off trial chamber loot when someone walks past.
+	 * table keeps them from showing off trial chamber loot when someone walks past. With the Warehouse mod, a
+	 * storehouse's core and racks become a real warehouse and the harbor's pier gets its Loading Dock. A train
+	 * station's chests get their station names, so Cargo Trains stop at them.
 	 */
-	private static void furnish(ServerLevel level, Colony.Building b) {
-		if (b.type != BuildingType.CELLBLOCK) {
+	static void furnish(ServerLevel level, Colony.Building b) {
+		switch (b.type) {
+			case CELLBLOCK -> {
+				for (int cell = 0; cell < BuildingType.cells(b.tier); cell++) {
+					BlockPos at = b.world(BuildingType.holding(cell));
+					Cmd.run(level, "data merge block " + at.getX() + " " + at.getY() + " " + at.getZ() + " {config:{loot_table:\"minecraft:empty\"}}");
+				}
+			}
+			case STOREHOUSE -> openWarehouse(level, b);
+			case HARBOR_OFFICE -> {
+				BlockPos dock = b.world(BuildingType.HARBOR_DOCK);
+				if (level.getBlockState(dock).is(Blocks.LANTERN)) {
+					WarehouseLink.dock(level, dock);
+				}
+			}
+			case TRAIN_STATION -> {
+				name(level, b.world(BuildingType.PICKUP), "Pickup Station", "aqua");
+				name(level, b.world(BuildingType.DROP_OFF), "Drop-off Station", "gold");
+			}
+			default -> {
+			}
+		}
+	}
+
+	private static void name(ServerLevel level, BlockPos at, String name, String color) {
+		Cmd.run(level, "data merge block " + at.getX() + " " + at.getY() + " " + at.getZ()
+			+ " {CustomName:{text:\"" + name + "\",color:\"" + color + "\",italic:false}}");
+	}
+
+	/**
+	 * Registers the storehouse's core and racks with the Warehouse mod (if it's installed and the core is there),
+	 * then moves whatever was still in the storehouse's own slots onto the shelves.
+	 */
+	static void openWarehouse(ServerLevel level, Colony.Building b) {
+		if (!WarehouseLink.present()) {
 			return;
 		}
-		for (int cell = 0; cell < BuildingType.cells(b.tier); cell++) {
-			BlockPos at = b.world(BuildingType.holding(cell));
-			Cmd.run(level, "data merge block " + at.getX() + " " + at.getY() + " " + at.getZ() + " {config:{loot_table:\"minecraft:empty\"}}");
+		BlockPos core = b.world(BuildingType.STORE_CORE);
+		if (!level.isLoaded(core) || !level.getBlockState(core).is(Blocks.CARTOGRAPHY_TABLE)) {
+			return;
 		}
+		String id = WarehouseLink.create(level, core, b.colony.owner, b.colony.ownerName, b.colony.name + " Stores");
+		if (id == null) {
+			return;
+		}
+		b.warehouse = id;
+		for (int i = 0; i < BuildingType.racks(b.tier); i++) {
+			BlockPos rack = b.world(BuildingType.rack(i));
+			if (level.getBlockState(rack).is(Blocks.BARREL)) {
+				WarehouseLink.rack(level, rack);
+			}
+		}
+		migrate(b);
+		markDirty();
+	}
+
+	/** The storehouse's warehouse, if it has a working one. */
+	static @Nullable String warehouseOf(Colony.Building b) {
+		return b.type == BuildingType.STOREHOUSE && WarehouseLink.exists(b.warehouse) ? b.warehouse : null;
+	}
+
+	/** Moves what's left in a storehouse's own slots (from before it was a warehouse) onto its shelves. */
+	static void migrate(Colony.Building b) {
+		String id = warehouseOf(b);
+		if (id == null || b.storage.isEmpty()) {
+			return;
+		}
+		for (int i = 0; i < b.storage.getContainerSize(); i++) {
+			ItemStack stack = b.storage.getItem(i);
+			if (!stack.isEmpty()) {
+				WarehouseLink.deposit(id, stack);
+				if (stack.isEmpty()) {
+					b.storage.setItem(i, ItemStack.EMPTY);
+				}
+			}
+		}
+		markDirty();
 	}
 
 	static void onVillagerDeath(Entity entity) {
@@ -860,9 +961,30 @@ public final class Colonies {
 		return hired;
 	}
 
+	/** Does this building take villagers (so a villager from a Burlap Sack can fill an empty job)? */
+	static boolean hiresVillagers(BuildingType type) {
+		return type != BuildingType.BARRACKS;
+	}
+
+	/** Gives the first empty job to the villager from a sack. Returns true if they were hired. */
+	static boolean hireFromSack(ServerLevel level, Colony.Building b, String name) {
+		int slot = b.villagers.indexOf(null);
+		if (slot < 0 || !hiresVillagers(b.type)) {
+			return false;
+		}
+		String clean = name.replaceAll("[\"\\\\§]", "").trim();
+		UUID id = spawnVillager(level, b, slot, clean.isEmpty() ? NAMES[RANDOM.nextInt(NAMES.length)] : clean);
+		if (id == null) {
+			return false;
+		}
+		b.villagers.set(slot, id);
+		markDirty();
+		return true;
+	}
+
 	/** Why this building can't be upgraded, or null if it can. */
 	static @Nullable String whyNoUpgrade(Colony.Building b) {
-		if (b.tier >= BuildingType.MAX_TIER) {
+		if (b.tier >= b.type.maxTier()) {
 			return "Already at the top tier.";
 		}
 		int extraJobs = b.type.needsBeds() ? b.type.workers(b.tier + 1) - b.type.workers(b.tier) : 0;
@@ -918,6 +1040,16 @@ public final class Colonies {
 				}
 			}
 		}
+		// the storehouse's warehouse is packed up with its stock (the core drops at the door), the dock is closed
+		ItemStack packed = ItemStack.EMPTY;
+		String warehouse = warehouseOf(b);
+		if (warehouse != null) {
+			packed = WarehouseLink.pack(warehouse);
+			b.warehouse = null;
+		}
+		if (b.type == BuildingType.HARBOR_OFFICE) {
+			WarehouseLink.undock(level, b.world(BuildingType.HARBOR_DOCK));
+		}
 		int h = b.type.half;
 		int d = b.type.depth;
 		BlockState air = Blocks.AIR.defaultBlockState();
@@ -932,6 +1064,9 @@ public final class Colonies {
 			}
 		}
 		BlockPos at = b.world(b.type.home());
+		if (!packed.isEmpty()) {
+			Block.popResource(level, at, packed);
+		}
 		Cmd.particles(level, "minecraft:poof", at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, 3, 0.05, 60);
 		Cmd.sound(level, "minecraft:entity.generic.explode", at.getX(), at.getY(), at.getZ(), 0.6f, 1.4f);
 		colony.buildings.remove(b);
@@ -978,19 +1113,19 @@ public final class Colonies {
 		SkillsLink.xp(c.owner, "governance", wages / 100.0 * 1.5);
 		double taskmaster = SkillsLink.bonus(c.owner, "governance/taskmaster");
 
-		List<Colony.Building> stores = new ArrayList<>();
-		for (Colony.Building b : c.buildings) {
-			if (b.type == BuildingType.STOREHOUSE) {
-				stores.add(b);
-			}
+		List<Colony.Building> stores = storesOf(c);
+		for (Colony.Building s : stores) {
+			migrate(s);
 		}
 		// gather
 		for (Colony.Building b : c.buildings) {
-			for (ItemStack stack : Production.gather(b.type, b.tier, b.alive(), RANDOM)) {
+			List<ItemStack> harvest = b.type == BuildingType.TOBACCO_FARM ? Production.tobacco(b.tier, b.alive(), RANDOM)
+				: Production.gather(b.type, b.tier, b.alive(), RANDOM);
+			for (ItemStack stack : harvest) {
 				if (taskmaster > 0) {
 					stack.setCount(Math.min(stack.getMaxStackSize(), (int) Math.round(stack.getCount() * (1.0 + taskmaster))));
 				}
-				stow(stores, stack);
+				stow(stores, stack); // what doesn't fit rots in the field
 			}
 		}
 		// workshops turn raw goods into better ones
@@ -1000,11 +1135,12 @@ public final class Colonies {
 			}
 			int budget = (int) (b.alive() * Production.WORKSHOP_PER_WORKER * Production.tierBonus(b.tier));
 			for (Production.Recipe r : Production.WORKSHOP) {
-				int batches = Math.min(budget / r.in(), count(stores, r.input()) / r.in());
+				long have = count(stores, r.input());
+				int batches = (int) Math.min(budget / r.in(), have / r.in());
 				if (batches <= 0) {
 					continue;
 				}
-				take(stores, r.input(), batches * r.in());
+				take(stores, r.input(), (long) batches * r.in());
 				int out = batches * r.out();
 				while (out > 0) {
 					int n = Math.min(out, r.output().getDefaultMaxStackSize());
@@ -1014,13 +1150,14 @@ public final class Colonies {
 				budget -= batches * r.in();
 			}
 		}
-		// storehouses with autosell on sell everything the Market will buy
+		// storehouses with autosell on sell everything the Market will buy; a harbor gets them better prices
+		double harbor = harborBonus(c);
 		long earned = 0;
 		for (Colony.Building s : stores) {
 			if (!s.autosell) {
 				continue;
 			}
-			double bonus = s.tier >= 3 ? 1.1 : 1.0;
+			double bonus = (s.tier >= 3 ? 1.1 : 1.0) * (1.0 + harbor);
 			for (int i = 0; i < s.storage.getContainerSize(); i++) {
 				ItemStack stack = s.storage.getItem(i);
 				long value = Bank.sellValue(stack);
@@ -1029,26 +1166,73 @@ public final class Colonies {
 					s.storage.setItem(i, ItemStack.EMPTY);
 				}
 			}
+			String warehouse = warehouseOf(s);
+			if (warehouse != null) {
+				for (Map.Entry<ItemStack, Long> e : WarehouseLink.stock(warehouse)) {
+					long each = Bank.sellValue(e.getKey().copyWithCount(1));
+					if (each <= 0) {
+						continue;
+					}
+					long sold = WarehouseLink.take(warehouse, e.getKey(), e.getValue());
+					earned += Math.round(each * sold * bonus);
+				}
+			}
 		}
 		if (earned > 0) {
 			Bank.credit(c.owner, c.ownerName, earned);
 		}
 	}
 
-	private static void stow(List<Colony.Building> stores, ItemStack stack) {
+	static List<Colony.Building> storesOf(Colony c) {
+		List<Colony.Building> stores = new ArrayList<>();
+		for (Colony.Building b : c.buildings) {
+			if (b.type == BuildingType.STOREHOUSE) {
+				stores.add(b);
+			}
+		}
+		return stores;
+	}
+
+	/** A staffed harbor office gets the colony's goods to better markets: +5% on auto-sales per tier. */
+	static double harborBonus(Colony c) {
+		int best = 0;
+		for (Colony.Building b : c.buildings) {
+			if (b.type == BuildingType.HARBOR_OFFICE && b.alive() > 0) {
+				best = Math.max(best, b.tier);
+			}
+		}
+		return 0.05 * best;
+	}
+
+	/** Puts the stack in the storehouses: onto their warehouse shelves first, then into their own slots. Returns what didn't fit. */
+	static ItemStack stow(List<Colony.Building> stores, ItemStack stack) {
+		for (Colony.Building s : stores) {
+			String warehouse = warehouseOf(s);
+			if (warehouse != null) {
+				WarehouseLink.deposit(warehouse, stack);
+				if (stack.isEmpty()) {
+					return ItemStack.EMPTY;
+				}
+			}
+		}
 		ItemStack rest = stack;
 		for (Colony.Building s : stores) {
 			rest = s.storage.addItem(rest);
 			if (rest.isEmpty()) {
-				return;
+				return ItemStack.EMPTY;
 			}
 		}
-		// no room anywhere: it rots in the field
+		return rest;
 	}
 
-	private static int count(List<Colony.Building> stores, net.minecraft.world.item.Item item) {
-		int n = 0;
+	static long count(List<Colony.Building> stores, net.minecraft.world.item.Item item) {
+		long n = 0;
+		ItemStack kind = new ItemStack(item);
 		for (Colony.Building s : stores) {
+			String warehouse = warehouseOf(s);
+			if (warehouse != null) {
+				n += WarehouseLink.count(warehouse, kind);
+			}
 			for (int i = 0; i < s.storage.getContainerSize(); i++) {
 				ItemStack stack = s.storage.getItem(i);
 				if (stack.is(item)) {
@@ -1059,12 +1243,17 @@ public final class Colonies {
 		return n;
 	}
 
-	private static void take(List<Colony.Building> stores, net.minecraft.world.item.Item item, int amount) {
+	private static void take(List<Colony.Building> stores, net.minecraft.world.item.Item item, long amount) {
+		ItemStack kind = new ItemStack(item);
 		for (Colony.Building s : stores) {
+			String warehouse = warehouseOf(s);
+			if (warehouse != null && amount > 0) {
+				amount -= WarehouseLink.take(warehouse, kind, amount);
+			}
 			for (int i = 0; i < s.storage.getContainerSize() && amount > 0; i++) {
 				ItemStack stack = s.storage.getItem(i);
 				if (stack.is(item)) {
-					int n = Math.min(amount, stack.getCount());
+					int n = (int) Math.min(amount, stack.getCount());
 					stack.shrink(n);
 					amount -= n;
 					if (stack.isEmpty()) {
@@ -1073,6 +1262,107 @@ public final class Colonies {
 				}
 			}
 		}
+	}
+
+	// ---------------------------------------------------------------- train stations
+
+	/**
+	 * Every two seconds: whatever a train dropped off at a station goes into the storehouses, and stations that ship
+	 * goods out get their Pickup Station topped up from the storehouses for the next train.
+	 */
+	static void stations() {
+		for (Colony c : COLONIES) {
+			ServerLevel level = level(c);
+			if (level == null) {
+				continue;
+			}
+			List<Colony.Building> stores = null;
+			for (Colony.Building b : c.buildings) {
+				if (b.type != BuildingType.TRAIN_STATION) {
+					continue;
+				}
+				if (stores == null) {
+					stores = storesOf(c);
+				}
+				BlockPos drop = b.world(BuildingType.DROP_OFF);
+				if (level.isLoaded(drop) && level.getBlockEntity(drop) instanceof Container box && !box.isEmpty()) {
+					for (int i = 0; i < box.getContainerSize(); i++) {
+						ItemStack stack = box.getItem(i);
+						if (!stack.isEmpty()) {
+							box.setItem(i, stow(stores, stack.copy()));
+						}
+					}
+					box.setChanged();
+				}
+				BlockPos pickup = b.world(BuildingType.PICKUP);
+				if (b.export && !c.striking && level.isLoaded(pickup) && level.getBlockEntity(pickup) instanceof Container box) {
+					ship(stores, box);
+				}
+			}
+		}
+	}
+
+	/** Fills the container from the storehouses, as far as it has room. */
+	static void ship(List<Colony.Building> stores, Container box) {
+		boolean moved = false;
+		for (Colony.Building s : stores) {
+			String warehouse = warehouseOf(s);
+			if (warehouse != null) {
+				for (Map.Entry<ItemStack, Long> e : WarehouseLink.stock(warehouse)) {
+					ItemStack kind = e.getKey();
+					long have = e.getValue();
+					while (have > 0) {
+						int n = (int) Math.min(have, kind.getMaxStackSize());
+						int put = insert(box, kind.copyWithCount(n));
+						if (put > 0) {
+							WarehouseLink.take(warehouse, kind, put);
+							have -= put;
+							moved = true;
+						}
+						if (put < n) {
+							break; // no more room for this kind
+						}
+					}
+				}
+			}
+			for (int i = 0; i < s.storage.getContainerSize(); i++) {
+				ItemStack stack = s.storage.getItem(i);
+				if (stack.isEmpty()) {
+					continue;
+				}
+				int put = insert(box, stack.copy());
+				if (put > 0) {
+					stack.shrink(put);
+					moved = true;
+					if (stack.isEmpty()) {
+						s.storage.setItem(i, ItemStack.EMPTY);
+					}
+				}
+			}
+		}
+		if (moved) {
+			box.setChanged();
+			markDirty();
+		}
+	}
+
+	/** Puts as much of the stack into the container as fits. Returns how many went in. */
+	private static int insert(Container box, ItemStack stack) {
+		int total = stack.getCount();
+		int left = total;
+		for (int i = 0; i < box.getContainerSize() && left > 0; i++) {
+			ItemStack there = box.getItem(i);
+			if (there.isEmpty()) {
+				int n = Math.min(left, stack.getMaxStackSize());
+				box.setItem(i, stack.copyWithCount(n));
+				left -= n;
+			} else if (ItemStack.isSameItemSameComponents(there, stack) && there.getCount() < there.getMaxStackSize()) {
+				int n = Math.min(left, there.getMaxStackSize() - there.getCount());
+				there.grow(n);
+				left -= n;
+			}
+		}
+		return total - left;
 	}
 
 	// ---------------------------------------------------------------- protection and clicks
@@ -1107,6 +1397,8 @@ public final class Colonies {
 				TownHallMenu.open(player, b.colony);
 			} else if (cell >= 0) {
 				openCell(player, level, hand, b, cell);
+			} else if (warehouseOf(b) != null) {
+				WarehouseLink.open(player, b.warehouse);
 			} else {
 				TownHallMenu.openStorage(player, b);
 			}
@@ -1142,6 +1434,14 @@ public final class Colonies {
 				.append(Component.literal(what).withStyle(ChatFormatting.GRAY)));
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	/** Test hook: finish every building job right away. */
+	static void finishJobs() {
+		for (BuildJob job : new ArrayList<>(JOBS)) {
+			finish(job);
+		}
+		JOBS.clear();
 	}
 
 	/** Test hook: forget everything (after the smoke test). */

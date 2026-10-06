@@ -85,6 +85,10 @@ final class SmokeTest {
 
 	private static void items() {
 		check(HavanaItems.isSeeds(HavanaItems.seeds(1)), "tobacco seeds are recognised");
+		check(net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get(HavanaMod.ITEM_HOOK) instanceof java.util.function.BiFunction<?, ?, ?>,
+			"the tobacco hook for Colonycraft is published");
+		check(HavanaItems.isTobacco(HavanaMod.tobacco(HavanaItems.LEAF, 5)) && HavanaMod.tobacco(HavanaItems.LEAF, 5).getCount() == 5
+			&& HavanaMod.tobacco("nonsense", 1).isEmpty(), "the tobacco hook makes real tobacco");
 		check(!HavanaItems.isSeeds(new ItemStack(Items.BEETROOT_SEEDS)), "plain beetroot seeds aren't tobacco seeds");
 		check(HavanaItems.isTobacco(HavanaItems.leaf(1)) && HavanaItems.isTobacco(HavanaItems.cured(1)) && HavanaItems.isTobacco(HavanaItems.aged(1)),
 			"leaves, cured and aged tobacco are tobacco");

@@ -3,12 +3,17 @@ package com.thatcoffeelock.colonycraft;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,6 +21,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -25,8 +31,9 @@ import net.minecraft.world.phys.AABB;
  * every design, founds a colony, builds one of everything, runs paydays (normal, autosell, strike),
  * kills and replaces a worker, saves and reloads, builds a fortified line (walls, gatehouse, watchtower)
  * and a barracks, lets the archers shoot at a husk, catches illagers and puts them through the cellblock
- * (locked up, moved, executed, ransomed, executed in public on the scaffold), repairs and upgrades, then
- * demolishes it all again.
+ * (locked up, moved, executed, ransomed, executed in public on the scaffold), builds the fishery, harbor,
+ * train station (a drop-off and a shipment), tobacco farm, wall stairs and a wall tower, hires a villager out
+ * of a Burlap Sack, repairs and upgrades, then demolishes it all again.
  */
 final class SmokeTest {
 	private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-00000000c01a");
@@ -127,7 +134,10 @@ final class SmokeTest {
 		}
 
 		Colonies.upgrade(level, store, 0);
+		Colonies.finishJobs(); // the upgrade rebuilds it with more storage racks
 		check(store.storage.getContainerSize() == 54, "storehouse upgrade gives 54 slots");
+		check(level.getBlockState(store.world(BuildingType.STORE_CORE)).is(Blocks.CARTOGRAPHY_TABLE), "the storehouse has its warehouse core");
+		check(level.getBlockState(store.world(BuildingType.rack(5))).is(Blocks.BARREL), "a tier 2 storehouse has six storage racks");
 
 		// payday 1: wages out, goods in, workshop at work
 		long before = Bank.balance(OWNER);
@@ -198,7 +208,8 @@ final class SmokeTest {
 		Colony.Building barracks = Colonies.construct(level, colony, BuildingType.BARRACKS, new BlockPos(24, 99, 12), 0,
 			Bank.cents(BuildingType.BARRACKS.price), true);
 		check(colony.slotsUsed() == 9, "fortifications don't use building slots (" + colony.slotsUsed() + " used)");
-		check(level.getBlockState(wallA.world(new BlockPos(2, 3, -2))).is(Blocks.LADDER), "the wall has its ladder");
+		check(level.getBlockState(wallA.world(new BlockPos(-2, 2, -2))).is(Blocks.WALL_TORCH), "the wall has a torch in its arch");
+		check(level.getBlockState(wallA.world(new BlockPos(4, 7, 2))).is(Blocks.STONE_BRICKS), "the wall's joints are quoined in stone bricks");
 		check(level.getBlockState(gate.offset(0, 1, 0)).is(Blocks.SPRUCE_FENCE_GATE), "the gatehouse has its gates");
 
 		// everything stands exactly as designed: no lantern, ladder, torch or banner fell off
@@ -239,10 +250,107 @@ final class SmokeTest {
 		Cmd.run(level, "setblock " + chest.getX() + " " + chest.getY() + " " + chest.getZ() + " minecraft:air");
 
 		prison(level);
+		newBuildings(level);
 
 		// upgrading a wall rebuilds it in stone bricks
 		Colonies.upgrade(level, wallA, 0);
 		ColonycraftMod.later(200, () -> step(level.getServer(), () -> afterVolley(level)));
+	}
+
+	/** A height on the wall's outside face above the rubble footing. */
+	private static final int WALL_FACE = 3;
+
+	/** The new buildings, a train at the station, wall stairs and a wall tower, and a villager out of a Burlap Sack. */
+	private static void newBuildings(ServerLevel level) {
+		Colony.Building store = find(BuildingType.STOREHOUSE);
+		store.storage.clearContent();
+
+		Colony.Building fishery = Colonies.construct(level, colony, BuildingType.FISHERY, new BlockPos(-24, 99, 30), 0,
+			Bank.cents(BuildingType.FISHERY.price), true);
+		check(fishery.alive() == 2, "two fishers moved in");
+		check(level.getBlockState(fishery.world(new BlockPos(1, 0, 2))).is(Blocks.WATER), "the fishery has its basin");
+		check(!Production.gather(BuildingType.FISHERY, 1, 2, new Random(7)).isEmpty(), "fishers bring in fish");
+
+		Colony.Building harbor = Colonies.construct(level, colony, BuildingType.HARBOR_OFFICE, new BlockPos(-6, 99, 30), 0,
+			Bank.cents(BuildingType.HARBOR_OFFICE.price), true);
+		check(level.getBlockState(harbor.world(BuildingType.HARBOR_DOCK)).is(Blocks.LANTERN), "the harbor's pier ends in a Loading Dock lantern");
+		check(harbor.alive() == 1 && Math.abs(Colonies.harborBonus(colony) - 0.05) < 1e-9, "a staffed harbor adds 5% to auto-sales");
+
+		Colony.Building station = Colonies.construct(level, colony, BuildingType.TRAIN_STATION, new BlockPos(14, 99, 30), 0,
+			Bank.cents(BuildingType.TRAIN_STATION.price), true);
+		BlockPos pickup = station.world(BuildingType.PICKUP);
+		BlockPos drop = station.world(BuildingType.DROP_OFF);
+		check(level.getBlockEntity(pickup) instanceof Nameable n && n.getCustomName() != null && n.getCustomName().getString().equals("Pickup Station"),
+			"the station's barrel is a Pickup Station");
+		check(level.getBlockEntity(drop) instanceof Nameable n && n.getCustomName() != null && n.getCustomName().getString().equals("Drop-off Station"),
+			"the station's chest is a Drop-off Station");
+		check(level.getBlockState(station.world(new BlockPos(5, 1, 1))).is(Blocks.RAIL), "the track runs out of the station");
+		check(Colonies.whyNoUpgrade(station) != null, "a train station has only one tier");
+		Container dropBox = (Container) level.getBlockEntity(drop);
+		Container pickBox = (Container) level.getBlockEntity(pickup);
+		dropBox.setItem(0, new ItemStack(Items.IRON_INGOT, 20));
+		Colonies.stations();
+		check(dropBox.isEmpty() && count(store, Items.IRON_INGOT) == 20, "what a train drops off goes into the storehouse");
+		Colonies.stations();
+		check(pickBox.isEmpty(), "the Pickup Station stays empty while shipping is off");
+		station.export = true;
+		Colonies.stations();
+		check(countIn(pickBox, Items.IRON_INGOT) == 20 && count(store, Items.IRON_INGOT) == 0, "shipping out fills the Pickup Station from the storehouse");
+		station.export = false;
+		pickBox.clearContent();
+
+		Colony.Building tobacco = Colonies.construct(level, colony, BuildingType.TOBACCO_FARM, new BlockPos(32, 99, 30), 0,
+			Bank.cents(BuildingType.TOBACCO_FARM.price), true);
+		check(level.getBlockState(tobacco.world(new BlockPos(1, 1, -2))).is(Blocks.LARGE_FERN), "the tobacco farm has its rows");
+		if (!HavanaLink.present()) {
+			check(!BuildingType.TOBACCO_FARM.available() && Production.tobacco(1, 2, new Random(7)).isEmpty(),
+				"without Havana, tobacco farms aren't for sale and grow nothing");
+		}
+
+		Colony.Building wallTower = Colonies.construct(level, colony, BuildingType.WALL_TOWER, new BlockPos(-8, 99, 48), 0,
+			Bank.cents(BuildingType.WALL_TOWER.price), true);
+		BlockPos stairsAt = Colonies.snap(level, BuildingType.WALL_STAIRS, new BlockPos(1, 99, 49), 0);
+		check(stairsAt.equals(new BlockPos(0, 99, 48)), "wall stairs snap onto a wall tower (" + stairsAt + ")");
+		Colony.Building stairs = Colonies.construct(level, colony, BuildingType.WALL_STAIRS, stairsAt, 0, Bank.cents(BuildingType.WALL_STAIRS.price), true);
+		check(level.getBlockState(stairs.world(new BlockPos(-3, 1, -2))).is(Blocks.COBBLESTONE_STAIRS), "the wall stairs have their steps");
+		check(level.getBlockState(wallTower.world(new BlockPos(2, 5, 2))).is(Blocks.LADDER), "the wall tower has its ladder");
+		check(level.getBlockState(wallTower.world(new BlockPos(3, 6, 0))).isAir(), "the wall tower is open where walls join");
+
+		for (Colony.Building b : new Colony.Building[] {fishery, harbor, station, tobacco, wallTower, stairs}) {
+			int off = Colonies.damaged(level, b);
+			check(off == 0, b.type.id + " was built as designed (" + off + " blocks off)");
+		}
+
+		// a villager brought in a Burlap Sack takes an empty job for free
+		CompoundTag tag = new CompoundTag();
+		tag.putString("burlapsack", "full");
+		tag.putString("type", "minecraft:villager");
+		tag.putString("name", "Bob");
+		tag.put("captive", new CompoundTag());
+		ItemStack sack = new ItemStack(Items.BUNDLE);
+		sack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+		check(SackLink.isVillagerSack(sack) && SackLink.name(sack).equals("Bob"), "a sack with a villager in it is recognised");
+		check(!SackLink.isVillagerSack(new ItemStack(Items.BUNDLE)), "a plain bundle isn't a sack");
+		check(!Colonies.hireFromSack(level, fishery, "Carl"), "no empty job, no hire");
+		Entity gone = level.getEntity(fishery.villagers.get(0));
+		if (gone != null) {
+			gone.discard();
+		}
+		fishery.villagers.set(0, null);
+		check(Colonies.hireFromSack(level, fishery, "Bob") && fishery.dead() == 0, "Bob from the sack took the empty job");
+		Entity bob = level.getEntity(fishery.villagers.get(0));
+		check(bob != null && bob.getCustomName() != null && bob.getCustomName().getString().equals("Bob the Fisher"), "and is called Bob the Fisher");
+		check(!Colonies.hiresVillagers(BuildingType.BARRACKS), "iron golems don't come in sacks");
+	}
+
+	private static int countIn(Container box, Item item) {
+		int n = 0;
+		for (int i = 0; i < box.getContainerSize(); i++) {
+			if (box.getItem(i).is(item)) {
+				n += box.getItem(i).getCount();
+			}
+		}
+		return n;
 	}
 
 	private static Colony.Building cellblock;
@@ -383,7 +491,10 @@ final class SmokeTest {
 		Entity target = level.getEntity(husk);
 		check(target == null || !target.isAlive() || (target instanceof LivingEntity l && l.getHealth() < l.getMaxHealth()),
 			"the husk got hit");
-		check(level.getBlockState(wallA.world(new BlockPos(0, 1, 1))).is(Blocks.POLISHED_ANDESITE), "the upgraded wall is rebuilt in stone");
+		check(level.getBlockState(wallA.world(new BlockPos(4, 3, 2))).is(Blocks.POLISHED_ANDESITE), "the upgraded wall is rebuilt with dressed quoins");
+		check(level.getBlockState(wallA.world(new BlockPos(0, WALL_FACE, 2))).is(Blocks.STONE_BRICKS)
+			|| level.getBlockState(wallA.world(new BlockPos(0, WALL_FACE, 2))).is(Blocks.MOSSY_STONE_BRICKS)
+			|| level.getBlockState(wallA.world(new BlockPos(0, WALL_FACE, 2))).is(Blocks.CRACKED_STONE_BRICKS), "the upgraded wall is stone bricks");
 		check(Colonies.damaged(level, wallA) == 0, "the upgraded wall is complete");
 		Cmd.run(level, "kill @e[type=minecraft:husk]");
 		Cmd.run(level, "kill @e[type=minecraft:arrow]");

@@ -143,6 +143,78 @@ final class Warehouses {
 		return docks != null && docks.contains(pos.asLong());
 	}
 
+	/** The branches of a central warehouse. */
+	static List<Warehouse> branchesOf(Warehouse central) {
+		List<Warehouse> list = new ArrayList<>();
+		for (Warehouse w : BY_ID.values()) {
+			if (central.id.equals(w.central)) {
+				list.add(w);
+			}
+		}
+		return list;
+	}
+
+	/** The central warehouse a branch belongs to, if it still exists. */
+	static @Nullable Warehouse centralOf(Warehouse branch) {
+		return branch.isBranch() ? BY_ID.get(branch.central) : null;
+	}
+
+	/** Why this warehouse can't become a branch of that one, or null if it can. */
+	static @Nullable String whyNoLink(Warehouse branch, Warehouse central) {
+		if (branch == central) {
+			return "A warehouse can't be its own central warehouse.";
+		}
+		if (central.isBranch()) {
+			return central.name + " is a branch itself. Pick a central warehouse.";
+		}
+		if (!branchesOf(branch).isEmpty()) {
+			return branch.name + " is a central warehouse with branches of its own.";
+		}
+		return null;
+	}
+
+	static void link(Warehouse branch, Warehouse central) {
+		branch.central = central.id;
+		branch.forward = true;
+		branch.changed();
+		central.changed();
+	}
+
+	static void unlink(Warehouse branch) {
+		Warehouse central = centralOf(branch);
+		branch.central = "";
+		branch.forward = false;
+		branch.changed();
+		if (central != null) {
+			central.changed();
+		}
+	}
+
+	/**
+	 * Branches that forward send their stock on to their central warehouse, as much as it has room for and accepts.
+	 * Stock is only counted, not kept in chunks, so this works wherever the warehouses are, loaded or not.
+	 */
+	static void forward() {
+		for (Warehouse w : BY_ID.values()) {
+			if (!w.forward || w.packed || w.items.isEmpty()) {
+				continue;
+			}
+			Warehouse central = centralOf(w);
+			if (central == null || central.packed || central.isBranch()) {
+				continue;
+			}
+			for (Map.Entry<Warehouse.Key, Long> e : new ArrayList<>(w.items.entrySet())) {
+				long moved = central.put(e.getKey(), e.getValue());
+				if (moved > 0) {
+					w.take(e.getKey(), moved);
+				}
+				if (central.space() == 0) {
+					break;
+				}
+			}
+		}
+	}
+
 	static List<Long> racksOf(Warehouse w) {
 		network();
 		return RACKS_OF.getOrDefault(w.id, List.of());
@@ -354,6 +426,7 @@ final class Warehouses {
 		if (ticks % 100 == 0) {
 			validate();
 			labels();
+			forward();
 		}
 		if (ticks % 600 == 0 && dirty) {
 			save();
@@ -602,6 +675,8 @@ final class Warehouses {
 			o.addProperty("y", w.pos.getY());
 			o.addProperty("z", w.pos.getZ());
 			o.addProperty("packed", w.packed);
+			o.addProperty("central", w.central);
+			o.addProperty("forward", w.forward);
 			JsonArray items = new JsonArray();
 			for (Map.Entry<Warehouse.Key, Long> e : w.items.entrySet()) {
 				ItemStack.CODEC.encodeStart(ops, e.getKey().stack).result().ifPresentOrElse(json -> {
@@ -662,6 +737,8 @@ final class Warehouses {
 				w.locked = o.has("locked") && o.get("locked").getAsBoolean();
 				w.filter = o.has("filter") ? Category.byName(o.get("filter").getAsString()) : Category.ALL;
 				w.packed = o.has("packed") && o.get("packed").getAsBoolean();
+				w.central = o.has("central") ? o.get("central").getAsString() : "";
+				w.forward = o.has("forward") && o.get("forward").getAsBoolean();
 				for (JsonElement ie : o.getAsJsonArray("items")) {
 					JsonObject entry = ie.getAsJsonObject();
 					long count = entry.get("count").getAsLong();
