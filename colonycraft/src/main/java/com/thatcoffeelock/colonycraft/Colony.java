@@ -19,6 +19,13 @@ public final class Colony {
 		public int tier = 1;
 		public final BlockPos origin;
 		public final int quarter;
+		/**
+		 * Its own footprint: half-sizes across and front to back, and height. A new building gets its type's; an older
+		 * one keeps the size it was built at until it's renovated into the current (maybe bigger) design.
+		 */
+		public int half;
+		public int depth;
+		public int height;
 		/** One entry per job; null means the worker died and hasn't been replaced yet. */
 		public final List<UUID> villagers = new ArrayList<>();
 		/** Everything paid for this building so far, in cents (for the demolition refund). */
@@ -39,6 +46,24 @@ public final class Colony {
 			this.type = type;
 			this.origin = origin;
 			this.quarter = quarter;
+			this.half = type.half;
+			this.depth = type.depth;
+			this.height = type.height;
+		}
+
+		/** Takes on the current design's footprint (when it's rebuilt to it). */
+		public void resize() {
+			half = type.half;
+			depth = type.depth;
+			height = type.height;
+		}
+
+		public int extentX() {
+			return Math.floorMod(quarter, 2) == 0 ? half : depth;
+		}
+
+		public int extentZ() {
+			return Math.floorMod(quarter, 2) == 0 ? depth : half;
 		}
 
 		public int alive() {
@@ -75,8 +100,8 @@ public final class Colony {
 		/** Is this world position inside the building (its footprint, from the floor to the roof)? */
 		public boolean contains(BlockPos pos) {
 			BlockPos local = Colonies.toLocal(origin, quarter, pos);
-			return Math.abs(local.getX()) <= type.half && Math.abs(local.getZ()) <= type.depth
-				&& local.getY() >= 0 && local.getY() <= type.height + 1;
+			return Math.abs(local.getX()) <= half && Math.abs(local.getZ()) <= depth
+				&& local.getY() >= 0 && local.getY() <= height + 1;
 		}
 
 		public BlockPos world(BlockPos local) {

@@ -24,7 +24,7 @@ Put **Fabric API**, **`market-<version>.jar`** and **`colonycraft-<version>.jar`
 | Building | Price | Crew (tier 1/2/3) | Does |
 |---|---|---|---|
 | Town Hall | ₥2,500 | 1 mayor | The counter. Upgrades give more land and more building slots (8/14/20) |
-| Residence | ₥400 | – | Beds: 4/6/8. Every worker needs a bed |
+| Residence | ₥400 | – | Beds: 4/6/8 (upgrading rebuilds it with two more beds upstairs). Every worker needs a bed |
 | Farm | ₥800 | 2/3/4 | Wheat, carrots, potatoes, beetroot, pumpkins, melons |
 | Lumber Camp | ₥900 | 2/3/4 | Oak, spruce and birch logs, sticks, saplings, apples |
 | Mine | ₥2,500 | 3/4/5 | Cobble, coal, iron, copper, gold, redstone, lapis, the odd diamond or emerald |
@@ -33,10 +33,12 @@ Put **Fabric API**, **`market-<version>.jar`** and **`colonycraft-<version>.jar`
 | Tobacco Farm | ₥1,200 | 2/3/4 | Tobacco leaves (needs the [Havana](../havana/README.md) mod). From tier 2 the curing barn cures two leaves in five, at tier 3 it ages one in six too |
 | Storehouse | ₥500 | 1/1/2 | 27 slots, 54 at tier 2, and +10% on auto-sales at tier 3. Right-click any barrel to open it. With the [Warehouse](../warehouse/README.md) mod it's a real warehouse (see below) |
 | Harbor Office | ₥2,500 | 1/2/3 | A customs house with a pier out the back. The lantern at the end of the pier is a Warehouse **Loading Dock**. While it's staffed, auto-sales pay +5% / +10% / +15% |
-| Train Station | ₥1,500 | 1 | A straight track through a platform, a **Pickup Station** and a **Drop-off Station** for [Cargo Trains](../cargo-train/README.md) (see below). One tier only |
+| Train Station | ₥1,500 | 1 | Straight tracks through a platform: **1 / 2 / 3 tracks** at tier 1 / 2 / 3, each with its own **Pickup Station** and **Drop-off Station** for [Cargo Trains](../cargo-train/README.md) (see below) |
 | Barracks | ₥2,000 | 1/2/3 iron golems | Golems patrol the colony's land and fight monsters. ₥15 a day each, no beds needed |
 
 The Town Hall counter has the farms, fishery, tobacco farm, mine, workshop and storehouse in the blueprint row, the harbor, station, barracks, shackles and charter along the top, and the fortifications and law-and-order buildings in the row below.
+
+Since 1.3.0 the buildings are bigger and more detailed: two-storey brick houses with shuttered windows and overhanging roofs, 13 × 13 farms and lumber camps with timber barns and sawmills, a mine in a hill with a timbered portal, a merchant's warehouse with a hoist, and so on. Buildings from older versions keep their old size and look until you **Repair & renovate** them; if a neighbour stands where the bigger design needs room, renovating tells you which one is in the way.
 
 Every building is in the same Dutch neo-renaissance style: red brick dressed in cream sandstone (quoins, string courses, lintels with keystones) under dark slate mansard roofs. The Town Hall is a three-storey mansion with a gabled centre bay, a portico and a council chamber upstairs. The Town Hall is 11 × 11 and the Residence 9 × 9; existing ones grow into the path around them when you **Repair & renovate** them (see below).
 
@@ -85,9 +87,9 @@ The lantern at the end of the Harbor Office's pier is a Warehouse **Loading Dock
 
 ### Cargo Train: the train station
 
-The station's track runs from one end of the building to the other; carry your line on from both ends. Next to the track:
+The station's tracks run from one end of the building to the other; carry your lines on from both ends. A tier 1 station has one track, tier 2 adds a second along an island platform and tier 3 a third behind it, so up to three train lines can serve one colony. Next to each track:
 
-- the **Drop-off Station** (a chest): whatever a train unloads there goes into the storehouses, every two seconds;
+- the **Drop-off Station** (a barrel): whatever a train unloads there goes into the storehouses, every two seconds;
 - the **Pickup Station** (a barrel): a train loads whatever is in it. Switch on **Ship goods out** on the station's page and it's kept full from the storehouses, so every train carries the colony's goods away (to a Drop-off Station at your home warehouse, say).
 
 ### Havana: the tobacco farm

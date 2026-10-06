@@ -324,8 +324,8 @@ public final class Colonies {
 			}
 			for (Colony.Building b : c.buildings) {
 				int gap = type.fortification && b.type.fortification ? 0 : 1;
-				if (Math.abs(b.origin.getX() - origin.getX()) <= b.type.extentX(b.quarter) + ex + gap
-					&& Math.abs(b.origin.getZ() - origin.getZ()) <= b.type.extentZ(b.quarter) + ez + gap) {
+				if (Math.abs(b.origin.getX() - origin.getX()) <= b.extentX() + ex + gap
+					&& Math.abs(b.origin.getZ() - origin.getZ()) <= b.extentZ() + ez + gap) {
 					return gap == 0 ? "That overlaps the " + b.type.displayName + ". Line it up with its end."
 						: "Too close to the " + b.type.displayName + ". Leave a path between buildings.";
 				}
@@ -638,7 +638,7 @@ public final class Colonies {
 				continue;
 			}
 			for (Colony.Building b : c.buildings) {
-				int reach = Math.max(b.type.half, b.type.depth) + 8;
+				int reach = Math.max(b.half, b.depth) + 8;
 				double max = reach * reach;
 				for (int i = 0; i < b.villagers.size(); i++) {
 					UUID v = b.villagers.get(i);
@@ -799,8 +799,27 @@ public final class Colonies {
 		return Bank.cents(b.type.price * REBUILD_SHARE);
 	}
 
-	/** Why it can't be rebuilt right now, or null if it can. Rebuilding clears the footprint, so containers must be empty. */
+	/**
+	 * Why it can't be rebuilt right now, or null if it can. Rebuilding clears the footprint of the current design
+	 * (which may be bigger than the one it was built to), so nothing else may stand there and containers must be
+	 * empty, except the building's own (a station's barrels, say), which stay where they are with what's in them.
+	 */
 	static @Nullable String whyNoRebuild(ServerLevel level, Colony.Building b) {
+		int ex = b.type.extentX(b.quarter);
+		int ez = b.type.extentZ(b.quarter);
+		for (Colony c : COLONIES) {
+			if (!c.dimension.equals(b.colony.dimension)) {
+				continue;
+			}
+			for (Colony.Building other : c.buildings) {
+				if (other != b && Math.abs(other.origin.getX() - b.origin.getX()) <= other.extentX() + ex
+					&& Math.abs(other.origin.getZ() - b.origin.getZ()) <= other.extentZ() + ez) {
+					return "The " + other.type.displayName + " next to it is in the way: the current " + b.type.displayName
+						+ " is bigger than this old one. Move or demolish the " + other.type.displayName + " first.";
+				}
+			}
+		}
+		Map<BlockPos, BlockState> design = b.type.plan(b.tier);
 		for (int y = 0; y <= b.type.height + 1; y++) {
 			for (int x = -b.type.half; x <= b.type.half; x++) {
 				for (int z = -b.type.depth; z <= b.type.depth; z++) {
@@ -809,6 +828,10 @@ public final class Colonies {
 						return "Go a bit closer to that building first.";
 					}
 					BlockEntity entity = level.getBlockEntity(pos);
+					BlockState wanted = design.get(new BlockPos(x, y, z));
+					if (wanted != null && level.getBlockState(pos).is(wanted.getBlock())) {
+						continue; // part of the building: it stays, contents and all
+					}
 					if (entity instanceof Container box && !box.isEmpty()) {
 						return "Empty the " + level.getBlockState(pos).getBlock().getName().getString() + " at " + pos.getX() + ", "
 							+ pos.getY() + ", " + pos.getZ() + " first. Rebuilding clears everything that isn't part of the building.";
@@ -821,13 +844,15 @@ public final class Colonies {
 
 	/** Puts the building back exactly as designed (for its tier), then sends its crew back to their places. */
 	static void rebuild(ServerLevel level, Colony.Building b, boolean instant) {
-		run(buildJob(level, b, () -> {
+		BuildJob job = buildJob(level, b, () -> {
 			if (b.colony.buildings.contains(b)) {
 				hireMissing(level, b);
 				furnish(level, b);
 				settle(level, b);
 			}
-		}), instant);
+		});
+		b.resize(); // it's the current design now, footprint and all
+		run(job, instant);
 		markDirty();
 	}
 
@@ -853,8 +878,10 @@ public final class Colonies {
 				}
 			}
 			case TRAIN_STATION -> {
-				name(level, b.world(BuildingType.PICKUP), "Pickup Station", "aqua");
-				name(level, b.world(BuildingType.DROP_OFF), "Drop-off Station", "gold");
+				for (int t = 0; t < BuildingType.tracks(b.tier); t++) {
+					name(level, b.world(BuildingType.PICKUPS[t]), "Pickup Station", "aqua");
+					name(level, b.world(BuildingType.DROP_OFFS[t]), "Drop-off Station", "gold");
+				}
 			}
 			default -> {
 			}
@@ -1050,11 +1077,11 @@ public final class Colonies {
 		if (b.type == BuildingType.HARBOR_OFFICE) {
 			WarehouseLink.undock(level, b.world(BuildingType.HARBOR_DOCK));
 		}
-		int h = b.type.half;
-		int d = b.type.depth;
+		int h = b.half;
+		int d = b.depth;
 		BlockState air = Blocks.AIR.defaultBlockState();
 		BlockState ground = Blocks.GRASS_BLOCK.defaultBlockState();
-		for (int y = b.type.height + 1; y >= 0; y--) {
+		for (int y = b.height + 1; y >= 0; y--) {
 			for (int x = -h; x <= h; x++) {
 				for (int z = -d; z <= d; z++) {
 					BlockPos pos = toWorld(b.origin, b.quarter, x, y, z);
@@ -1284,19 +1311,21 @@ public final class Colonies {
 				if (stores == null) {
 					stores = storesOf(c);
 				}
-				BlockPos drop = b.world(BuildingType.DROP_OFF);
-				if (level.isLoaded(drop) && level.getBlockEntity(drop) instanceof Container box && !box.isEmpty()) {
-					for (int i = 0; i < box.getContainerSize(); i++) {
-						ItemStack stack = box.getItem(i);
-						if (!stack.isEmpty()) {
-							box.setItem(i, stow(stores, stack.copy()));
+				for (int t = 0; t < BuildingType.tracks(b.tier); t++) {
+					BlockPos drop = b.world(BuildingType.DROP_OFFS[t]);
+					if (level.isLoaded(drop) && level.getBlockEntity(drop) instanceof Container box && !box.isEmpty()) {
+						for (int i = 0; i < box.getContainerSize(); i++) {
+							ItemStack stack = box.getItem(i);
+							if (!stack.isEmpty()) {
+								box.setItem(i, stow(stores, stack.copy()));
+							}
 						}
+						box.setChanged();
 					}
-					box.setChanged();
-				}
-				BlockPos pickup = b.world(BuildingType.PICKUP);
-				if (b.export && !c.striking && level.isLoaded(pickup) && level.getBlockEntity(pickup) instanceof Container box) {
-					ship(stores, box);
+					BlockPos pickup = b.world(BuildingType.PICKUPS[t]);
+					if (b.export && !c.striking && level.isLoaded(pickup) && level.getBlockEntity(pickup) instanceof Container box) {
+						ship(stores, box);
+					}
 				}
 			}
 		}

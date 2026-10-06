@@ -297,7 +297,7 @@ final class TownHallMenu extends ChestMenu {
 			case FISHERY -> "Cod, salmon, the odd tropical fish and pufferfish, ink sacs, kelp, now and then a nautilus shell.";
 			case TOBACCO_FARM -> "Tobacco leaves for your cigars. The curing barn cures and ages some from tier 2.";
 			case HARBOR_OFFICE -> "A pier with a Loading Dock for ships, and better prices on everything you auto-sell.";
-			case TRAIN_STATION -> "Track through a platform, with a Pickup and a Drop-off Station for Cargo Trains.";
+			case TRAIN_STATION -> "Track through a platform, with a Pickup and a Drop-off Station for Cargo Trains. More tracks per tier.";
 			case WATCHTOWER -> "Archers on top shoot monsters up to 24 blocks away.";
 			case WALL -> "9 blocks of curtain wall with a walkway behind the battlements.";
 			case WALL_STAIRS -> "A wall segment with steps up the inside to the walkway.";
@@ -420,9 +420,10 @@ final class TownHallMenu extends ChestMenu {
 		// train station
 		if (b.type == BuildingType.TRAIN_STATION) {
 			button(32, icon(Items.RAIL, t("The platform", ChatFormatting.AQUA, ChatFormatting.BOLD),
-				List.of(t("Lay your line on from both ends of the track.", ChatFormatting.GRAY),
+				List.of(t(BuildingType.tracks(b.tier) + (b.tier == 1 ? " track" : " tracks") + ": lay your lines on from both ends.", ChatFormatting.GRAY),
 					t("Drop-off Station: what a train unloads there", ChatFormatting.GRAY), t("goes into the storehouses.", ChatFormatting.GRAY),
-					t("Pickup Station: a train loads what's in it.", ChatFormatting.GRAY))), null);
+					t("Pickup Station: a train loads what's in it.", ChatFormatting.GRAY),
+					t("Every track has its own pair of stations.", ChatFormatting.DARK_GRAY))), null);
 			button(34, icon(b.export ? Items.EMERALD_BLOCK : Items.COAL_BLOCK,
 				t("Ship goods out: " + (b.export ? "ON" : "OFF"), b.export ? ChatFormatting.GREEN : ChatFormatting.GRAY, ChatFormatting.BOLD),
 				List.of(t("When on, the Pickup Station is kept full", ChatFormatting.GRAY), t("from the storehouses, so every train", ChatFormatting.GRAY),
@@ -459,12 +460,13 @@ final class TownHallMenu extends ChestMenu {
 		int next = b.tier + 1;
 		return switch (b.type) {
 			case TOWN_HALL -> "Bigger land and room for " + (8 + 6 * (next - 1)) + " buildings.";
-			case RESIDENCE -> "Beds for " + b.type.housing(next) + " workers.";
 			case STOREHOUSE -> WarehouseLink.present()
 				? BuildingType.racks(next) + " storage racks" + (next == 3 ? ", and +10% on everything it auto-sells." : ".")
 				: next == 2 ? "54 slots of storage." : "+10% on everything it auto-sells.";
 			case BARRACKS -> b.type.workers(next) + " iron golems.";
 			case HARBOR_OFFICE -> b.type.workers(next) + " clerks: auto-sales pay +" + 5 * next + "%.";
+			case TRAIN_STATION -> (next == 2 ? "A second track" : "A third track") + ", with its own Pickup and Drop-off Station.";
+			case RESIDENCE -> "Beds for " + b.type.housing(next) + " workers (rebuilt with two more beds upstairs).";
 			case TOBACCO_FARM -> b.type.workers(next) + " planters, and the barn " + (next == 2 ? "cures some leaves." : "ages some tobacco too.");
 			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + stone(next);
 			case WALL, WALL_STAIRS, WALL_TOWER, GATEHOUSE -> "Rebuilt in " + stone(next);

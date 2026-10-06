@@ -113,9 +113,9 @@ final class SmokeTest {
 		check(hall.alive() == 1, "the mayor moved in");
 
 		Object[][] plan = {
-			{BuildingType.RESIDENCE, 12, 0}, {BuildingType.RESIDENCE, 12, 12}, {BuildingType.RESIDENCE, 0, 12},
-			{BuildingType.FARM, -12, 0}, {BuildingType.LUMBER_CAMP, -12, 12}, {BuildingType.MINE, -12, -12},
-			{BuildingType.WORKSHOP, 0, -12}, {BuildingType.STOREHOUSE, 12, -12}};
+			{BuildingType.RESIDENCE, 16, 0}, {BuildingType.RESIDENCE, 16, 16}, {BuildingType.RESIDENCE, 0, 16},
+			{BuildingType.FARM, -16, 0}, {BuildingType.LUMBER_CAMP, -16, 16}, {BuildingType.MINE, -16, -16},
+			{BuildingType.WORKSHOP, 0, -16}, {BuildingType.STOREHOUSE, 16, -16}};
 		for (Object[] p : plan) {
 			BuildingType type = (BuildingType) p[0];
 			Colonies.construct(level, colony, type, new BlockPos((int) p[1], 99, (int) p[2]), (int) p[1] == 0 ? 2 : 1, Bank.cents(type.price), true);
@@ -124,9 +124,9 @@ final class SmokeTest {
 		check(colony.workers() == 11, "11 workers moved in (" + colony.workers() + ")");
 		check(colony.housing() == 14, "14 beds (" + colony.housing() + ")");
 		Colony.Building farm = find(BuildingType.FARM);
-		check(level.getBlockState(farm.world(new BlockPos(3, 1, 3))).is(Blocks.COMPOSTER), "the farm has its composter");
+		check(level.getBlockState(farm.world(new BlockPos(2, 1, 4))).is(Blocks.COMPOSTER), "the farm has its composter");
 		Colony.Building store = find(BuildingType.STOREHOUSE);
-		check(level.getBlockState(store.world(new BlockPos(-3, 2, 0))).is(Blocks.BARREL), "the storehouse walls are barrels");
+		check(level.getBlockState(store.world(new BlockPos(-4, 2, 0))).is(Blocks.BARREL), "the storehouse walls are barrels");
 		for (Colony.Building b : colony.buildings) {
 			for (UUID v : b.villagers) {
 				check(v != null && level.getEntity(v) != null, b.type.id + " worker exists");
@@ -180,6 +180,12 @@ final class SmokeTest {
 		String json = ColonyStore.toJson(level.getServer(), Colonies.all(), 1234);
 		List<Colony> back = ColonyStore.fromJson(level.getServer(), json);
 		check(back.size() == 1 && back.get(0).buildings.size() == 9, "colonies survive a save and load");
+		check(back.get(0).buildings.get(1).half == BuildingType.RESIDENCE.half, "buildings keep their size through a save and load");
+		// a save from before buildings had sizes of their own: they come back at the old, smaller size
+		List<Colony> old = ColonyStore.fromJson(level.getServer(), json.replaceAll("\\s*\"(half|depth|height)\": \\d+,", ""));
+		Colony.Building oldHouse = old.get(0).buildings.get(1);
+		check(oldHouse.type == BuildingType.RESIDENCE && oldHouse.half == 4 && oldHouse.height == 12, "a residence from an old save keeps the old size ("
+			+ oldHouse.half + ")");
 		check(ColonyStore.clock == 1234, "the payday clock survives a save and load");
 		defences(level);
 	}
@@ -205,7 +211,7 @@ final class SmokeTest {
 		BlockPos corner = Colonies.snap(level, BuildingType.WATCHTOWER, new BlockPos(-17, 99, -25), 0);
 		check(corner.equals(new BlockPos(-16, 99, -26)), "a watchtower snaps onto the other end (" + corner + ")");
 		tower = Colonies.construct(level, colony, BuildingType.WATCHTOWER, corner, 0, Bank.cents(BuildingType.WATCHTOWER.price), true);
-		Colony.Building barracks = Colonies.construct(level, colony, BuildingType.BARRACKS, new BlockPos(24, 99, 12), 0,
+		Colony.Building barracks = Colonies.construct(level, colony, BuildingType.BARRACKS, new BlockPos(36, 99, 16), 0,
 			Bank.cents(BuildingType.BARRACKS.price), true);
 		check(colony.slotsUsed() == 9, "fortifications don't use building slots (" + colony.slotsUsed() + " used)");
 		check(level.getBlockState(wallA.world(new BlockPos(-2, 2, -2))).is(Blocks.WALL_TORCH), "the wall has a torch in its arch");
@@ -281,27 +287,27 @@ final class SmokeTest {
 			ColonycraftMod.LOG.info("[smoke] Warehouse isn't loaded; skipping the warehouse checks");
 		}
 
-		Colony.Building fishery = Colonies.construct(level, colony, BuildingType.FISHERY, new BlockPos(-24, 99, 30), 0,
+		Colony.Building fishery = Colonies.construct(level, colony, BuildingType.FISHERY, new BlockPos(-26, 99, 36), 0,
 			Bank.cents(BuildingType.FISHERY.price), true);
 		check(fishery.alive() == 2, "two fishers moved in");
 		check(level.getBlockState(fishery.world(new BlockPos(1, 0, 2))).is(Blocks.WATER), "the fishery has its basin");
 		check(!Production.gather(BuildingType.FISHERY, 1, 2, new Random(7)).isEmpty(), "fishers bring in fish");
 
-		Colony.Building harbor = Colonies.construct(level, colony, BuildingType.HARBOR_OFFICE, new BlockPos(-6, 99, 30), 0,
+		Colony.Building harbor = Colonies.construct(level, colony, BuildingType.HARBOR_OFFICE, new BlockPos(-8, 99, 36), 0,
 			Bank.cents(BuildingType.HARBOR_OFFICE.price), true);
 		check(level.getBlockState(harbor.world(BuildingType.HARBOR_DOCK)).is(Blocks.LANTERN), "the harbor's pier ends in a Loading Dock lantern");
 		check(harbor.alive() == 1 && Math.abs(Colonies.harborBonus(colony) - 0.05) < 1e-9, "a staffed harbor adds 5% to auto-sales");
 
-		Colony.Building station = Colonies.construct(level, colony, BuildingType.TRAIN_STATION, new BlockPos(14, 99, 30), 0,
+		Colony.Building station = Colonies.construct(level, colony, BuildingType.TRAIN_STATION, new BlockPos(12, 99, 36), 0,
 			Bank.cents(BuildingType.TRAIN_STATION.price), true);
-		BlockPos pickup = station.world(BuildingType.PICKUP);
-		BlockPos drop = station.world(BuildingType.DROP_OFF);
+		BlockPos pickup = station.world(BuildingType.PICKUPS[0]);
+		BlockPos drop = station.world(BuildingType.DROP_OFFS[0]);
 		check(level.getBlockEntity(pickup) instanceof Nameable n && n.getCustomName() != null && n.getCustomName().getString().equals("Pickup Station"),
 			"the station's barrel is a Pickup Station");
 		check(level.getBlockEntity(drop) instanceof Nameable n && n.getCustomName() != null && n.getCustomName().getString().equals("Drop-off Station"),
 			"the station's chest is a Drop-off Station");
-		check(level.getBlockState(station.world(new BlockPos(5, 1, 1))).is(Blocks.RAIL), "the track runs out of the station");
-		check(Colonies.whyNoUpgrade(station) != null, "a train station has only one tier");
+		check(level.getBlockState(station.world(new BlockPos(6, 1, BuildingType.TRACKS[0]))).is(Blocks.RAIL), "the track runs out of the station");
+		check(!level.getBlockState(station.world(new BlockPos(0, 1, BuildingType.TRACKS[1]))).is(Blocks.RAIL), "a tier 1 station has one track");
 		Container dropBox = (Container) level.getBlockEntity(drop);
 		Container pickBox = (Container) level.getBlockEntity(pickup);
 		empty(store);
@@ -314,9 +320,21 @@ final class SmokeTest {
 		Colonies.stations();
 		check(countIn(pickBox, Items.IRON_INGOT) == 20 && count(store, Items.IRON_INGOT) == 0, "shipping out fills the Pickup Station from the storehouse");
 		station.export = false;
-		pickBox.clearContent();
+		// a pickup with something in it stays put through upgrades: tier 2 and 3 add a track each
+		pickBox.setItem(0, new ItemStack(Items.COAL, 5));
+		check(Colonies.whyNoRebuild(level, station) == null, "the station's own barrels don't stop an upgrade");
+		Colonies.upgrade(level, station, 0);
+		Colonies.finishJobs();
+		Colonies.upgrade(level, station, 0);
+		Colonies.finishJobs();
+		check(station.tier == 3 && level.getBlockState(station.world(new BlockPos(0, 1, BuildingType.TRACKS[1]))).is(Blocks.RAIL)
+			&& level.getBlockState(station.world(new BlockPos(0, 1, BuildingType.TRACKS[2]))).is(Blocks.RAIL), "a tier 3 station has three tracks");
+		check(level.getBlockEntity(station.world(BuildingType.PICKUPS[2])) instanceof Nameable n && n.getCustomName() != null
+			&& n.getCustomName().getString().equals("Pickup Station"), "and the third track has its own Pickup Station");
+		check(level.getBlockEntity(pickup) instanceof Container kept && countIn(kept, Items.COAL) == 5, "the first Pickup Station kept its coal");
+		((Container) level.getBlockEntity(pickup)).clearContent();
 
-		Colony.Building tobacco = Colonies.construct(level, colony, BuildingType.TOBACCO_FARM, new BlockPos(32, 99, 30), 0,
+		Colony.Building tobacco = Colonies.construct(level, colony, BuildingType.TOBACCO_FARM, new BlockPos(32, 99, 36), 0,
 			Bank.cents(BuildingType.TOBACCO_FARM.price), true);
 		check(level.getBlockState(tobacco.world(new BlockPos(1, 1, -2))).is(Blocks.LARGE_FERN), "the tobacco farm has its rows");
 		if (!HavanaLink.present()) {
@@ -329,10 +347,10 @@ final class SmokeTest {
 			check(crop.get(0).is(Items.PAPER) && crop.get(0).getCount() > 0, "and it's Havana's tobacco");
 		}
 
-		Colony.Building wallTower = Colonies.construct(level, colony, BuildingType.WALL_TOWER, new BlockPos(-8, 99, 48), 0,
+		Colony.Building wallTower = Colonies.construct(level, colony, BuildingType.WALL_TOWER, new BlockPos(-8, 99, 52), 0,
 			Bank.cents(BuildingType.WALL_TOWER.price), true);
-		BlockPos stairsAt = Colonies.snap(level, BuildingType.WALL_STAIRS, new BlockPos(1, 99, 49), 0);
-		check(stairsAt.equals(new BlockPos(0, 99, 48)), "wall stairs snap onto a wall tower (" + stairsAt + ")");
+		BlockPos stairsAt = Colonies.snap(level, BuildingType.WALL_STAIRS, new BlockPos(1, 99, 53), 0);
+		check(stairsAt.equals(new BlockPos(0, 99, 52)), "wall stairs snap onto a wall tower (" + stairsAt + ")");
 		Colony.Building stairs = Colonies.construct(level, colony, BuildingType.WALL_STAIRS, stairsAt, 0, Bank.cents(BuildingType.WALL_STAIRS.price), true);
 		check(level.getBlockState(stairs.world(new BlockPos(-3, 1, -2))).is(Blocks.COBBLESTONE_STAIRS), "the wall stairs have their steps");
 		check(level.getBlockState(wallTower.world(new BlockPos(2, 5, 2))).is(Blocks.LADDER), "the wall tower has its ladder");
@@ -387,7 +405,7 @@ final class SmokeTest {
 	/** A cellblock: a vindicator gets beaten, shackled, locked up, saved, moved to another cell and executed. */
 	private static void prison(ServerLevel level) {
 		long wagesBefore = colony.dailyWages();
-		cellblock = Colonies.construct(level, colony, BuildingType.CELLBLOCK, new BlockPos(24, 99, -12), 0,
+		cellblock = Colonies.construct(level, colony, BuildingType.CELLBLOCK, new BlockPos(36, 99, -16), 0,
 			Bank.cents(BuildingType.CELLBLOCK.price), true);
 		check(level.getBlockState(cellblock.world(BuildingType.holding(0))).is(Blocks.VAULT), "cell 1 has its holding block");
 		check(level.getBlockState(cellblock.world(BuildingType.holding(1))).is(Blocks.VAULT), "cell 2 has its holding block");
@@ -399,7 +417,7 @@ final class SmokeTest {
 
 		// a healthy vindicator won't go quietly; a beaten one will
 		UUID id = UUID.randomUUID();
-		BlockPos yard = new BlockPos(24, 100, -21);
+		BlockPos yard = new BlockPos(36, 100, -26);
 		Cmd.run(level, "summon minecraft:vindicator " + Cmd.pos(yard.getX() + 0.5, yard.getY(), yard.getZ() + 0.5)
 			+ " {" + Cmd.uuidNbt(id) + ",PersistenceRequired:1b}");
 		check(level.getEntity(id) instanceof Mob, "a vindicator showed up");
@@ -467,7 +485,7 @@ final class SmokeTest {
 
 		// a public execution needs a scaffold, and pays double
 		check(Prison.whyNotPublic(level, colony) != null, "no scaffold, no public execution");
-		scaffold = Colonies.construct(level, colony, BuildingType.SCAFFOLD, new BlockPos(24, 99, 0), 0, Bank.cents(BuildingType.SCAFFOLD.price), true);
+		scaffold = Colonies.construct(level, colony, BuildingType.SCAFFOLD, new BlockPos(36, 99, 0), 0, Bank.cents(BuildingType.SCAFFOLD.price), true);
 		off = Colonies.damaged(level, scaffold);
 		check(off == 0, "the scaffold was built as designed (" + off + " blocks off)");
 		check(level.getBlockState(scaffold.world(new BlockPos(0, 5, 2))).is(Blocks.BELL), "the scaffold has its bell");

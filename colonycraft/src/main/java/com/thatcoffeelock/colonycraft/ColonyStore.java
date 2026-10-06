@@ -60,6 +60,9 @@ final class ColonyStore {
 				bo.addProperty("y", b.origin.getY());
 				bo.addProperty("z", b.origin.getZ());
 				bo.addProperty("quarter", b.quarter);
+				bo.addProperty("half", b.half);
+				bo.addProperty("depth", b.depth);
+				bo.addProperty("height", b.height);
 				bo.addProperty("spent", b.spent);
 				bo.addProperty("autosell", b.autosell);
 				bo.addProperty("export", b.export);
@@ -128,6 +131,11 @@ final class ColonyStore {
 				Colony.Building b = new Colony.Building(bo.get("id").getAsString(), type,
 					new BlockPos(bo.get("x").getAsInt(), bo.get("y").getAsInt(), bo.get("z").getAsInt()), bo.get("quarter").getAsInt());
 				b.tier = bo.get("tier").getAsInt();
+				// saved before buildings had a size of their own: they were built to the old, smaller design
+				int[] legacy = type.legacySize();
+				b.half = bo.has("half") ? bo.get("half").getAsInt() : legacy[0];
+				b.depth = bo.has("depth") ? bo.get("depth").getAsInt() : legacy[1];
+				b.height = bo.has("height") ? bo.get("height").getAsInt() : legacy[2];
 				b.spent = bo.get("spent").getAsLong();
 				b.autosell = bo.has("autosell") && bo.get("autosell").getAsBoolean();
 				b.export = bo.has("export") && bo.get("export").getAsBoolean();
