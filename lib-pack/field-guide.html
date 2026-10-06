@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.10.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.14.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -202,11 +202,17 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
             <tr><th>Residence</th><td class="num money">₥400</td><td class="dash">–</td><td>4 / 6 / 8 beds</td></tr>
             <tr><th>Farm</th><td class="num money">₥800</td><td>2 / 3 / 4</td><td>Crops, pumpkins, melons</td></tr>
             <tr><th>Lumber Camp</th><td class="num money">₥900</td><td>2 / 3 / 4</td><td>Logs, sticks, saplings, apples</td></tr>
-            <tr><th>Storehouse</th><td class="num money">₥500</td><td>1 / 1 / 2</td><td>Storage, optional autosell</td></tr>
+            <tr><th>Storehouse</th><td class="num money">₥500</td><td>1 / 1 / 2</td><td>A warehouse: core + 2 / 6 / 12 racks, optional autosell</td></tr>
+            <tr><th>Fishery</th><td class="num money">₥1,000</td><td>2 / 3 / 4</td><td>Cod, salmon, ink sacs, kelp, the odd nautilus shell</td></tr>
+            <tr><th>Tobacco Farm</th><td class="num money">₥1,200</td><td>2 / 3 / 4</td><td>Havana tobacco; cures and ages some from tier 2</td></tr>
+            <tr><th>Harbor Office</th><td class="num money">₥2,500</td><td>1 / 2 / 3</td><td>Pier with a Loading Dock; +5 / 10 / 15% on auto-sales</td></tr>
+            <tr><th>Train Station</th><td class="num money">₥1,500</td><td>1</td><td>Track, Pickup + Drop-off Station; can ship goods out</td></tr>
             <tr><th>Workshop</th><td class="num money">₥1,500</td><td>2 / 3 / 4</td><td>Ore to ingots, logs to planks</td></tr>
             <tr><th>Mine</th><td class="num money">₥2,500</td><td>3 / 4 / 5</td><td>Cobble, ores, the odd diamond</td></tr>
             <tr><th>Barracks</th><td class="num money">₥2,000</td><td>1 / 2 / 3 golems</td><td>Patrols the claim</td></tr>
-            <tr><th>Wall</th><td class="num money">₥300</td><td class="dash">–</td><td>9 long, snaps end to end</td></tr>
+            <tr><th>Wall</th><td class="num money">₥300</td><td class="dash">–</td><td>9 long curtain wall, snaps end to end</td></tr>
+            <tr><th>Wall Stairs</th><td class="num money">₥350</td><td class="dash">–</td><td>A wall with steps up to the walkway</td></tr>
+            <tr><th>Wall Tower</th><td class="num money">₥800</td><td class="dash">–</td><td>Corners: walls join on every side</td></tr>
             <tr><th>Gatehouse</th><td class="num money">₥1,200</td><td class="dash">–</td><td>Gates monsters can't open</td></tr>
             <tr><th>Watchtower</th><td class="num money">₥1,800</td><td>1 / 2 / 3 archers</td><td>Shoots monsters within 24 blocks</td></tr>
             <tr><th>Cellblock</th><td class="num money">₥2,200</td><td>1 jailer</td><td>2 / 4 / 6 cells for shackled illagers</td></tr>
@@ -214,7 +220,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
           </tbody>
         </table>
       </div>
-      <p class="note">Wages every morning: <span class="money">₥3</span> per worker, ₥5 per jailer, ₥10 per archer, ₥15 per golem, ₥2 per prisoner. Can't pay? Everyone strikes. Upgrades cost 1.5× (tier 2) and 3× (tier 3).</p>
+      <p class="note">Wages every morning: <span class="money">₥3</span> per worker, ₥5 per jailer, ₥10 per archer, ₥15 per golem, ₥2 per prisoner. Can't pay? Everyone strikes. Upgrades cost 1.5× (tier 2) and 3× (tier 3). Walls go cobblestone → stone bricks → dressed stone. A villager in a Burlap Sack fills an empty job for free.</p>
     </div>
   </section>
 
@@ -314,7 +320,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.10.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers</span>
+    <span>LIB Pack 1.14.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -358,6 +364,8 @@ const MODS = [
           "Shop at the Town Hall's lectern for blueprints and upgrades",
           "Click a spot once for the outline, again to build",
           "Shackle illagers under 40% health, jail them in a Cellblock, then ransom them or hang them on the Scaffold",
+          "Storehouses are warehouses; the Harbor's pier is a Loading Dock; the Train Station feeds Cargo Trains",
+          "Bring a villager in a Burlap Sack to fill an empty job for free",
           "Needs Market (it's in the pack)"],
     cmds: ["/colonycraft", "/colonycraft charter", ["/colonycraft give", true], ["/colonycraft payday", true]] },
   { name: "Ahoy", id: "ahoy", colour: "#3e8fc7", tag: "A two-masted sailing ship in a bottle. Captain + 8 passengers, two 54-slot holds, wind.",
@@ -438,6 +446,7 @@ const MODS = [
     how: ["Core holds 2,048 items; every Storage Rack touching it (or a connected rack) adds 4,096",
           "Right-click the core or a rack: tabs, sort, search. Click to take, drop items on it to store",
           "Hoppers into racks, a chest named <b>Warehouse Intake</b>, or a Drop-off Station touching it",
+          "Settings → <b>Network</b>: link it to a central warehouse; open branches from there, branches send their stock home",
           "Specialist warehouses (food only, ores only…) get their kind first at a Loading Dock",
           "Break the core to pack it up: the stock stays inside"],
     cmds: ["/warehouse", "/warehouse list", ["/warehouse give", true]] },

@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.13.0"
+VERSION = "1.14.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -46,12 +46,14 @@ MODS = [
  dict(name="Colonycraft", colour="#b5523b", tag="Found colonies, buy prefab buildings with Marks and let villagers gather for you.",
   recipes=[], getit="No recipe: buy a <b>Colony Charter</b> for ₥2,500 with <code>/colonycraft charter</code>.",
   steps=["Rename the charter in an anvil to name your colony, then right-click the ground. A <b>Town Hall</b> is built and claims the land around it.",
-         "Right-click the Town Hall's <b>lectern</b> to shop for blueprints: Residence (beds), Farm, Lumber Camp, Mine, Workshop, Storehouse.",
+         "Right-click the Town Hall's <b>lectern</b> to shop for blueprints: Residence (beds), Farm, Fishery, Lumber Camp, Mine, Workshop, Storehouse, Harbor Office, Train Station.",
          "Right-click inside your colony with a blueprint to see the outline, then click the same spot again to build it.",
          "Every morning you pay wages (₥3 a worker) and the workers deliver to your Storehouses. Can't pay? Everyone strikes.",
-         "Add defences: walls, gatehouses, watchtowers with archers and a barracks with iron golems."],
+         "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems."],
   tips=["Every worker needs a bed, so build Residences first.",
-        "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically.",
+        "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically. A staffed <b>Harbor Office</b> adds 5% per tier.",
+        "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
+        "Got a villager in a <b>Burlap Sack</b>? Give them an empty job for free. With Havana, buy a <b>Tobacco Farm</b>.",
         "<b>Law and order:</b> buy Shackles (₥50), beat an illager under 40% health and shackle it. Jail it in a <b>Cellblock</b>, then ransom it or execute it on the <b>Scaffold</b> for 2–3× the bounty.",
         "Needs the Market mod (it's in the pack)."],
   cmds="/colonycraft · /colonycraft charter"),
@@ -158,6 +160,7 @@ MODS = [
         "A <b>Loading Dock</b> on your pier unloads Ahoy ships into nearby warehouses.",
         "A Fossil Fool <b>Drill Rig</b> within 16 blocks of the core unloads its ore and stone onto the shelves by itself.",
         "Make specialist warehouses (food only, ores only) in Settings.",
+        "Settings → <b>Network</b>: make it a branch of a central warehouse. Open branches from the centre, and let them send their stock home.",
         "Break the core to pack it up. The stock stays inside."],
   cmds="/warehouse · /warehouse list"),
  dict(name="Skills", colour="#6a4fb3", tag="Elder Scrolls style skills: you get better at things by doing them.",

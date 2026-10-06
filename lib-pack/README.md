@@ -5,7 +5,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | Mod | What it adds |
 |---|---|
 | [Market](../README.md) | Sell anything for Marks (₥), buy items back, flex with pallets of cash |
-| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks |
+| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks: farms, fisheries, tobacco farms, a harbor with a Loading Dock, a train station, medieval walls and towers. Storehouses are real warehouses |
 | [Ahoy](../ahoy/README.md) | A sailing ship in a bottle: captain + 8 passengers, cargo holds, wind |
 | [Burlap Sack](../burlap-sack/README.md) | Bag villagers and wandering traders, let them out somewhere else |
 | [Cannon](../cannon/README.md) | An aimable cannon and iron + gunpowder cannonballs |
@@ -13,7 +13,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Flintlock](../flintlock/README.md) | Flintlock pistols, muskets and blunderbusses, with cartridges and slow reloads |
 | [Havana](../havana/README.md) | Grow tobacco, cure it in a barrel, roll and smoke cigars |
 | [Mobile Home](../mobile-home/README.md) | Drivable camper vans and tanks with storage and a force field |
-| [Warehouse](../warehouse/README.md) | Big sorted storage: a core plus racks, intake chests, train drop-off, Loading Docks for ships, and drill rigs unloading straight in |
+| [Warehouse](../warehouse/README.md) | Big sorted storage: a core plus racks, intake chests, train drop-off, Loading Docks for ships, drill rigs unloading straight in, and networks of branches around a central warehouse |
 | [Skills](../skills/README.md) | Elder Scrolls style skills: level up by doing, spend perk points every 10 levels |
 | [Hamlets & Horrors](../hamlets/README.md) | Random cottages, castles and dungeons: some lived in by villagers, some overrun by monsters |
 | [Overenchant](../overenchant/README.md) | Higher maximum enchantment levels: every enchantment goes to X (Sharpness X instead of V). Flintlock guns can be enchanted too |
