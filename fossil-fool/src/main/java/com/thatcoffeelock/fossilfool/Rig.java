@@ -207,6 +207,7 @@ final class Rig {
 		}
 		if (age % HOPPER_TICKS == 0 && !(ores.isEmpty() && stone.isEmpty())) {
 			feedHoppers(level);
+			feedPipes(level);
 		}
 		if (!on) {
 			state = State.OFF;
@@ -237,8 +238,11 @@ final class Rig {
 		}
 	}
 
-	/** Burns fuel until there's at least this much in the fire. Empties that don't fit in the firebox go in the ore hold. */
-	private boolean refuel(ServerLevel level, double needed) {
+	/**
+	 * Burns fuel until there's at least this much in the fire: from the firebox first, then from the tanks it reaches
+	 * (the fuel line). Empties that don't fit in the firebox go in the ore hold.
+	 */
+	boolean refuel(ServerLevel level, double needed) {
 		UUID who = ownerId();
 		double bonus = who == null ? 0 : Hooks.bonus(who, "fuel");
 		while (energy < needed) {
@@ -248,6 +252,9 @@ final class Rig {
 					Block.popResource(level, center().above(), rest);
 				}
 			});
+			if (burn == null) {
+				burn = Machines.tankFuel(Machines.tanksFor(level, this));
+			}
 			if (burn == null) {
 				return false;
 			}
@@ -395,6 +402,47 @@ final class Rig {
 				budget -= move(hold, hopper, budget);
 				if (budget <= 0) {
 					break;
+				}
+			}
+		}
+	}
+
+	// ---------------------------------------------------------------- pipes
+
+	/** How many items a rig pushes down its pipeline each time (every {@link #HOPPER_TICKS} ticks). */
+	static final int PIPE_BATCH = 16;
+
+	private final Pipes.Link pipes = new Pipes.Link();
+
+	/** The pipeline that starts at a pipe in the ring around the shaft (where hoppers go). */
+	Pipes.Network pipeline(ServerLevel level) {
+		return pipes.get(level, () -> {
+			List<BlockPos> ring = new ArrayList<>();
+			for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
+				for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
+					for (int y = top; y <= top + 1; y++) {
+						BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
+						if (isHopperSpot(pos)) {
+							ring.add(pos);
+						}
+					}
+				}
+			}
+			return ring;
+		});
+	}
+
+	/** Pushes the holds down the pipeline into the chests, barrels and shulker boxes on it: ores first, nearest first. */
+	void feedPipes(ServerLevel level) {
+		int budget = PIPE_BATCH;
+		for (BlockPos pos : pipeline(level).storage()) {
+			if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof Container box)) {
+				continue;
+			}
+			for (Container hold : holds()) {
+				budget -= move(hold, box, budget);
+				if (budget <= 0) {
+					return;
 				}
 			}
 		}
@@ -565,9 +613,25 @@ final class Rig {
 		}
 	}
 
-	/** Sends both holds to the warehouses nearby, if the Warehouse mod is there. Returns how many items went. */
+	/**
+	 * Sends both holds to the warehouses nearby, if the Warehouse mod is there, and then to the ones near the far ends
+	 * of its pipeline. Returns how many items went.
+	 */
 	long unload(ServerLevel level) {
-		return FossilFoolApi.unload(level, center(), holds());
+		long moved = FossilFoolApi.unload(level, center(), holds());
+		if (!FossilFoolApi.hasUnloaders()) {
+			return moved;
+		}
+		int reach = FossilFoolApi.reach();
+		for (BlockPos end : pipeline(level).ends()) {
+			if (ores.isEmpty() && stone.isEmpty()) {
+				break;
+			}
+			if (end.distSqr(center()) > (double) reach * reach) {
+				moved += FossilFoolApi.unload(level, end, holds());
+			}
+		}
+		return moved;
 	}
 
 	private void tellOwner(ServerLevel level, Component text) {

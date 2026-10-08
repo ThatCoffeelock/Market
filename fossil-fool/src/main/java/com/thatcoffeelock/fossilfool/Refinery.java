@@ -49,6 +49,7 @@ final class Refinery {
 	};
 	String label = "";
 	private int age;
+	private final Pipes.Link pipes = new Pipes.Link();
 
 	Refinery(String dimension, BlockPos pos) {
 		this.dimension = dimension;
@@ -65,6 +66,11 @@ final class Refinery {
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
+	}
+
+	/** The pipeline that starts at a pipe touching the furnace. */
+	Pipes.Network pipeline(ServerLevel level) {
+		return pipes.get(level, () -> Machines.around(pos));
 	}
 
 	void tick(ServerLevel level) {
@@ -119,12 +125,15 @@ final class Refinery {
 		}
 	}
 
-	/** Burns fuel until there's at least this much heat in the fire (or the firebox is empty). */
+	/** Burns fuel until there's at least this much heat in the fire: from the firebox, then from the tanks it reaches. */
 	private void refuel(ServerLevel level, double needed) {
 		UUID who = ownerId();
 		double bonus = who == null ? 0 : Hooks.bonus(who, "fuel");
 		while (energy < needed) {
 			Fuel.Burn burn = Fuel.take(firebox, left -> Block.popResource(level, pos.above(), left));
+			if (burn == null) {
+				burn = Machines.tankFuel(Machines.tanksFor(level, this));
+			}
 			if (burn == null) {
 				return;
 			}

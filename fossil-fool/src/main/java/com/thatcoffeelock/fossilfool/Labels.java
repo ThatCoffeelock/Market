@@ -6,7 +6,7 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-/** The floating text over tanks ("Crude Oil · 340 / 1,000 buckets") and refineries. Only redrawn when it changes. */
+/** The floating text over tanks ("Lava Tank" / "340 / 1,000 buckets of Lava") and refineries. Only redrawn when it changes. */
 final class Labels {
 	static final String LABEL_TAG = "fossilfool_label";
 	private static final Map<String, String> DRAWN = new HashMap<>();
@@ -58,13 +58,14 @@ final class Labels {
 
 	static void draw() {
 		for (Tank t : Machines.TANKS.values()) {
-			String color = switch (t.fluid) {
-				case CRUDE -> "dark_gray";
-				case DIESEL -> "gold";
-				case NONE -> "gray";
-			};
-			draw(t.dimension, t.pos, line("Oil Tank: " + t.fluid.title, color, true),
-				line(Gui.n(t.amount) + " / " + Gui.n(Tank.capacity()) + " buckets", t.space() == 0 ? "red" : "gray", false));
+			Fluid shown = t.set != Fluid.NONE ? t.set : t.fluid;
+			String second;
+			if (t.amount > 0) {
+				second = Gui.n(t.amount) + " / " + Gui.n(Tank.capacity()) + " buckets of " + t.fluid.title;
+			} else {
+				second = "Empty. Takes " + (t.set == Fluid.NONE ? "any fluid" : t.set.title.toLowerCase(java.util.Locale.ROOT) + " only");
+			}
+			draw(t.dimension, t.pos, line(t.name(), shown.colorName, true), line(second, t.space() == 0 ? "red" : "gray", false));
 		}
 		for (Refinery r : Machines.REFINERIES.values()) {
 			draw(r.dimension, r.pos, line("Refinery: " + r.state.text, r.state == Refinery.State.WORKING ? "gold" : "gray", true),

@@ -24,7 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.Nullable;
 
-/** Saves rigs, tanks, refineries and opened oil pockets to {@code <world>/fossilfool.json}. */
+/** Saves rigs, tanks, refineries, pipes and opened oil pockets to {@code <world>/fossilfool.json}. */
 final class Store {
 	private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 	private static @Nullable MinecraftServer server;
@@ -50,6 +50,7 @@ final class Store {
 		Rigs.reset();
 		Machines.reset();
 		Machines.start(srv);
+		Pipes.reset();
 		Pockets.reset();
 		Labels.reset();
 		dirty = false;
@@ -64,6 +65,7 @@ final class Store {
 			Rigs.reset();
 			Machines.reset();
 			Machines.start(srv);
+			Pipes.reset();
 			Pockets.reset();
 			try {
 				Files.copy(file, file.resolveSibling("fossilfool.json.broken"), StandardCopyOption.REPLACE_EXISTING);
@@ -199,9 +201,26 @@ final class Store {
 			pos(o, t.pos);
 			o.addProperty("fluid", t.fluid.name());
 			o.addProperty("amount", t.amount);
+			if (t.set != Fluid.NONE) {
+				o.addProperty("set", t.set.name());
+			}
 			tanks.add(o);
 		}
 		root.add("tanks", tanks);
+
+		JsonArray pipes = new JsonArray();
+		for (Map.Entry<String, Set<Long>> e : Pipes.BY_DIM.entrySet()) {
+			if (e.getValue().isEmpty()) {
+				continue;
+			}
+			JsonObject o = new JsonObject();
+			o.addProperty("dimension", e.getKey());
+			JsonArray at = new JsonArray();
+			e.getValue().forEach(at::add);
+			o.add("at", at);
+			pipes.add(o);
+		}
+		root.add("pipes", pipes);
 
 		JsonArray refineries = new JsonArray();
 		for (Refinery r : Machines.REFINERIES.values()) {
@@ -274,11 +293,22 @@ final class Store {
 				Tank t = new Tank(o.get("dimension").getAsString(), pos(o));
 				t.fluid = Fluid.byName(str(o, "fluid", ""));
 				t.amount = num(o, "amount", 0);
+				t.set = Fluid.byName(str(o, "set", ""));
 				if (t.amount <= 0) {
 					t.fluid = Fluid.NONE;
 				}
 				Machines.TANKS.put(Machines.key(t.dimension, t.pos), t);
 			}
+		}
+		if (root.has("pipes")) {
+			for (JsonElement e : root.getAsJsonArray("pipes")) {
+				JsonObject o = e.getAsJsonObject();
+				Set<Long> set = Pipes.BY_DIM.computeIfAbsent(o.get("dimension").getAsString(), d -> new java.util.HashSet<>());
+				for (JsonElement l : o.getAsJsonArray("at")) {
+					set.add(l.getAsLong());
+				}
+			}
+			Pipes.changed();
 		}
 		if (root.has("refineries")) {
 			for (JsonElement e : root.getAsJsonArray("refineries")) {

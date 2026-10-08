@@ -5,6 +5,7 @@ import java.util.function.BooleanSupplier;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
@@ -30,6 +31,9 @@ final class SmokeTest {
 	/** A hopper beside the derrick, one block above the ground, with a chest under it (the ring around the shaft). */
 	private static final BlockPos HOPPER = new BlockPos(-3, 81, 3);
 	private static final BlockPos HAND_POCKET = new BlockPos(20, 60, 20);
+	/** A pipeline runs west from the ring around the shaft to a Lava Tank and a chest, far out of pipe reach. */
+	private static final BlockPos FAR_TANK = new BlockPos(-25, 81, 0);
+	private static final BlockPos FAR_CHEST = new BlockPos(-24, 80, 0);
 
 	private SmokeTest() {
 	}
@@ -103,6 +107,15 @@ final class SmokeTest {
 		check(tank != null, "the tank is remembered where it was placed");
 		check(tank.fill(Fluid.DIESEL, 3) == 3 && tank.fill(Fluid.CRUDE, 1) == 0 && tank.drain(Fluid.DIESEL, 5) == 3 && tank.fluid == Fluid.NONE,
 			"a tank holds one oil at a time and empties back to nothing");
+		tank.set = Fluid.LAVA;
+		check(tank.name().equals("Lava Tank") && tank.fill(Fluid.CRUDE, 1) == 0 && tank.fill(Fluid.LAVA, 2) == 2 && !tank.canSet(Fluid.WATER),
+			"a Lava Tank takes lava only, and can't be switched while it holds lava");
+		Interactions.showFluid(level, tank);
+		check(BuiltInRegistries.BLOCK.getKey(level.getBlockState(TANK).getBlock()).getPath().equals("lava_cauldron")
+			&& Interactions.isTankBlock(level.getBlockState(TANK)), "a lava tank looks like a lava cauldron");
+		check(tank.drain(Fluid.LAVA, 2) == 2 && tank.cycle() == Fluid.NONE, "emptied, it cycles back to taking anything");
+		Interactions.showFluid(level, tank);
+		check(level.getBlockState(TANK).is(Blocks.CAULDRON), "and looks like a plain cauldron again");
 		log("tank");
 
 		Rig rig = Rigs.place(level, null, RIG);
@@ -172,8 +185,47 @@ final class SmokeTest {
 			check(r.burning == Fuel.COAL, "it burns coal");
 			log("refinery: " + r.diesel + " diesel inside, tank holds " + tank.amount + " " + tank.fluid.title);
 			r.on = false;
-			saveAndLoad(server, level, rig);
+			pipeline(server, level, rig);
 		});
+	}
+
+	/** A pipeline from the ring around the shaft to a Lava Tank and a chest 25 blocks away: fuel, ore and stone go down it. */
+	private static void pipeline(MinecraftServer server, ServerLevel level, Rig rig) {
+		for (int x = -3; x >= -24; x--) {
+			Cmd.run(level, "setblock " + x + " 81 0 minecraft:lightning_rod[facing=east]");
+			Interactions.onPlaced(level, null, new BlockPos(x, 81, 0), OilItems.pipe(1));
+		}
+		check(Pipes.count() == 22 && Pipes.isPipeBlock(level.getBlockState(new BlockPos(-10, 81, 0))), "a pipeline of 22 pipes is laid");
+		Cmd.run(level, "setblock " + FAR_TANK.getX() + " " + FAR_TANK.getY() + " " + FAR_TANK.getZ() + " minecraft:cauldron");
+		Interactions.onPlaced(level, null, FAR_TANK, OilItems.tank(Fluid.LAVA));
+		Tank far = Machines.tankAt(level, FAR_TANK);
+		check(far != null && far.set == Fluid.LAVA, "a Lava Tank at the far end");
+		Cmd.run(level, "setblock " + FAR_CHEST.getX() + " " + FAR_CHEST.getY() + " " + FAR_CHEST.getZ() + " minecraft:chest");
+		Pipes.Network net = rig.pipeline(level);
+		check(net.tanks().contains(far) && net.storage().contains(FAR_CHEST), "the pipeline reaches the tank and the chest");
+		check(Machines.tanksFor(level, rig).contains(far) && !Machines.tanksNear(level, rig.center(), 3).contains(far), "only through the pipe");
+
+		far.fill(Fluid.LAVA, 3);
+		rig.firebox.clearContent();
+		rig.energy = 0;
+		check(rig.refuel(level, 1) && rig.burning == Fuel.LAVA && far.amount == 2, "an empty firebox burns lava from the tank down the pipe");
+		rig.crude = 4;
+		Machines.pipeOut(level, rig);
+		check(far.amount == 2 && far.fluid == Fluid.LAVA, "the rig's crude doesn't go into the Lava Tank");
+		rig.crude = 0;
+
+		if (count(rig.stone, Items.COBBLESTONE) < Rig.PIPE_BATCH) {
+			rig.stone.addItem(new ItemStack(Items.COBBLESTONE, 32));
+		}
+		rig.feedPipes(level);
+		check(level.getBlockEntity(FAR_CHEST) instanceof Container chest && count(chest, Items.COBBLESTONE) > 0,
+			"stone goes down the pipe into the far chest");
+
+		Cmd.run(level, "setblock -12 81 0 minecraft:air");
+		Machines.validate();
+		check(!Pipes.has(level, new BlockPos(-12, 81, 0)) && !rig.pipeline(level).tanks().contains(far), "a broken pipe cuts the line");
+		log("pipeline");
+		saveAndLoad(server, level, rig);
 	}
 
 	private static void saveAndLoad(MinecraftServer server, ServerLevel level, Rig before) {
@@ -181,6 +233,7 @@ final class SmokeTest {
 		int tanks = Machines.TANKS.size();
 		int refineries = Machines.REFINERIES.size();
 		int pockets = Pockets.OPENED.size();
+		int pipes = Pipes.count();
 		int layer = before.layer;
 		int stone = count(before.stone, Items.COBBLESTONE);
 		Tank tankBefore = Machines.tankAt(level, TANK);
@@ -194,6 +247,9 @@ final class SmokeTest {
 		check(rig != null && rig.layer == layer && !rig.on && count(rig.stone, Items.COBBLESTONE) == stone, "the rig remembers its depth and holds");
 		Tank tank = Machines.tankAt(level, TANK);
 		check(tank != null && tank.fluid == fluid && tank.amount == amount, "the tank remembers its oil");
+		Tank far = Machines.tankAt(level, FAR_TANK);
+		check(far != null && far.set == Fluid.LAVA && far.amount == 2 && Pipes.count() == pipes && pipes == 21,
+			"the Lava Tank remembers its setting, and the pipes are all still there");
 		check(Pockets.isOil(level, HAND_POCKET), "opened pockets remember their oil");
 		waitFor(server, "the rig's model is found again or rebuilt", 400, () -> rig.root != null && !rig.root.isRemoved(), () -> {
 			Entity root = rig.root;
@@ -215,8 +271,14 @@ final class SmokeTest {
 			&& OilItems.isRod(OilItems.rod()), "machines and the rod are recognised");
 		check(!OilItems.isRig(new ItemStack(Items.PISTON)) && !OilItems.isTank(new ItemStack(Items.CAULDRON)), "plain blocks aren't machines");
 		check(OilItems.crude(1).getMaxStackSize() == OilItems.BUCKET_STACK, "buckets of oil stack to " + OilItems.BUCKET_STACK);
-		ItemStack full = OilItems.tank(Fluid.DIESEL, 40);
+		ItemStack full = OilItems.tank(Fluid.NONE, Fluid.DIESEL, 40);
 		check(OilItems.isTank(full) && OilItems.data(full).getIntOr(OilItems.AMOUNT, 0) == 40, "a packed tank keeps its oil");
+		ItemStack lava = OilItems.tank(Fluid.LAVA);
+		check(OilItems.isTank(lava) && OilItems.data(lava).getStringOr(OilItems.SET, "").equals("LAVA"), "a Lava Tank is a tank set to lava");
+		check(OilItems.isPipe(OilItems.pipe(4)) && OilItems.pipe(4).getCount() == 4 && !OilItems.isPipe(new ItemStack(OilItems.pipeBase())),
+			"pipes, and a plain lightning rod isn't one");
+		check(OilItems.fluidOf(new ItemStack(Items.WATER_BUCKET)) == Fluid.WATER && OilItems.fluidOf(new ItemStack(Items.LAVA_BUCKET)) == Fluid.LAVA
+			&& OilItems.fluidOf(new ItemStack(Items.BUCKET)) == Fluid.NONE, "water and lava buckets pour into tanks");
 		log("items");
 	}
 

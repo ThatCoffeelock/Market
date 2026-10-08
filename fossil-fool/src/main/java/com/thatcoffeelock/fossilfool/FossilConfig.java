@@ -54,14 +54,18 @@ public final class FossilConfig {
 	public int rigTank = 64;
 	/** Running rigs keep their chunk loaded, so they drill while nobody's around. */
 	public boolean keepChunksLoaded = true;
-	/** How far a rig, or a Refinery, reaches to fill or drain Oil Tanks ("the pipes"). */
+	/** How far a rig, or a Refinery, reaches to fill or drain Tanks without any pipe ("the assumed pipes"). */
 	public int pipeReach = 6;
+	/** The most Pipe blocks one pipeline follows. */
+	public int pipeLength = 512;
+	/** Rigs and Refineries with an empty firebox burn diesel, crude or lava from the tanks they reach. */
+	public boolean fuelFromTanks = true;
 	/** How far a rig looks for a Warehouse to unload into (needs the Warehouse mod). */
 	public int warehouseReach = 16;
 
 	// ---------------------------------------------------------------- tanks and refining
 
-	/** Buckets an Oil Tank holds. */
+	/** Buckets a Tank holds. */
 	public int tankCapacity = 1000;
 	/** Buckets of crude and of diesel a Refinery holds. */
 	public int refineryCapacity = 64;
@@ -100,6 +104,7 @@ public final class FossilConfig {
 		cfg.crudePerDiesel = Math.max(1, cfg.crudePerDiesel);
 		cfg.rigTank = Math.max(1, cfg.rigTank);
 		cfg.tankCapacity = Math.max(1, cfg.tankCapacity);
+		cfg.pipeLength = Math.max(1, cfg.pipeLength);
 		cfg.refineryCapacity = Math.max(cfg.crudePerDiesel, cfg.refineryCapacity);
 		if (cfg.pocketMaxY < cfg.pocketMinY) {
 			cfg.pocketMaxY = cfg.pocketMinY;

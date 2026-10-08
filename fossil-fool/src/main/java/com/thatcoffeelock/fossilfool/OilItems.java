@@ -30,8 +30,11 @@ public final class OilItems {
 	static final String TANK = "oil_tank";
 	static final String REFINERY = "refinery";
 	static final String ROD = "dowsing_rod";
+	static final String PIPE = "pipe";
 	/** On a picked-up tank or refinery: what was inside. */
 	static final String FLUID = "fluid";
+	/** On a tank: the one fluid it's set to take. */
+	static final String SET = "set";
 	static final String AMOUNT = "amount";
 	static final String CRUDE_IN = "crude_in";
 	static final String DIESEL_OUT = "diesel_out";
@@ -92,9 +95,14 @@ public final class OilItems {
 		return stack;
 	}
 
-	/** One bucket of this fluid. */
+	/** Buckets of this fluid. Water and lava come in vanilla buckets, which don't stack: mind the count. */
 	static ItemStack bucketOf(Fluid fluid, int count) {
-		return fluid == Fluid.DIESEL ? diesel(count) : crude(count);
+		return switch (fluid) {
+			case DIESEL -> diesel(count);
+			case WATER -> new ItemStack(Items.WATER_BUCKET, Math.max(1, count));
+			case LAVA -> new ItemStack(Items.LAVA_BUCKET, Math.max(1, count));
+			case CRUDE, NONE -> crude(count);
+		};
 	}
 
 	private static String blocks(Fuel fuel) {
@@ -122,27 +130,60 @@ public final class OilItems {
 		stack.set(DataComponents.MAX_STACK_SIZE, 16);
 		stack.set(DataComponents.ITEM_NAME, Component.literal("Oil Tank").withStyle(ChatFormatting.AQUA));
 		stack.set(DataComponents.LORE, new ItemLore(List.of(
-			text("Riveted iron. Holds " + FossilConfig.get().tankCapacity + " buckets of crude or diesel.", ChatFormatting.GRAY),
+			text("Riveted iron. Holds " + FossilConfig.get().tankCapacity + " buckets of one fluid:", ChatFormatting.GRAY),
+			text("crude, diesel, water or lava.", ChatFormatting.GRAY),
 			text("Right-click with buckets to fill or empty it.", ChatFormatting.GRAY),
-			text("Rigs and Refineries nearby pipe into it.", ChatFormatting.DARK_GRAY))));
+			text("Sneak + right-click with an empty hand: pick its fluid.", ChatFormatting.DARK_GRAY),
+			text("Rigs, Refineries and Pipes nearby connect to it.", ChatFormatting.DARK_GRAY))));
 		stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 		return stack;
 	}
 
-	/** A tank that was picked up with oil still inside. */
-	static ItemStack tank(Fluid fluid, int amount) {
+	/** A tank set to take only this fluid ("Lava Tank"). */
+	static ItemStack tank(Fluid set) {
+		return tank(set, Fluid.NONE, 0);
+	}
+
+	/** A tank that was picked up: the fluid it's set to, and what was still inside. */
+	static ItemStack tank(Fluid set, Fluid fluid, int amount) {
 		ItemStack stack = tank();
-		if (fluid == Fluid.NONE || amount <= 0) {
+		boolean full = fluid != Fluid.NONE && amount > 0;
+		if (set == Fluid.NONE && !full) {
 			return stack;
 		}
 		CompoundTag tag = data(stack);
-		tag.putString(FLUID, fluid.name());
-		tag.putInt(AMOUNT, amount);
+		List<Component> lore = new ArrayList<>();
+		if (set != Fluid.NONE) {
+			tag.putString(SET, set.name());
+			stack.set(DataComponents.ITEM_NAME, Component.literal(set.tankName).withStyle(set.color));
+			lore.add(text("Takes " + set.title.toLowerCase(java.util.Locale.ROOT) + " only.", ChatFormatting.GRAY));
+		}
+		if (full) {
+			tag.putString(FLUID, fluid.name());
+			tag.putInt(AMOUNT, amount);
+			stack.set(DataComponents.MAX_STACK_SIZE, 1);
+			lore.add(text("Full of " + fluid.title.toLowerCase(java.util.Locale.ROOT) + ": " + amount + " buckets.", ChatFormatting.YELLOW));
+		}
+		lore.add(text("Place it again to set it back up.", ChatFormatting.GRAY));
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-		stack.set(DataComponents.MAX_STACK_SIZE, 1);
+		stack.set(DataComponents.LORE, new ItemLore(lore));
+		return stack;
+	}
+
+	/** The block pipes are made of: a copper lightning rod. */
+	static Item pipeBase() {
+		return Gui.item("minecraft:lightning_rod", Items.END_ROD);
+	}
+
+	public static ItemStack pipe(int count) {
+		ItemStack stack = make(pipeBase(), count, PIPE);
+		stack.set(DataComponents.ITEM_NAME, Component.literal("Pipe").withStyle(ChatFormatting.GOLD));
 		stack.set(DataComponents.LORE, new ItemLore(List.of(
-			text("Full of " + fluid.title.toLowerCase(java.util.Locale.ROOT) + ": " + amount + " buckets.", ChatFormatting.YELLOW),
-			text("Place it again to set it back up.", ChatFormatting.GRAY))));
+			text("Copper pipe. Lay it in a line.", ChatFormatting.GRAY),
+			text("Links Drill Rigs, Tanks, Refineries and chests", ChatFormatting.GRAY),
+			text("that touch it, however far apart they are.", ChatFormatting.GRAY),
+			text("A rig connects through the ring around its shaft.", ChatFormatting.DARK_GRAY))));
+		stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 		return stack;
 	}
 
@@ -212,12 +253,25 @@ public final class OilItems {
 		return ROD.equals(kind(stack));
 	}
 
-	/** Which oil a bucket holds, or NONE if it isn't one of ours. */
+	public static boolean isPipe(ItemStack stack) {
+		return PIPE.equals(kind(stack));
+	}
+
+	/** Which fluid a bucket holds: our crude and diesel, or a vanilla water or lava bucket. NONE for anything else. */
 	static Fluid fluidOf(ItemStack stack) {
 		if (isCrude(stack)) {
 			return Fluid.CRUDE;
 		}
-		return isDiesel(stack) ? Fluid.DIESEL : Fluid.NONE;
+		if (isDiesel(stack)) {
+			return Fluid.DIESEL;
+		}
+		if (!kind(stack).isEmpty()) {
+			return Fluid.NONE;
+		}
+		if (stack.is(Items.WATER_BUCKET)) {
+			return Fluid.WATER;
+		}
+		return stack.is(Items.LAVA_BUCKET) ? Fluid.LAVA : Fluid.NONE;
 	}
 
 	/** Puts the item in the player's inventory, or drops it at their feet if it's full. */

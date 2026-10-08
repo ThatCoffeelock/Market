@@ -1,0 +1,26 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"CIC"
+	],
+	"key": {
+		"C": "minecraft:copper_ingot",
+		"I": "minecraft:iron_ingot"
+	},
+	"result": {
+		"id": "minecraft:lightning_rod",
+		"count": 4,
+		"components": {
+			"minecraft:custom_data": {"fossilfool": "pipe"},
+			"minecraft:item_name": {"text": "Pipe", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Copper pipe. Lay it in a line.", "color": "gray", "italic": false},
+				{"text": "Links Drill Rigs, Tanks, Refineries and chests", "color": "gray", "italic": false},
+				{"text": "that touch it, however far apart they are.", "color": "gray", "italic": false},
+				{"text": "A rig connects through the ring around its shaft.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

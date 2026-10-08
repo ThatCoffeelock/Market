@@ -18,9 +18,11 @@
 			"minecraft:max_stack_size": 16,
 			"minecraft:item_name": {"text": "Oil Tank", "color": "aqua"},
 			"minecraft:lore": [
-				{"text": "Riveted iron. Holds 1000 buckets of crude or diesel.", "color": "gray", "italic": false},
+				{"text": "Riveted iron. Holds 1000 buckets of one fluid:", "color": "gray", "italic": false},
+				{"text": "crude, diesel, water or lava.", "color": "gray", "italic": false},
 				{"text": "Right-click with buckets to fill or empty it.", "color": "gray", "italic": false},
-				{"text": "Rigs and Refineries nearby pipe into it.", "color": "dark_gray", "italic": false}
+				{"text": "Sneak + right-click with an empty hand: pick its fluid.", "color": "dark_gray", "italic": false},
+				{"text": "Rigs, Refineries and Pipes nearby connect to it.", "color": "dark_gray", "italic": false}
 			],
 			"minecraft:enchantment_glint_override": true
 		}
