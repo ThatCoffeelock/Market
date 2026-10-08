@@ -207,8 +207,14 @@ final class SmokeTest {
 
 		far.fill(Fluid.LAVA, 3);
 		rig.firebox.clearContent();
+		Tank near = Machines.tankAt(level, TANK);
+		near.drain(near.fluid, near.amount);
+		near.fill(Fluid.DIESEL, 1);
 		rig.energy = 0;
-		check(rig.refuel(level, 1) && rig.burning == Fuel.LAVA && far.amount == 2, "an empty firebox burns lava from the tank down the pipe");
+		check(rig.refuel(level, 1) && rig.burning == Fuel.DIESEL && near.amount == 0 && far.amount == 3,
+			"an empty firebox burns the best fuel first: diesel from the tank next door");
+		rig.energy = 0;
+		check(rig.refuel(level, 1) && rig.burning == Fuel.LAVA && far.amount == 2, "then lava from the tank down the pipe");
 		rig.crude = 4;
 		Machines.pipeOut(level, rig);
 		check(far.amount == 2 && far.fluid == Fluid.LAVA, "the rig's crude doesn't go into the Lava Tank");
