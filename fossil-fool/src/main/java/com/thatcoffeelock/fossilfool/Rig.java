@@ -117,7 +117,12 @@ final class Rig {
 	int deck;
 	/** Offshore: the next layer of water to pump out of the cofferdam. Dry once it's down to the seabed. */
 	int drainY;
-	/** The layer being drilled now, and how far through its 25 blocks. */
+	/** Workshop upgrades (see {@link Workshop}): shaft size, engine speed, fuel efficiency, holds. 0 = as crafted. */
+	int sizeLevel;
+	int speedLevel;
+	int effLevel;
+	int holdLevel;
+	/** The layer being drilled now, and how far through its blocks. */
 	int layer;
 	int cell;
 	boolean on = true;
@@ -139,8 +144,11 @@ final class Rig {
 			return Fuel.burns(stack) || stack.is(Items.BUCKET);
 		}
 	};
-	final SimpleContainer ores = new SimpleContainer(18);
-	final SimpleContainer stone = new SimpleContainer(18);
+	/** Replaced by bigger ones when the holds are upgraded (see {@link #resizeHolds}). */
+	SimpleContainer ores = new SimpleContainer(HOLD_PAGE);
+	SimpleContainer stone = new SimpleContainer(HOLD_PAGE);
+	/** Slots per hold per upgrade level: one page of the rig's screen. */
+	static final int HOLD_PAGE = 18;
 
 	/** The model's root entity while it's loaded. */
 	@Nullable Entity root;
@@ -158,6 +166,51 @@ final class Rig {
 		this.layer = top;
 		this.deck = top;
 		this.drainY = top;
+	}
+
+	/** Half the shaft's width: 2 for 5×5, 3 for 7×7, 4 for 9×9. */
+	int half() {
+		return 2 + sizeLevel;
+	}
+
+	int width() {
+		return 2 * half() + 1;
+	}
+
+	/** Blocks in one layer of the shaft. */
+	int cells() {
+		return width() * width();
+	}
+
+	/** Hoppers and pipes count up to this far from the middle (two past the shaft's edge). */
+	int reach() {
+		return half() + 2;
+	}
+
+	/** Makes the holds as big as their level says, keeping what's in them. */
+	void resizeHolds() {
+		int size = HOLD_PAGE * (1 + holdLevel);
+		if (ores.getContainerSize() == size) {
+			return;
+		}
+		ores = resized(ores, size);
+		stone = resized(stone, size);
+	}
+
+	private static SimpleContainer resized(SimpleContainer old, int size) {
+		SimpleContainer box = new SimpleContainer(size);
+		for (int i = 0; i < old.getContainerSize(); i++) {
+			ItemStack stack = old.getItem(i);
+			if (stack.isEmpty()) {
+				continue;
+			}
+			if (i < size) {
+				box.setItem(i, stack);
+			} else {
+				box.addItem(stack);
+			}
+		}
+		return box;
 	}
 
 	boolean offshore() {
@@ -246,7 +299,8 @@ final class Rig {
 		}
 		FossilConfig c = FossilConfig.get();
 		UUID who = ownerId();
-		double speed = (burning == null ? 1.0 : burning.speed()) * (1.0 + (who == null ? 0 : Hooks.bonus(who, "speed")));
+		double speed = (burning == null ? 1.0 : burning.speed()) * (1.0 + (who == null ? 0 : Hooks.bonus(who, "speed")))
+			* Workshop.speedFactor(speedLevel);
 		double period = struck != null ? c.ticksPerBucket : c.ticksPerBlock;
 		progress = Math.min(progress + speed, period);
 		if (progress < period) {
@@ -285,14 +339,14 @@ final class Rig {
 			if (burn == null) {
 				return false;
 			}
-			energy += burn.blocks() * (1.0 + bonus);
+			energy += burn.blocks() * (1.0 + bonus + Workshop.fuelBonus(effLevel));
 			burning = burn.fuel();
 		}
 		return true;
 	}
 
 	BlockPos cellPos(int i) {
-		return new BlockPos(cx - 2 + i % 5, layer, cz - 2 + i / 5);
+		return new BlockPos(cx - half() + i % width(), layer, cz - half() + i / width());
 	}
 
 	/** One step of drilling: removes the next block of the current layer (air is skipped for free). */
@@ -304,7 +358,7 @@ final class Rig {
 		if (!level.isLoaded(center())) {
 			return;
 		}
-		for (; cell < 25; cell++) {
+		for (; cell < cells(); cell++) {
 			BlockPos pos = cellPos(cell);
 			BlockState s = level.getBlockState(pos);
 			if (s.isAir()) {
@@ -391,17 +445,20 @@ final class Rig {
 
 	/** Is this spot inside the 5×5 shaft? */
 	private boolean inShaft(int x, int z) {
-		return Math.abs(x - cx) <= 2 && Math.abs(z - cz) <= 2;
+		return Math.abs(x - cx) <= half() && Math.abs(z - cz) <= half();
 	}
 
 	/**
-	 * Offshore: a plank deck around the shaft at the water's surface (9×9, open over the shaft), and a cobblestone
-	 * cofferdam around the shaft from the seabed up to the deck. Only water and loose stuff gets replaced.
+	 * Offshore: a plank deck around the shaft at the water's surface (two blocks wide, open over the shaft), and a
+	 * cobblestone cofferdam around the shaft from the seabed up to the deck. Only water and loose stuff gets replaced.
+	 * Built again, wider, when the shaft is upgraded.
 	 */
 	void buildCofferdam(ServerLevel level) {
 		BlockState planks = Gui.block("minecraft:spruce_planks", Blocks.COBBLESTONE).defaultBlockState();
-		for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
-			for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
+		int r = reach();
+		int w = half() + 1;
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
 				if (inShaft(cx + dx, cz + dz)) {
 					continue;
 				}
@@ -413,9 +470,9 @@ final class Rig {
 			}
 		}
 		for (int y = top + 1; y < deck; y++) {
-			for (int dx = -3; dx <= 3; dx++) {
-				for (int dz = -3; dz <= 3; dz++) {
-					if (Math.abs(dx) != 3 && Math.abs(dz) != 3) {
+			for (int dx = -w; dx <= w; dx++) {
+				for (int dz = -w; dz <= w; dz++) {
+					if (Math.abs(dx) != w && Math.abs(dz) != w) {
 						continue;
 					}
 					BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
@@ -438,8 +495,8 @@ final class Rig {
 		}
 		FossilConfig c = FossilConfig.get();
 		double cost = 0;
-		for (int i = 0; i < 25; i++) {
-			BlockPos pos = new BlockPos(cx - 2 + i % 5, drainY, cz - 2 + i / 5);
+		for (int i = 0; i < cells(); i++) {
+			BlockPos pos = new BlockPos(cx - half() + i % width(), drainY, cz - half() + i / width());
 			BlockState s = level.getBlockState(pos);
 			if (s.isAir() || s.is(Blocks.LADDER)) {
 				continue;
@@ -455,8 +512,8 @@ final class Rig {
 			state = State.NO_FUEL;
 			return;
 		}
-		for (int i = 0; i < 25; i++) {
-			BlockPos pos = new BlockPos(cx - 2 + i % 5, drainY, cz - 2 + i / 5);
+		for (int i = 0; i < cells(); i++) {
+			BlockPos pos = new BlockPos(cx - half() + i % width(), drainY, cz - half() + i / width());
 			BlockState s = level.getBlockState(pos);
 			if (s.isAir() || s.is(Blocks.LADDER)) {
 				continue;
@@ -472,6 +529,7 @@ final class Rig {
 			level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
 		}
 		energy -= cost;
+		spine(level, drainY);
 		BlockPos ladder = new BlockPos(cx, drainY, cz - 2);
 		if (level.getBlockState(ladder).isAir()) {
 			level.setBlock(ladder, Blocks.LADDER.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH), 3);
@@ -492,7 +550,6 @@ final class Rig {
 	static final int HOPPER_TICKS = 8;
 	static final int HOPPER_BATCH = 8;
 	/** Hoppers count when they stand around the shaft, within this many blocks of its middle. */
-	static final int HOPPER_REACH = 4;
 
 	private final List<BlockPos> hoppers = new ArrayList<>();
 	private int hopperScan = -1;
@@ -501,8 +558,8 @@ final class Rig {
 	boolean isHopperSpot(BlockPos pos) {
 		int dx = Math.abs(pos.getX() - cx);
 		int dz = Math.abs(pos.getZ() - cz);
-		boolean overShaft = dx <= 2 && dz <= 2;
-		return !overShaft && dx <= HOPPER_REACH && dz <= HOPPER_REACH && (pos.getY() == floor() || pos.getY() == floor() + 1);
+		boolean overShaft = dx <= half() && dz <= half();
+		return !overShaft && dx <= reach() && dz <= reach() && (pos.getY() == floor() || pos.getY() == floor() + 1);
 	}
 
 	/**
@@ -513,8 +570,8 @@ final class Rig {
 		if (hopperScan < 0 || age - hopperScan >= 100) {
 			hopperScan = age;
 			hoppers.clear();
-			for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
-				for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
+			for (int dx = -reach(); dx <= reach(); dx++) {
+				for (int dz = -reach(); dz <= reach(); dz++) {
 					for (int y = floor(); y <= floor() + 1; y++) {
 						BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
 						if (isHopperSpot(pos) && level.isLoaded(pos) && isHopper(level, pos)) {
@@ -549,8 +606,8 @@ final class Rig {
 	Pipes.Network pipeline(ServerLevel level) {
 		return pipes.get(level, () -> {
 			List<BlockPos> ring = new ArrayList<>();
-			for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
-				for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
+			for (int dx = -reach(); dx <= reach(); dx++) {
+				for (int dz = -reach(); dz <= reach(); dz++) {
 					for (int y = floor(); y <= floor() + 1; y++) {
 						BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
 						if (isHopperSpot(pos)) {
@@ -667,9 +724,10 @@ final class Rig {
 
 	/** The layer is clear: seal water and lava out of the walls, and put a ladder on the north wall. */
 	private void finishLayer(ServerLevel level) {
-		for (int dx = -3; dx <= 3; dx++) {
-			for (int dz = -3; dz <= 3; dz++) {
-				if (Math.abs(dx) != 3 && Math.abs(dz) != 3) {
+		int w = half() + 1;
+		for (int dx = -w; dx <= w; dx++) {
+			for (int dz = -w; dz <= w; dz++) {
+				if (Math.abs(dx) != w && Math.abs(dz) != w) {
 					continue;
 				}
 				BlockPos wall = new BlockPos(cx + dx, layer, cz + dz);
@@ -679,13 +737,21 @@ final class Rig {
 				}
 			}
 		}
-		BlockPos behind = new BlockPos(cx, layer, cz - 3);
-		if (level.getBlockState(behind).canBeReplaced()) {
-			level.setBlock(behind, Blocks.COBBLESTONE.defaultBlockState(), 3);
-		}
+		spine(level, layer);
 		BlockPos ladder = new BlockPos(cx, layer, cz - 2);
 		if (level.getBlockState(ladder).isAir()) {
 			level.setBlock(ladder, Blocks.LADDER.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH), 3);
+		}
+	}
+
+	/**
+	 * The block behind the ladder: the north wall of a 5×5 shaft; in a wider shaft, a cobblestone spine, so the ladder
+	 * stays in one line all the way down however often the shaft is widened.
+	 */
+	private void spine(ServerLevel level, int y) {
+		BlockPos behind = new BlockPos(cx, y, cz - 3);
+		if (level.getBlockState(behind).canBeReplaced()) {
+			level.setBlock(behind, Blocks.COBBLESTONE.defaultBlockState(), 3);
 		}
 	}
 
@@ -804,6 +870,19 @@ final class Rig {
 		return transformation(p.x(), p.y() + dy, p.z(), p.sx(), p.sy(), p.sz());
 	}
 
+	/**
+	 * A frame part, spread out to fit a wider shaft: beams get longer, legs and the engine house move outwards but keep
+	 * their size.
+	 */
+	private String frameTransformation(Part p) {
+		double s = width() / 5.0;
+		double x = p.sx() >= 2 ? p.x() * s : (p.x() + p.sx() / 2) * s - p.sx() / 2;
+		double sx = p.sx() >= 2 ? p.sx() * s : p.sx();
+		double z = p.sz() >= 2 ? p.z() * s : (p.z() + p.sz() / 2) * s - p.sz() / 2;
+		double sz = p.sz() >= 2 ? p.sz() * s : p.sz();
+		return transformation(x, p.y(), z, sx, p.sy(), sz);
+	}
+
 	String stringTransformation() {
 		double bottom = headY() + 0.9;
 		return transformation(-0.08, bottom, -0.08, 0.16, Math.max(0.1, STRING_TOP - bottom), 0.16);
@@ -820,7 +899,7 @@ final class Rig {
 		cmd.append("{id:\"minecraft:interaction\",width:3f,height:2.5f,response:1b,Tags:[\"").append(PART_TAG).append("\",\"")
 			.append(tag()).append("\",\"").append(HITBOX_TAG).append("\"]}");
 		for (Part part : FRAME) {
-			cmd.append(",").append(display(part.block(), "", transformation(part, 0)));
+			cmd.append(",").append(display(part.block(), "", frameTransformation(part)));
 		}
 		cmd.append(",").append(display("minecraft:iron_block", STRING_TAG, stringTransformation()));
 		for (int i = 0; i < HEAD.size(); i++) {

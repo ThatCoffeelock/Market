@@ -128,6 +128,28 @@ public final class OilItems {
 		return stack;
 	}
 
+	/** A packed-up rig: keeps its Workshop upgrades. */
+	static ItemStack rig(Rig rig) {
+		ItemStack stack = rig();
+		if (!Workshop.any(rig)) {
+			return stack;
+		}
+		CompoundTag tag = data(stack);
+		Workshop.write(rig, tag);
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+		List<Component> lore = new ArrayList<>();
+		lore.add(text("Upgraded in the Rig Workshop:", ChatFormatting.YELLOW));
+		for (Workshop.Track track : Workshop.TRACKS) {
+			int level = track.level(rig);
+			if (level > 0) {
+				lore.add(text(" " + track.title() + " " + Workshop.roman(level) + ": " + track.levels().get(level).name(), ChatFormatting.GRAY));
+			}
+		}
+		lore.add(text("Right-click the ground to set it up again.", ChatFormatting.DARK_GRAY));
+		stack.set(DataComponents.LORE, new ItemLore(lore));
+		return stack;
+	}
+
 	public static ItemStack tank() {
 		ItemStack stack = make(Items.CAULDRON, 1, TANK);
 		stack.set(DataComponents.MAX_STACK_SIZE, 16);

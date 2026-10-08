@@ -171,11 +171,20 @@ final class Rigs {
 	 * water, it goes offshore: a deck at the surface and a cofferdam down to this block (the seabed).
 	 */
 	static @Nullable Rig place(ServerLevel level, @Nullable ServerPlayer player, BlockPos ground) {
+		return place(level, player, ground, new net.minecraft.nbt.CompoundTag());
+	}
+
+	/** The same, for a rig that comes with Workshop upgrades (a packed-up one). */
+	static @Nullable Rig place(ServerLevel level, @Nullable ServerPlayer player, BlockPos ground, net.minecraft.nbt.CompoundTag upgrades) {
 		String dim = Machines.dim(level);
-		Rig other = near(dim, ground, 7);
-		if (other != null) {
-			tell(player, "Too close to another Drill Rig. Shafts need at least 8 blocks between their middles.");
-			return null;
+		Rig probe = new Rig("", dim, ground.getX(), ground.getY(), ground.getZ());
+		Workshop.read(probe, upgrades);
+		for (Rig other : BY_ID.values()) {
+			int gap = Math.max(7, probe.half() + other.half() + 1);
+			if (other.dimension.equals(dim) && Math.abs(other.cx - ground.getX()) <= gap && Math.abs(other.cz - ground.getZ()) <= gap) {
+				tell(player, "Too close to another Drill Rig. Shafts need at least " + (gap + 1) + " blocks between their middles.");
+				return null;
+			}
 		}
 		if (ground.getY() - 1 < level.getMinY() || ground.getY() >= level.getMaxY() - 8) {
 			tell(player, "A Drill Rig can't stand here.");
@@ -200,6 +209,7 @@ final class Rigs {
 			}
 		}
 		Rig rig = new Rig(UUID.randomUUID().toString().substring(0, 8), dim, ground.getX(), ground.getY(), ground.getZ());
+		Workshop.read(rig, upgrades);
 		rig.deck = deck;
 		rig.drainY = deck;
 		if (rig.offshore()) {
@@ -229,7 +239,7 @@ final class Rigs {
 		}
 		Cmd.run(level, "kill @e[tag=" + rig.tag() + "]");
 		List<ItemStack> things = new ArrayList<>();
-		things.add(OilItems.rig());
+		things.add(OilItems.rig(rig));
 		for (Container box : List.of(rig.firebox, rig.ores, rig.stone)) {
 			for (int i = 0; i < box.getContainerSize(); i++) {
 				ItemStack stack = box.getItem(i);
@@ -276,7 +286,7 @@ final class Rigs {
 			}
 			ground = ground.below();
 		}
-		Rig rig = place(level, player, ground);
+		Rig rig = place(level, player, ground, OilItems.data(held));
 		if (rig == null) {
 			return InteractionResult.SUCCESS;
 		}

@@ -176,6 +176,11 @@ final class Store {
 			o.addProperty("dimension", rig.dimension);
 			pos(o, rig.center());
 			o.addProperty("layer", rig.layer);
+			JsonObject upgrades = new JsonObject();
+			for (Workshop.Track track : Workshop.TRACKS) {
+				upgrades.addProperty(track.key(), track.level(rig));
+			}
+			o.add("upgrades", upgrades);
 			if (rig.offshore()) {
 				o.addProperty("deck", rig.deck);
 				o.addProperty("drain_y", rig.drainY);
@@ -292,6 +297,13 @@ final class Store {
 				rig.owner = str(o, "owner", "");
 				rig.ownerName = str(o, "owner_name", "");
 				rig.layer = num(o, "layer", c.getY());
+				if (o.has("upgrades")) {
+					JsonObject upgrades = o.getAsJsonObject("upgrades");
+					for (Workshop.Track track : Workshop.TRACKS) {
+						track.set().accept(rig, Math.max(0, Math.min(track.max(), num(upgrades, track.key(), 0))));
+					}
+					rig.resizeHolds();
+				}
 				rig.deck = num(o, "deck", c.getY());
 				rig.drainY = num(o, "drain_y", c.getY());
 				rig.cell = num(o, "cell", 0);

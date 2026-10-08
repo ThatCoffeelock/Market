@@ -314,7 +314,52 @@ final class SmokeTest {
 				"and it drills the seabed like any rig");
 			sea.on = false;
 			log("offshore rig");
-			saveAndLoad(server, level, landRig);
+			upgrades(server, level, landRig);
+		});
+	}
+
+	/** Rig Workshop: a rig widened to 7×7 mid-shaft keeps its ladder in line; bigger holds, faster engine, better fuel. */
+	private static void upgrades(MinecraftServer server, ServerLevel level, Rig landRig) {
+		BlockPos at = new BlockPos(0, 80, 25);
+		Cmd.run(level, "fill -8 60 17 8 80 33 minecraft:stone");
+		Cmd.run(level, "fill -8 81 17 8 92 33 minecraft:air");
+		Rig big = Rigs.place(level, null, at);
+		check(big != null && big.cells() == 25 && big.ores.getContainerSize() == Rig.HOLD_PAGE, "a fresh rig is 5×5 with 18-slot holds");
+		check(Workshop.blocked(Workshop.SIZE, big) == null, "nothing near it stops it getting wider");
+		big.firebox.setItem(0, OilItems.diesel(4));
+		big.on = true;
+		waitFor(server, "the rig drills its first layer at 5×5", 400, () -> big.layer <= 79, () -> {
+			big.ores.setItem(5, new ItemStack(Items.RAW_GOLD, 7));
+			Workshop.apply(level, big, Workshop.HOLD, 2);
+			check(big.ores.getContainerSize() == 3 * Rig.HOLD_PAGE && count(big.ores, Items.RAW_GOLD) == 7, "deep bins: 54-slot holds that keep what was in them");
+			Window page2 = new Window(() -> big.ores, () -> Rig.HOLD_PAGE, Rig.HOLD_PAGE);
+			big.ores.setItem(Rig.HOLD_PAGE + 3, new ItemStack(Items.RAW_COPPER, 2));
+			check(page2.getItem(3).is(Items.RAW_COPPER) && page2.getContainerSize() == Rig.HOLD_PAGE, "the second page of the hold shows slots 18 to 35");
+			Workshop.apply(level, big, Workshop.SPEED, 3);
+			Workshop.apply(level, big, Workshop.EFFICIENCY, 1);
+			check(Workshop.speedFactor(big.speedLevel) == 1.75 && Workshop.fuelBonus(big.effLevel) == 0.2, "diamond drill head +75%, lagged boiler +20%");
+			Workshop.apply(level, big, Workshop.SIZE, 1);
+			check(big.cells() == 49 && big.half() == 3 && big.reach() == 5 && big.root != null && !big.root.isRemoved()
+				&& big.root.getPassengers().size() == 1 + Rig.FRAME.size() + 1 + Rig.HEAD.size(), "the wide bit: a 7×7 shaft and a bigger derrick");
+			check(big.isHopperSpot(new BlockPos(-4, 81, 25)) && !big.isHopperSpot(new BlockPos(-3, 81, 25)), "hoppers go around the wider shaft");
+			int layer = big.layer;
+			waitFor(server, "the widened rig drills two 7×7 layers", 600, () -> big.layer <= layer - 2, () -> {
+				int y = layer;
+				check(level.getBlockState(new BlockPos(3, y, 28)).isAir() && level.getBlockState(new BlockPos(-3, y, 22)).isAir(), "the shaft is 7×7");
+				check(level.getBlockState(new BlockPos(4, y, 25)).is(Blocks.STONE), "and not wider");
+				check(level.getBlockState(new BlockPos(3, 80, 28)).is(Blocks.STONE), "above the upgrade, it stayed 5×5");
+				check(level.getBlockState(new BlockPos(0, y, 23)).is(Blocks.LADDER) && level.getBlockState(new BlockPos(0, 80, 23)).is(Blocks.LADDER)
+					&& level.getBlockState(new BlockPos(0, y, 22)).is(Blocks.COBBLESTONE), "the ladder runs on in one line, on a cobblestone spine");
+				ItemStack packed = OilItems.rig(big);
+				check(OilItems.isRig(packed) && OilItems.data(packed).getIntOr("size", 0) == 1 && OilItems.data(packed).getIntOr("speed", 0) == 3,
+					"a packed-up rig keeps its upgrades");
+				Rig probe = new Rig("", big.dimension, 0, 0, 0);
+				Workshop.read(probe, OilItems.data(packed));
+				check(probe.half() == 3 && probe.holdLevel == 2 && probe.ores.getContainerSize() == 54, "and brings them back when it's set up again");
+				big.on = false;
+				log("rig workshop");
+				saveAndLoad(server, level, landRig);
+			});
 		});
 	}
 
@@ -352,6 +397,15 @@ final class SmokeTest {
 		}
 		check(sea != null && sea.deck == SEABED.getY() + 10 && sea.drained(), "the offshore rig remembers its deck and its dry cofferdam");
 		Rigs.packUp(sea, null);
+		Rig big = null;
+		for (Rig r : Rigs.BY_ID.values()) {
+			if (r.sizeLevel > 0) {
+				big = r;
+			}
+		}
+		check(big != null && big.half() == 3 && big.speedLevel == 3 && big.effLevel == 1 && big.holdLevel == 2 && big.ores.getContainerSize() == 54
+			&& count(big.ores, Items.RAW_GOLD) == 7, "the upgraded rig keeps its upgrades and its 54-slot holds through a save and load");
+		Rigs.packUp(big, null);
 		waitFor(server, "the rig's model is found again or rebuilt", 400, () -> rig.root != null && !rig.root.isRemoved(), () -> {
 			Entity root = rig.root;
 			check(root.getPassengers().size() == 1 + Rig.FRAME.size() + 1 + Rig.HEAD.size(), "the model is whole");

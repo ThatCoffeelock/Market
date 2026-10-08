@@ -11,6 +11,7 @@ A Fabric mod for Minecraft **26.3** about old-timey oil: dowse for it, drill for
 - **Tanks** hold 1,000 buckets of **crude, diesel, water or lava**, one at a time. Set a tank to one fluid and it takes nothing else. **Refineries** turn 2 crude into 1 diesel.
 - **Pipes** link rigs, tanks, refineries and chests however far apart they are. Crude flows down them into tanks, ore and stone into chests.
 - **The fuel line**: a rig or refinery with an empty firebox burns diesel, crude or lava straight from the tanks it reaches.
+- **The Rig Workshop** upgrades a rig, like the Shipwright in Ahoy: a **7×7 or 9×9 shaft**, a faster engine, better fuel efficiency and bigger holds.
 - **An Industrial Oven** burns diesel and smelts anything a furnace can, a stack in about three seconds. **Ores and raw metal come out double.**
 - **Sell it at the [Market](../README.md)**: crude for ₥40 a bucket, diesel for ₥100 (a diamond's worth).
 - **Level [Wildcatting](../skills/README.md)** in the Skills mod. Rigs unload into a **[Warehouse](../warehouse/README.md)** by themselves.
@@ -50,6 +51,42 @@ Buckets of crude come out of the ground and buckets of diesel come out of a refi
 7. **Refine.** Put a **Refinery** within 6 blocks of the tank. It drinks crude from the tank and pipes diesel back into tanks once it has an empty one. Give it fuel too.
 8. **Burn the diesel in the rig**, or sell it. Your call, oil baron. Leave the firebox empty and the rig burns diesel straight from its tanks.
 9. **Spread out.** Lay **Pipes** from the ring around the shaft (where the hoppers go) to your base. Every tank, refinery and chest touching the line is linked to the rig, however far away.
+
+### The Rig Workshop
+
+The rig's screen has a **Rig Workshop** button (the anvil). It opens a screen with four upgrade tracks. The owner pays with materials from their own inventory; creative players upgrade for free. Each button shows what the rig has now, the next upgrade, its price and how much of it you carry (green: enough, red: short). Upgrades stay with the rig, also when you pack it up.
+
+**Shaft size.** The shaft gets wider **from the layer it's drilling now**; the part above stays as it was. The derrick spreads out to match, and hoppers and pipes go around the wider shaft (up to two blocks past its edge). The ladder stays in one line all the way down, on a cobblestone spine. Offshore, the cofferdam and deck are rebuilt wider and pumped dry again. Shafts need room: a wider shaft can't meet a neighbouring rig's.
+
+| Level | Upgrade | Shaft | Cost |
+|---|---|---|---|
+| I | Wide bit | 7×7 (49 blocks a layer) | 8 Blocks of Iron, 4 Diamonds |
+| II | Strip-mine bit | 9×9 (81 blocks a layer) | 16 Blocks of Iron, 2 Blocks of Diamond |
+
+**Engine (speed).** Drilling and pumping, on top of the fuel's own speed and the Roughneck perk.
+
+| Level | Upgrade | Speed | Cost |
+|---|---|---|---|
+| I | Bigger boiler | +25% | 32 Copper Ingots, 1 Blast Furnace |
+| II | Twin engines | +50% | 8 Pistons, 4 Blocks of Redstone |
+| III | Diamond drill head | +75% | 8 Diamonds, 8 Blocks of Redstone |
+
+**Fuel efficiency.** Every item of fuel is worth more (on top of Wildcatting's bonus). Counts for the fuel line from tanks too.
+
+| Level | Upgrade | Fuel | Cost |
+|---|---|---|---|
+| I | Lagged boiler | +20% | 32 Bricks, 8 Iron Ingots |
+| II | Superheater | +40% | 8 Gold Ingots, 4 Blaze Rods |
+| III | Compound engine | +60% | 4 Diamonds, 8 Blaze Rods |
+
+**Holds.** More slots in the ore hold and the stone hold. The rig's screen shows one page of 18 + 18 at a time; click the piston icon for the next page.
+
+| Level | Upgrade | Ore + stone | Cost |
+|---|---|---|---|
+| I | Extra bins | 36 + 36 slots | 8 Chests, 16 Iron Ingots |
+| II | Deep bins | 54 + 54 slots | 16 Barrels, 4 Blocks of Iron |
+
+A 9×9 shaft with a diamond drill head and a compound engine drills about 3× the ore per layer, 75% faster, on about a third less fuel per block. Bring diesel anyway.
 
 ### Offshore rigs
 
@@ -128,7 +165,9 @@ A whole shaft from sea level to bedrock is about 3,200 blocks: 1,600 coal, or 16
 | Crude tank | Click to fill the empty buckets you carry. Tanks nearby or on its pipeline fill by themselves |
 | Keep stone | Off: stone, dirt and gravel are thrown away and only ores are kept |
 | Unload to a Warehouse | With the Warehouse mod: sends both holds to warehouses within 16 blocks, or of the far end of its pipeline (it also does this by itself) |
-| Pack up | Shift-click: get the rig back, with everything in it. Empty the crude tank first. Owner only |
+| Rig Workshop | Opens the upgrade screen (see below) |
+| Drill Rig (the piston) | With upgraded holds: click to flip through the hold pages |
+| Pack up | Shift-click: get the rig back, with everything in it and its upgrades. Empty the crude tank first. Owner only |
 
 Every player can open any rig, feed it, take from its holds and switch it on or off. Only the owner can pack it up.
 
@@ -182,4 +221,4 @@ Rigs, tanks, refineries, pipes and opened pockets are saved in `<world>/fossilfo
 
 - Oil pockets follow from the world seed, so they exist in old chunks too. The crude only appears as blocks when someone breaks in. Black concrete you place yourself isn't oil, nice try.
 - Only the overworld has oil.
-- CI builds the mod, then boots a real server. It checks the items, the fuel ladder and the Market prices, rolls pockets from the seed, breaks into one by hand, dowses one, and drills a real shaft through stone, iron ore and a water leak. It checks the 5×5 shape, the ladder, the seal, ores and stone in separate holds, and diesel leaving its bucket. Then it strikes the pocket, pumps it dry into an Oil Tank, lets a hopper beside the derrick pass the holds into a Pickup Station chest (ores first), refines the crude into diesel, sets a tank to lava, lays a 22-pipe pipeline to a Lava Tank and a chest out of reach, burns diesel next door and then lava down it from an empty firebox, sends stone down it into the chest, and cuts it. It puts an Industrial Oven on the pipeline, fills it with diesel from a tank, lets the rig send it raw iron (but not diamonds) and checks 20 ingots from 10 raw iron, 4 stone from 4 cobblestone, on one bucket, with output waiting for a hopper. It floods a walled-in sea 10 deep, sets a rig up on its floor and checks the deck, the cofferdam, the pumping, the ladder and the drilling below the seabed. Then it saves and reloads it all (the rig's model gets rebuilt).
+- CI builds the mod, then boots a real server. It checks the items, the fuel ladder and the Market prices, rolls pockets from the seed, breaks into one by hand, dowses one, and drills a real shaft through stone, iron ore and a water leak. It checks the 5×5 shape, the ladder, the seal, ores and stone in separate holds, and diesel leaving its bucket. Then it strikes the pocket, pumps it dry into an Oil Tank, lets a hopper beside the derrick pass the holds into a Pickup Station chest (ores first), refines the crude into diesel, sets a tank to lava, lays a 22-pipe pipeline to a Lava Tank and a chest out of reach, burns diesel next door and then lava down it from an empty firebox, sends stone down it into the chest, and cuts it. It puts an Industrial Oven on the pipeline, fills it with diesel from a tank, lets the rig send it raw iron (but not diamonds) and checks 20 ingots from 10 raw iron, 4 stone from 4 cobblestone, on one bucket, with output waiting for a hopper. It upgrades a rig in the Rig Workshop mid-shaft (54-slot holds that keep their contents, hold pages, +75% speed, +20% fuel, a 7×7 shaft below a 5×5 one with the ladder in line), packs it and reads it back. It floods a walled-in sea 10 deep, sets a rig up on its floor and checks the deck, the cofferdam, the pumping, the ladder and the drilling below the seabed. Then it saves and reloads it all (the rig's model gets rebuilt).

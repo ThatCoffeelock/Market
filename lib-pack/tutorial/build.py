@@ -227,7 +227,7 @@ MODS = [
          "Too far? Lay <b>Pipes</b> from the ring around the shaft: tanks, refineries, ovens and chests on the line are linked."],
   tips=["Fuel ladder: <b>coal</b> 2 blocks (0.5×) → <b>lava</b> 40 (0.75×) → <b>crude</b> 60 (1×) → <b>diesel</b> 200 (1.5×).",
         "Tanks hold <b>crude, diesel, water or lava</b>; sneak + right-click with an empty hand picks one. Empty fireboxes burn fuel from the tanks.",
-        "<b>Hoppers</b> around the shaft get the holds, ores first. Lead them into a Cargo Train <b>Pickup Station</b>.",
+        "<b>Rig Workshop</b> (the anvil in the rig's screen): pay materials for a <b>7×7 or 9×9 shaft</b>, a faster engine, better fuel use and bigger holds.",
         "The <b>Industrial Oven</b> burns diesel and smelts a stack in seconds; <b>ores come out double</b>. Sell crude (₥40) and diesel (₥100) at the Market."],
   cmds="/fossilfool"),
  dict(name="Riches", colour="#b8860b", tag="Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics.",
