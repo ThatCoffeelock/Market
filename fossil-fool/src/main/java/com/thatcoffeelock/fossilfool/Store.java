@@ -176,6 +176,10 @@ final class Store {
 			o.addProperty("dimension", rig.dimension);
 			pos(o, rig.center());
 			o.addProperty("layer", rig.layer);
+			if (rig.offshore()) {
+				o.addProperty("deck", rig.deck);
+				o.addProperty("drain_y", rig.drainY);
+			}
 			o.addProperty("cell", rig.cell);
 			o.addProperty("on", rig.on);
 			o.addProperty("keep_stone", rig.keepStone);
@@ -272,6 +276,8 @@ final class Store {
 				rig.owner = str(o, "owner", "");
 				rig.ownerName = str(o, "owner_name", "");
 				rig.layer = num(o, "layer", c.getY());
+				rig.deck = num(o, "deck", c.getY());
+				rig.drainY = num(o, "drain_y", c.getY());
 				rig.cell = num(o, "cell", 0);
 				rig.on = bool(o, "on", true);
 				rig.keepStone = bool(o, "keep_stone", true);

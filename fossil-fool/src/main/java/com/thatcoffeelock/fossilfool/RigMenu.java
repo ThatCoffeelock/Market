@@ -50,6 +50,12 @@ final class RigMenu extends MachineMenu {
 		status.add(Gui.text(rig.state.text + ".", rig.state.color));
 		status.add(Gui.text("Depth: " + rig.depth() + " blocks (y " + rig.layer + ")", ChatFormatting.GRAY));
 		status.add(Gui.text("This layer: " + Gui.bar(rig.cell / 25.0, 10) + " " + rig.cell + "/25", ChatFormatting.GRAY));
+		if (rig.offshore()) {
+			status.add(Gui.text("Offshore, in " + (rig.deck - rig.top) + " blocks of water.", ChatFormatting.AQUA));
+			if (!rig.drained()) {
+				status.add(Gui.text("Cofferdam: " + (rig.drainY - rig.top) + " layers of water left to pump out.", ChatFormatting.AQUA));
+			}
+		}
 		if (rig.blockedAt != null && rig.state == Rig.State.BLOCKED) {
 			status.add(Gui.text("Can't drill the block at " + rig.blockedAt.getX() + " " + rig.blockedAt.getY() + " " + rig.blockedAt.getZ()
 				+ " (it has contents).", ChatFormatting.YELLOW));

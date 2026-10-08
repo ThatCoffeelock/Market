@@ -297,7 +297,7 @@ public final class Interactions {
 		}
 		LAST_DOWSE.put(player.getUUID(), now);
 		if (!Pockets.hasOil(level)) {
-			actionBar(player, Component.literal("The rod hangs limp. There's no oil in this dimension.").withStyle(ChatFormatting.GRAY));
+			player.sendSystemMessage(Component.literal("The rod hangs limp. There's no oil in this dimension.").withStyle(ChatFormatting.GRAY));
 			return;
 		}
 		int range = FossilConfig.get().dowsingRange + (int) Hooks.bonus(player.getUUID(), "dowse");
@@ -305,7 +305,7 @@ public final class Interactions {
 		Pockets.Reading r = Pockets.dowse(level, at, range);
 		Cmd.sound(level, "minecraft:block.amethyst_block.chime", player.getX(), player.getY() + 1, player.getZ(), 0.8f, r == null ? 0.5f : 1.4f);
 		if (r == null) {
-			actionBar(player, Component.literal("The rod doesn't move. No oil within " + range + " blocks.").withStyle(ChatFormatting.GRAY));
+			player.sendSystemMessage(Component.literal("The rod doesn't move. No oil within " + range + " blocks.").withStyle(ChatFormatting.GRAY));
 			return;
 		}
 		int depth = Math.max(1, r.depth());
@@ -318,7 +318,8 @@ public final class Interactions {
 			line = Component.literal("The rod " + strength + " to the " + Pockets.direction(at, r.pocket().x(), r.pocket().z()) + ". About "
 				+ (Math.round(r.distance() / 4.0) * 4) + " blocks away, " + down + ".").withStyle(ChatFormatting.YELLOW);
 		}
-		actionBar(player, line);
+		// in chat, only for the one holding the rod
+		player.sendSystemMessage(line);
 		Hooks.xp(player.getUUID(), 0.5);
 	}
 

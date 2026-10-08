@@ -60,6 +60,10 @@ public final class FossilConfig {
 	public int pipeLength = 512;
 	/** Rigs and Refineries with an empty firebox burn diesel, crude or lava from the tanks they reach. */
 	public boolean fuelFromTanks = true;
+	/** The deepest water a rig can be set up in (offshore), in blocks. */
+	public int offshoreDepth = 40;
+	/** Fuel (in drilled-block units) it costs to pump one block of water out of an offshore rig's cofferdam. */
+	public double drainCost = 0.05;
 	/** How far a rig looks for a Warehouse to unload into (needs the Warehouse mod). */
 	public int warehouseReach = 16;
 

@@ -218,7 +218,7 @@ MODS = [
            shaped("Dowsing Rod", ["S S"," S "," G "], dict(S="stick",G="gold"), "Rod"),
            shaped("Pipe", ["CIC"], dict(C="copper",I="iron"), "Pipe", 4)],
   steps=["Right-click with the <b>Dowsing Rod</b>. It twitches towards the nearest oil pocket: which way, how far, how deep. Walk until it points straight down.",
-         "Right-click the ground with the <b>Drill Rig</b>. It sinks a <b>5×5 shaft</b> centred on that block, one block at a time, all the way to bedrock.",
+         "Right-click the ground with the <b>Drill Rig</b>. It sinks a <b>5×5 shaft</b> centred on that block, all the way to bedrock. Click the <b>seabed</b> through the water and it goes <b>offshore</b>: a deck at the surface, a cofferdam, pumped dry.",
          "Right-click the derrick (anyone can) and put fuel in the <b>firebox</b> (row 2). Ores land in rows 3–4, stone in rows 5–6.",
          "When it hits a pocket: <b>STRUCK OIL!</b> It pumps the pocket dry into its tank and into any <b>Oil Tank</b> within 9 blocks, then keeps drilling.",
          "Put a <b>Refinery</b> next to the tank. With fuel in its firebox, it turns 2 crude into 1 diesel and pipes the diesel back into an empty tank.",

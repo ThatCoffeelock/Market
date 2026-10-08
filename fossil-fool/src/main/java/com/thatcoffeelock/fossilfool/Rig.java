@@ -33,11 +33,16 @@ import org.jetbrains.annotations.Nullable;
  * transformation, which the client interpolates, so the head glides down the shaft.
  *
  * Local coordinates of the model: origin is the middle of the shaft, one block above the ground.
+ *
+ * Offshore (set up on the seabed under water), it stands on a plank deck at the water's surface instead, with a
+ * cobblestone cofferdam around the shaft from the seabed up to the deck. It pumps the cofferdam dry one layer at a
+ * time (that costs fuel), puts a ladder down it, and then drills from the seabed like any other rig.
  */
 final class Rig {
 	enum State {
 		OFF("Switched off", ChatFormatting.GRAY),
 		DRILLING("Drilling", ChatFormatting.GREEN),
+		DRAINING("Pumping the cofferdam dry", ChatFormatting.AQUA),
 		PUMPING("Pumping oil", ChatFormatting.GOLD),
 		NO_FUEL("Out of fuel", ChatFormatting.RED),
 		HOLD_FULL("A hold is full", ChatFormatting.RED),
@@ -108,6 +113,10 @@ final class Rig {
 	final int cx;
 	final int cz;
 	final int top;
+	/** Offshore: the top water block, where the plank deck goes. On land, the same as {@link #top}. */
+	int deck;
+	/** Offshore: the next layer of water to pump out of the cofferdam. Dry once it's down to the seabed. */
+	int drainY;
 	/** The layer being drilled now, and how far through its 25 blocks. */
 	int layer;
 	int cell;
@@ -147,6 +156,22 @@ final class Rig {
 		this.top = top;
 		this.cz = cz;
 		this.layer = top;
+		this.deck = top;
+		this.drainY = top;
+	}
+
+	boolean offshore() {
+		return deck > top;
+	}
+
+	/** Is the cofferdam pumped dry (always, on land)? */
+	boolean drained() {
+		return drainY <= top;
+	}
+
+	/** Where the derrick stands: the ground, or offshore, the deck. Hoppers and pipes go on this level or one up. */
+	int floor() {
+		return offshore() ? deck : top;
 	}
 
 	BlockPos center() {
@@ -159,7 +184,7 @@ final class Rig {
 	}
 
 	double modelY() {
-		return top + 1;
+		return floor() + 1;
 	}
 
 	double modelZ() {
@@ -230,10 +255,12 @@ final class Rig {
 		progress -= period;
 		if (struck != null) {
 			pump(level);
+		} else if (!drained()) {
+			drain(level);
 		} else {
 			drill(level);
 		}
-		if ((state == State.DRILLING || state == State.PUMPING) && age % 10 == 0) {
+		if ((state == State.DRILLING || state == State.PUMPING || state == State.DRAINING) && age % 10 == 0) {
 			Cmd.particles(level, "minecraft:large_smoke", modelX() + 3.5, modelY() + 3.4, modelZ(), 0.1, 0.02, 2);
 		}
 	}
@@ -355,6 +382,110 @@ final class Rig {
 		showHead(level);
 	}
 
+	// ---------------------------------------------------------------- offshore
+
+	/** Is this water (or something sitting in water, like kelp and seagrass)? */
+	static boolean isWater(BlockState s) {
+		return !s.getFluidState().isEmpty() && !s.is(Blocks.LAVA);
+	}
+
+	/** Is this spot inside the 5×5 shaft? */
+	private boolean inShaft(int x, int z) {
+		return Math.abs(x - cx) <= 2 && Math.abs(z - cz) <= 2;
+	}
+
+	/**
+	 * Offshore: a plank deck around the shaft at the water's surface (9×9, open over the shaft), and a cobblestone
+	 * cofferdam around the shaft from the seabed up to the deck. Only water and loose stuff gets replaced.
+	 */
+	void buildCofferdam(ServerLevel level) {
+		BlockState planks = Gui.block("minecraft:spruce_planks", Blocks.COBBLESTONE).defaultBlockState();
+		for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
+			for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
+				if (inShaft(cx + dx, cz + dz)) {
+					continue;
+				}
+				BlockPos pos = new BlockPos(cx + dx, deck, cz + dz);
+				BlockState s = level.getBlockState(pos);
+				if ((s.canBeReplaced() || isWater(s)) && !s.hasBlockEntity()) {
+					level.setBlock(pos, planks, 3);
+				}
+			}
+		}
+		for (int y = top + 1; y < deck; y++) {
+			for (int dx = -3; dx <= 3; dx++) {
+				for (int dz = -3; dz <= 3; dz++) {
+					if (Math.abs(dx) != 3 && Math.abs(dz) != 3) {
+						continue;
+					}
+					BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
+					BlockState s = level.getBlockState(pos);
+					if ((s.canBeReplaced() || isWater(s)) && !s.hasBlockEntity()) {
+						level.setBlock(pos, Blocks.COBBLESTONE.defaultBlockState(), 3);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Offshore: pumps one layer of the cofferdam dry, from the deck down. Water costs {@code drainCost} fuel a block;
+	 * anything solid in the way (a lump of seabed) is dug out like drilling. Leaves a ladder on the north wall.
+	 */
+	private void drain(ServerLevel level) {
+		if (!level.isLoaded(center())) {
+			return;
+		}
+		FossilConfig c = FossilConfig.get();
+		double cost = 0;
+		for (int i = 0; i < 25; i++) {
+			BlockPos pos = new BlockPos(cx - 2 + i % 5, drainY, cz - 2 + i / 5);
+			BlockState s = level.getBlockState(pos);
+			if (s.isAir() || s.is(Blocks.LADDER)) {
+				continue;
+			}
+			if (s.hasBlockEntity()) {
+				state = State.BLOCKED;
+				blockedAt = pos;
+				return;
+			}
+			cost += isWater(s) || s.canBeReplaced() ? c.drainCost : 1;
+		}
+		if (energy < cost && !refuel(level, cost)) {
+			state = State.NO_FUEL;
+			return;
+		}
+		for (int i = 0; i < 25; i++) {
+			BlockPos pos = new BlockPos(cx - 2 + i % 5, drainY, cz - 2 + i / 5);
+			BlockState s = level.getBlockState(pos);
+			if (s.isAir() || s.is(Blocks.LADDER)) {
+				continue;
+			}
+			if (!isWater(s) && !s.canBeReplaced() && keepStone) {
+				for (ItemStack drop : Block.getDrops(s, level, pos, null, null, PICK)) {
+					ItemStack rest = stone.addItem(drop);
+					if (!rest.isEmpty()) {
+						Block.popResource(level, center().above(deck - top + 1), rest);
+					}
+				}
+			}
+			level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+		}
+		energy -= cost;
+		BlockPos ladder = new BlockPos(cx, drainY, cz - 2);
+		if (level.getBlockState(ladder).isAir()) {
+			level.setBlock(ladder, Blocks.LADDER.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH), 3);
+		}
+		state = State.DRAINING;
+		blockedAt = null;
+		drainY--;
+		Store.changed();
+		if (drained()) {
+			tellOwner(level, Component.literal("The cofferdam is dry. Your offshore rig is drilling into the seabed.").withStyle(ChatFormatting.AQUA));
+			Cmd.sound(level, "minecraft:block.bubble_column.upwards_inside", modelX(), modelY(), modelZ(), 0.8f, 0.8f);
+		}
+	}
+
 	// ---------------------------------------------------------------- hoppers
 
 	/** How often the rig hands items to hoppers next to it, and how many per hopper each time. */
@@ -371,7 +502,7 @@ final class Rig {
 		int dx = Math.abs(pos.getX() - cx);
 		int dz = Math.abs(pos.getZ() - cz);
 		boolean overShaft = dx <= 2 && dz <= 2;
-		return !overShaft && dx <= HOPPER_REACH && dz <= HOPPER_REACH && (pos.getY() == top || pos.getY() == top + 1);
+		return !overShaft && dx <= HOPPER_REACH && dz <= HOPPER_REACH && (pos.getY() == floor() || pos.getY() == floor() + 1);
 	}
 
 	/**
@@ -384,7 +515,7 @@ final class Rig {
 			hoppers.clear();
 			for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
 				for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
-					for (int y = top; y <= top + 1; y++) {
+					for (int y = floor(); y <= floor() + 1; y++) {
 						BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
 						if (isHopperSpot(pos) && level.isLoaded(pos) && isHopper(level, pos)) {
 							hoppers.add(pos);
@@ -420,7 +551,7 @@ final class Rig {
 			List<BlockPos> ring = new ArrayList<>();
 			for (int dx = -HOPPER_REACH; dx <= HOPPER_REACH; dx++) {
 				for (int dz = -HOPPER_REACH; dz <= HOPPER_REACH; dz++) {
-					for (int y = top; y <= top + 1; y++) {
+					for (int y = floor(); y <= floor() + 1; y++) {
 						BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
 						if (isHopperSpot(pos)) {
 							ring.add(pos);

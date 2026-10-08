@@ -3,8 +3,9 @@
 A Fabric mod for Minecraft **26.3** about old-timey oil: dowse for it, drill for it, strike it, pump it, tank it, refine it, burn it, sell it.
 
 - **Oil pockets underground.** About one chunk in eight hides a pocket of crude between y=16 and y=-50. About one pocket in ten is a **gusher**.
-- **A Dowsing Rod** twitches towards the nearest pocket and tells you roughly which way, how far and how deep.
+- **A Dowsing Rod** twitches towards the nearest pocket and tells you (in chat, only you) roughly which way, how far and how deep.
 - **A Drill Rig**: a wooden derrick with a steam engine that sinks a **5×5 shaft straight down**, one block at a time, all the way to bedrock. **Ores and stone go into separate holds.** It leaves a ladder up the north wall and seals out water and lava.
+- **Offshore rigs.** Set a rig up on the seabed and it stands on a plank deck at the surface, walls the shaft in with a cofferdam, pumps it dry and drills the seabed.
 - **It strikes oil.** When the shaft hits a pocket, the rig stops and **pumps the pocket dry** into its own tank and into Oil Tanks nearby, then carries on down.
 - **Fuel is the price of it all.** The rig and the refinery burn **coal, lava, crude or diesel**. Each is worth more per item than the last, and burns faster.
 - **Tanks** hold 1,000 buckets of **crude, diesel, water or lava**, one at a time. Set a tank to one fluid and it takes nothing else. **Refineries** turn 2 crude into 1 diesel.
@@ -38,7 +39,7 @@ Buckets of crude come out of the ground and buckets of diesel come out of a refi
 
 ## How to play
 
-1. **Find oil.** Right-click with the Dowsing Rod: *"The rod tugs to the north-east. About 24 blocks away, about 45 blocks down."* Walk until it says *"straight down!"*.
+1. **Find oil.** Right-click with the Dowsing Rod. It tells you in chat (nobody else sees it): *"The rod tugs to the north-east. About 24 blocks away, about 45 blocks down."* Walk until it says *"straight down!"*. It works in the Overworld, and once every two seconds.
 2. **Put up a Drill Rig.** Right-click the ground with it. The shaft is the 5×5 square centred on the block you clicked.
 3. **Feed it.** Right-click the derrick (anyone can, not just the owner). The second row of its screen is the **firebox**: put fuel in it. Rows 3-4 are the **ore hold**, rows 5-6 the **stone hold**. Take things out like from any chest.
 4. **Or let hoppers empty it.** A hopper standing around the shaft (within 4 blocks of its middle, on the ground or one block up) gets the holds' contents, ores first, then stone. Run a hopper line into a chest, or into a **Cargo Train Pickup Station**, and the train hauls it away.
@@ -47,6 +48,17 @@ Buckets of crude come out of the ground and buckets of diesel come out of a refi
 7. **Refine.** Put a **Refinery** within 6 blocks of the tank. It drinks crude from the tank and pipes diesel back into tanks once it has an empty one. Give it fuel too.
 8. **Burn the diesel in the rig**, or sell it. Your call, oil baron. Leave the firebox empty and the rig burns diesel straight from its tanks.
 9. **Spread out.** Lay **Pipes** from the ring around the shaft (where the hoppers go) to your base. Every tank, refinery and chest touching the line is linked to the rig, however far away.
+
+### Offshore rigs
+
+Oil pockets are under the sea too. Stand on the shore, in a boat or on a block in the water, and right-click the **seabed through the water** with a Drill Rig (up to 40 blocks of water). It goes offshore:
+
+1. A **9×9 spruce deck** appears at the water's surface around the shaft, and the derrick stands on it.
+2. A **cobblestone cofferdam** walls the 5×5 shaft in, from the seabed up to the deck.
+3. Fuel it as usual. It **pumps the cofferdam dry**, one layer a step, from the top down (0.05 blocks' worth of fuel per block of water; a lump of seabed in the way is dug out into the stone hold). Its status says *Pumping the cofferdam dry* and how many layers are left.
+4. It puts a ladder down the north wall, then **drills the seabed** like any rig: 5×5, all the way to bedrock, striking oil on the way.
+
+Hoppers and pipes go on the deck (in the ring around the shaft, on the deck or one block up). Lay a line of **Pipes** from the deck to the shore and the crude reaches your tanks on land, and the ore and stone your chests. Packing the rig up leaves the deck and the cofferdam.
 
 ### Tanks
 
@@ -137,6 +149,8 @@ A rig stops (and says why) when a hold is full, it runs out of fuel, its tank is
 | `pipeLength` | `512` | The most pipes one pipeline follows |
 | `fuelFromTanks` | `true` | Rigs and refineries with an empty firebox burn diesel, crude or lava from their tanks |
 | `warehouseReach` | `16` | How far a rig looks for a warehouse |
+| `offshoreDepth` | `40` | The deepest water a rig can be set up in |
+| `drainCost` | `0.05` | Fuel per block of water pumped out of a cofferdam, in blocks |
 | `tankCapacity` | `1000` | Buckets per tank |
 | `refineryCapacity` | `64` | Buckets of crude, and of diesel, a refinery holds |
 | `crudePerDiesel` | `2` | Crude per bucket of diesel |
@@ -150,4 +164,4 @@ Rigs, tanks, refineries, pipes and opened pockets are saved in `<world>/fossilfo
 
 - Oil pockets follow from the world seed, so they exist in old chunks too. The crude only appears as blocks when someone breaks in. Black concrete you place yourself isn't oil, nice try.
 - Only the overworld has oil.
-- CI builds the mod, then boots a real server. It checks the items, the fuel ladder and the Market prices, rolls pockets from the seed, breaks into one by hand, dowses one, and drills a real shaft through stone, iron ore and a water leak. It checks the 5×5 shape, the ladder, the seal, ores and stone in separate holds, and diesel leaving its bucket. Then it strikes the pocket, pumps it dry into an Oil Tank, lets a hopper beside the derrick pass the holds into a Pickup Station chest (ores first), refines the crude into diesel, sets a tank to lava, lays a 22-pipe pipeline to a Lava Tank and a chest out of reach, burns lava down it from an empty firebox, sends stone down it into the chest, cuts it, and saves and reloads it all (the rig's model gets rebuilt).
+- CI builds the mod, then boots a real server. It checks the items, the fuel ladder and the Market prices, rolls pockets from the seed, breaks into one by hand, dowses one, and drills a real shaft through stone, iron ore and a water leak. It checks the 5×5 shape, the ladder, the seal, ores and stone in separate holds, and diesel leaving its bucket. Then it strikes the pocket, pumps it dry into an Oil Tank, lets a hopper beside the derrick pass the holds into a Pickup Station chest (ores first), refines the crude into diesel, sets a tank to lava, lays a 22-pipe pipeline to a Lava Tank and a chest out of reach, burns diesel next door and then lava down it from an empty firebox, sends stone down it into the chest, and cuts it. It floods a walled-in sea 10 deep, sets a rig up on its floor and checks the deck, the cofferdam, the pumping, the ladder and the drilling below the seabed. Then it saves and reloads it all (the rig's model gets rebuilt).

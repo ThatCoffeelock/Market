@@ -34,6 +34,8 @@ final class SmokeTest {
 	/** A pipeline runs west from the ring around the shaft to a Lava Tank and a chest, far out of pipe reach. */
 	private static final BlockPos FAR_TANK = new BlockPos(-25, 81, 0);
 	private static final BlockPos FAR_CHEST = new BlockPos(-24, 80, 0);
+	/** A walled-in bit of sea, 10 deep, with an offshore rig on its floor. */
+	private static final BlockPos SEABED = new BlockPos(0, 70, -25);
 
 	private SmokeTest() {
 	}
@@ -231,7 +233,45 @@ final class SmokeTest {
 		Machines.validate();
 		check(!Pipes.has(level, new BlockPos(-12, 81, 0)) && !rig.pipeline(level).tanks().contains(far), "a broken pipe cuts the line");
 		log("pipeline");
-		saveAndLoad(server, level, rig);
+		offshore(server, level, rig);
+	}
+
+	/** A rig set up on the seabed builds a deck and a cofferdam, pumps it dry and drills on down. */
+	private static void offshore(MinecraftServer server, ServerLevel level, Rig landRig) {
+		int x = SEABED.getX();
+		int y = SEABED.getY();
+		int z = SEABED.getZ();
+		Cmd.run(level, "fill " + (x - 10) + " 40 " + (z - 6) + " " + (x + 10) + " 80 " + (z + 6) + " minecraft:stone");
+		Cmd.run(level, "fill " + (x - 9) + " " + (y + 1) + " " + (z - 5) + " " + (x + 9) + " " + (y + 10) + " " + (z + 5) + " minecraft:water");
+		Cmd.run(level, "fill " + (x - 10) + " 81 " + (z - 6) + " " + (x + 10) + " 92 " + (z + 6) + " minecraft:air");
+		Cmd.run(level, "setblock " + (x + 1) + " " + (y + 1) + " " + (z + 1) + " minecraft:sand");
+		Rig sea = Rigs.place(level, null, SEABED);
+		check(sea != null && sea.offshore() && sea.deck == y + 10 && sea.top == y && !sea.drained(), "a rig on the seabed goes offshore");
+		check(sea.modelY() == y + 11 && sea.root != null, "the derrick stands on the deck, at the surface");
+		check(!level.getBlockState(new BlockPos(x - 4, y + 10, z)).isAir() && !Rig.isWater(level.getBlockState(new BlockPos(x - 4, y + 10, z))),
+			"a plank deck around the shaft");
+		check(level.getBlockState(new BlockPos(x + 3, y + 5, z)).is(Blocks.COBBLESTONE)
+			&& level.getBlockState(new BlockPos(x - 3, y + 2, z + 3)).is(Blocks.COBBLESTONE), "a cobblestone cofferdam down to the seabed");
+		check(Rig.isWater(level.getBlockState(new BlockPos(x + 4, y + 5, z))), "the sea stays outside it");
+		check(sea.isHopperSpot(new BlockPos(x - 3, y + 11, z)) && !sea.isHopperSpot(new BlockPos(x - 3, y + 1, z)), "hoppers and pipes go on the deck");
+		sea.firebox.setItem(0, OilItems.diesel(2));
+		waitFor(server, "the offshore rig pumps the cofferdam dry and drills two layers", 1200, () -> sea.drained() && sea.layer <= y - 2, () -> {
+			for (int dy = 1; dy <= 10; dy++) {
+				for (int dx = -2; dx <= 2; dx++) {
+					for (int dz = -2; dz <= 2; dz++) {
+						check(!Rig.isWater(level.getBlockState(new BlockPos(x + dx, y + dy, z + dz))), "no water left in the cofferdam");
+					}
+				}
+			}
+			check(level.getBlockState(new BlockPos(x + 1, y + 1, z + 1)).isAir() && count(sea.stone, Items.SAND) >= 1,
+				"a lump of sand in the cofferdam was dug out into the stone hold");
+			check(level.getBlockState(new BlockPos(x, y + 5, z - 2)).is(Blocks.LADDER), "a ladder down from the deck");
+			check(level.getBlockState(new BlockPos(x, y - 1, z)).isAir() && level.getBlockState(new BlockPos(x + 3, y - 1, z)).is(Blocks.STONE),
+				"and it drills the seabed like any rig");
+			sea.on = false;
+			log("offshore rig");
+			saveAndLoad(server, level, landRig);
+		});
 	}
 
 	private static void saveAndLoad(MinecraftServer server, ServerLevel level, Rig before) {
@@ -257,6 +297,14 @@ final class SmokeTest {
 		check(far != null && far.set == Fluid.LAVA && far.amount == 2 && Pipes.count() == pipes && pipes == 21,
 			"the Lava Tank remembers its setting, and the pipes are all still there");
 		check(Pockets.isOil(level, HAND_POCKET), "opened pockets remember their oil");
+		Rig sea = null;
+		for (Rig r : Rigs.BY_ID.values()) {
+			if (r.offshore()) {
+				sea = r;
+			}
+		}
+		check(sea != null && sea.deck == SEABED.getY() + 10 && sea.drained(), "the offshore rig remembers its deck and its dry cofferdam");
+		Rigs.packUp(sea, null);
 		waitFor(server, "the rig's model is found again or rebuilt", 400, () -> rig.root != null && !rig.root.isRemoved(), () -> {
 			Entity root = rig.root;
 			check(root.getPassengers().size() == 1 + Rig.FRAME.size() + 1 + Rig.HEAD.size(), "the model is whole");
