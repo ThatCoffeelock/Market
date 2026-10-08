@@ -42,6 +42,10 @@ public final class Interactions {
 		return state.is(Blocks.BLAST_FURNACE);
 	}
 
+	static boolean isOvenBlock(BlockState state) {
+		return state.is(Blocks.SMOKER);
+	}
+
 	static void forget(UUID player) {
 		LAST_DOWSE.remove(player);
 	}
@@ -69,6 +73,14 @@ public final class Interactions {
 				+ FossilConfig.get().pipeReach + " blocks, or on a pipeline, connect to it.", ChatFormatting.AQUA);
 		} else if (OilItems.isPipe(stack)) {
 			Pipes.add(level, pos);
+		} else if (OilItems.isOven(stack)) {
+			Oven o = Machines.addOven(level, pos);
+			o.diesel = Math.max(0, data.getIntOr(OilItems.DIESEL_IN, 0));
+			if (sp != null) {
+				o.owner = sp.getUUID().toString();
+			}
+			tell(sp, "Industrial Oven set up. Right-click it, pour in diesel, and fill the top row with anything a furnace takes. "
+				+ "Ores come out double. Hoppers work too: in at the top, out at the bottom.", ChatFormatting.GOLD);
 		} else if (OilItems.isRefinery(stack)) {
 			Refinery r = Machines.addRefinery(level, pos);
 			r.crude = Math.max(0, data.getIntOr(OilItems.CRUDE_IN, 0));
@@ -175,6 +187,16 @@ public final class Interactions {
 		BlockState state = level.getBlockState(pos);
 		Tank tank = isTankBlock(state) ? Machines.tankAt(level, pos) : null;
 		Refinery refinery = tank == null && isRefineryBlock(state) ? Machines.refineryAt(level, pos) : null;
+		Oven oven = isOvenBlock(state) ? Machines.ovenAt(level, pos) : null;
+		if (oven != null) {
+			if (player.isShiftKeyDown() && !held.isEmpty()) {
+				return InteractionResult.PASS;
+			}
+			if (hand == InteractionHand.MAIN_HAND) {
+				OvenMenu.open(player, oven);
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (tank == null && refinery == null) {
 			if (isEmptyBucket(held) && Pockets.isOil(level, pos)) {
 				if (hand == InteractionHand.MAIN_HAND) {
@@ -334,6 +356,35 @@ public final class Interactions {
 				level.removeBlock(pos, false);
 				if (!player.isCreative() || tank.amount > 0) {
 					Block.popResource(level, pos, OilItems.tank(tank.set, tank.fluid, tank.amount));
+				}
+				return false;
+			}
+		}
+		if (isOvenBlock(state)) {
+			Oven o = Machines.ovenAt(level, pos);
+			if (o != null) {
+				Machines.removeOven(o);
+				for (net.minecraft.world.Container box : java.util.List.of(o.input, o.output)) {
+					for (int i = 0; i < box.getContainerSize(); i++) {
+						ItemStack stack = box.getItem(i);
+						if (!stack.isEmpty()) {
+							Block.popResource(level, pos, stack.copy());
+							box.setItem(i, ItemStack.EMPTY);
+						}
+					}
+				}
+				// whatever hoppers left in the smoker's own slots drops the vanilla way
+				if (level.getBlockEntity(pos) instanceof net.minecraft.world.Container own) {
+					for (int i = 0; i < own.getContainerSize(); i++) {
+						if (!own.getItem(i).isEmpty()) {
+							Block.popResource(level, pos, own.getItem(i).copy());
+							own.setItem(i, ItemStack.EMPTY);
+						}
+					}
+				}
+				level.removeBlock(pos, false);
+				if (!player.isCreative() || o.diesel > 0) {
+					Block.popResource(level, pos, OilItems.oven(o.diesel));
 				}
 				return false;
 			}

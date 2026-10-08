@@ -38,6 +38,7 @@ final class FossilCommands {
 					.then(argument("count", IntegerArgumentType.integer(1, 64))
 						.executes(ctx -> give(ctx.getSource(), OilItems.pipe(IntegerArgumentType.getInteger(ctx, "count")), "Pipes."))))
 				.then(literal("refinery").executes(ctx -> give(ctx.getSource(), OilItems.refinery(), "A Refinery.")))
+				.then(literal("oven").executes(ctx -> give(ctx.getSource(), OilItems.oven(), "An Industrial Oven. Mind your eyebrows.")))
 				.then(literal("rod").executes(ctx -> give(ctx.getSource(), OilItems.rod(), "A Dowsing Rod. Science!")))
 				.then(literal("crude")
 					.executes(ctx -> give(ctx.getSource(), OilItems.crude(16), "16 buckets of crude."))
@@ -91,6 +92,7 @@ final class FossilCommands {
 			"§ePipe§7: a line of them links rigs, tanks, refineries and chests, however far apart.",
 			"§7  Rigs and refineries burn diesel, crude or lava from the tanks they reach when their firebox is empty.",
 			"§eRefinery§7: 2 crude → 1 diesel, with fuel in its firebox.",
+			"§eIndustrial Oven§7: burns diesel, smelts a stack in seconds. Ores come out §fdouble§7.",
 			"§7Found oil by hand? Right-click it with an §fempty bucket§7.",
 			"§7Sell crude and diesel at the §fMarket§7. Level §fWildcatting§7 in /skills."
 		};

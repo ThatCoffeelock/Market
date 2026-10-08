@@ -77,7 +77,7 @@ final class Store {
 
 	/** Firebox and hold contents change through screens without telling us, so machines get saved every time. */
 	static void saveIfDirty() {
-		if (dirty || !Rigs.BY_ID.isEmpty() || !Machines.REFINERIES.isEmpty()) {
+		if (dirty || !Rigs.BY_ID.isEmpty() || !Machines.REFINERIES.isEmpty() || !Machines.OVENS.isEmpty()) {
 			save();
 		}
 	}
@@ -243,6 +243,22 @@ final class Store {
 		}
 		root.add("refineries", refineries);
 
+		JsonArray ovens = new JsonArray();
+		for (Oven ov : Machines.OVENS.values()) {
+			JsonObject o = new JsonObject();
+			o.addProperty("dimension", ov.dimension);
+			pos(o, ov.pos);
+			o.addProperty("owner", ov.owner);
+			o.addProperty("on", ov.on);
+			o.addProperty("diesel", ov.diesel);
+			o.addProperty("charge", ov.charge);
+			o.addProperty("smelted", ov.smelted);
+			o.add("input", items(ops, ov.input));
+			o.add("output", items(ops, ov.output));
+			ovens.add(o);
+		}
+		root.add("ovens", ovens);
+
 		JsonArray pockets = new JsonArray();
 		for (Map.Entry<Long, Pockets.Pocket> e : Pockets.OPENED.entrySet()) {
 			Pockets.Pocket p = e.getValue();
@@ -329,6 +345,20 @@ final class Store {
 				r.progress = dbl(o, "progress");
 				readItems(ops, o.get("firebox"), r.firebox);
 				Machines.REFINERIES.put(Machines.key(r.dimension, r.pos), r);
+			}
+		}
+		if (root.has("ovens")) {
+			for (JsonElement e : root.getAsJsonArray("ovens")) {
+				JsonObject o = e.getAsJsonObject();
+				Oven ov = new Oven(o.get("dimension").getAsString(), pos(o));
+				ov.owner = str(o, "owner", "");
+				ov.on = bool(o, "on", true);
+				ov.diesel = num(o, "diesel", 0);
+				ov.charge = num(o, "charge", 0);
+				ov.smelted = o.has("smelted") ? o.get("smelted").getAsLong() : 0;
+				readItems(ops, o.get("input"), ov.input);
+				readItems(ops, o.get("output"), ov.output);
+				Machines.OVENS.put(Machines.key(ov.dimension, ov.pos), ov);
 			}
 		}
 		if (root.has("pockets")) {

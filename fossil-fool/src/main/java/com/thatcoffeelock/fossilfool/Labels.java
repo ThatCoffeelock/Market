@@ -67,6 +67,10 @@ final class Labels {
 			}
 			draw(t.dimension, t.pos, line(t.name(), shown.colorName, true), line(second, t.space() == 0 ? "red" : "gray", false));
 		}
+		for (Oven o : Machines.OVENS.values()) {
+			draw(o.dimension, o.pos, line("Industrial Oven: " + o.state.text, o.state == Oven.State.WORKING ? "gold" : "gray", true),
+				line("Diesel " + o.diesel + " · " + Gui.n(o.smelted) + " smelted", "gray", false));
+		}
 		for (Refinery r : Machines.REFINERIES.values()) {
 			draw(r.dimension, r.pos, line("Refinery: " + r.state.text, r.state == Refinery.State.WORKING ? "gold" : "gray", true),
 				line("Crude " + r.crude + " · Diesel " + r.diesel, "gray", false));

@@ -30,3 +30,13 @@ dump net.minecraft.world.level.block.state.properties.BlockStateProperties 'LIT|
 dump net.minecraft.resources.Identifier 'fromNamespaceAndPath|withDefaultNamespace'
 dump net.minecraft.commands.Commands 'hasPermission|LEVEL_'
 dump net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
+dump net.minecraft.server.level.ServerLevel 'recipeAccess|registryAccess'
+dump net.minecraft.world.item.crafting.RecipeManager 'getRecipeFor'
+dump net.minecraft.world.item.crafting.Recipe 'assemble'
+dump net.minecraft.world.item.crafting.SingleRecipeInput
+dump net.minecraft.world.item.crafting.RecipeType 'SMELTING'
+dump net.minecraft.world.item.crafting.RecipeHolder 'value'
+dump net.minecraft.world.level.block.Blocks 'SMOKER|CAULDRON'
+dump net.minecraft.world.item.Items 'SMOKER|WATER_BUCKET|RAW_IRON|LIGHTNING'
+dump net.minecraft.world.level.block.state.properties.BlockStateProperties 'LEVEL_CAULDRON'
+dump net.minecraft.core.BlockPos 'atY|of\(J

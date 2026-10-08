@@ -25,6 +25,7 @@ I = {
  "goldblock": ("AuB", "#f2c84b", "Block of Gold", True), "lodestone": ("Lode", "#77787d", "Lodestone", False),
  "irondoor": ("Door", "#b8b8b8", "Iron Door", True), "goldnugget": ("AuN", "#f0cf5a", "Gold Nugget", True),
  "quartzpillar": ("QzP", "#ece6dc", "Quartz Pillar", True),
+ "smoker": ("Smk", "#5b4a3a", "Smoker", False),
 }
 
 def shaped(name, rows, key, out, count=None): return dict(name=name, rows=rows, key=key, out=out, count=count)
@@ -214,19 +215,20 @@ MODS = [
  dict(name="Fossil Fool", colour="#3a3a3a", tag="Old-timey oil: dowse for it, sink a 5×5 shaft with a Drill Rig, strike crude, tank it, refine it into diesel and burn it.",
   recipes=[shaped("Drill Rig", ["BDB","PFP","LLL"], dict(B="ironblock",D="diamondblock",P="piston",F="blastfurnace",L="log"), "Rig"),
            shaped("Oil Tank", ["I I","IUI","III"], dict(I="iron",U="cauldron"), "Tank"),
+           shaped("Pipe", ["CIC"], dict(C="copper",I="iron"), "Pipe", 4),
            shaped("Refinery", ["CUC","CFC","SSS"], dict(C="copper",U="cauldron",F="blastfurnace",S="bricks"), "Ref"),
            shaped("Dowsing Rod", ["S S"," S "," G "], dict(S="stick",G="gold"), "Rod"),
-           shaped("Pipe", ["CIC"], dict(C="copper",I="iron"), "Pipe", 4)],
+           shaped("Industrial Oven", ["IFI","BSB","III"], dict(I="iron",F="blastfurnace",B="bricks",S="smoker"), "Oven")],
   steps=["Right-click with the <b>Dowsing Rod</b>. It twitches towards the nearest oil pocket: which way, how far, how deep. Walk until it points straight down.",
-         "Right-click the ground with the <b>Drill Rig</b>. It sinks a <b>5×5 shaft</b> centred on that block, all the way to bedrock. Click the <b>seabed</b> through the water and it goes <b>offshore</b>: a deck at the surface, a cofferdam, pumped dry.",
+         "Right-click the ground with the <b>Drill Rig</b>: a <b>5×5 shaft</b> to bedrock. Click the <b>seabed</b> through water and it goes <b>offshore</b> on a deck with a cofferdam.",
          "Right-click the derrick (anyone can) and put fuel in the <b>firebox</b> (row 2). Ores land in rows 3–4, stone in rows 5–6.",
          "When it hits a pocket: <b>STRUCK OIL!</b> It pumps the pocket dry into its tank and into any <b>Oil Tank</b> within 9 blocks, then keeps drilling.",
-         "Put a <b>Refinery</b> next to the tank. With fuel in its firebox, it turns 2 crude into 1 diesel and pipes the diesel back into an empty tank.",
-         "Too far? Lay <b>Pipes</b> from the ring around the shaft: every tank, refinery and chest on the line is linked. Crude goes to the tanks, ore and stone to the chests."],
-  tips=["Fuel ladder, each better than the last: <b>coal</b> 2 blocks (0.5× speed) → <b>lava</b> 40 (0.75×) → <b>crude</b> 60 (1×) → <b>diesel</b> 200 (1.5×). A full shaft is about 16 buckets of diesel.",
-        "Tanks hold <b>crude, diesel, water or lava</b>. Sneak + right-click with an empty hand to set one fluid. An empty firebox burns diesel, crude or lava from the tanks.",
-        "<b>Hoppers</b> around the shaft (on the ground or one up) get the holds: ores first, then stone. Lead them into a Cargo Train <b>Pickup Station</b>.",
-        "Sell crude (₥25) and diesel (₥45) at the Market. Only the owner can pack a rig up. About one pocket in ten is a gusher."],
+         "Put a <b>Refinery</b> next to the tank. With fuel in its firebox it turns 2 crude into 1 diesel, back into an empty tank.",
+         "Too far? Lay <b>Pipes</b> from the ring around the shaft: tanks, refineries, ovens and chests on the line are linked."],
+  tips=["Fuel ladder: <b>coal</b> 2 blocks (0.5×) → <b>lava</b> 40 (0.75×) → <b>crude</b> 60 (1×) → <b>diesel</b> 200 (1.5×).",
+        "Tanks hold <b>crude, diesel, water or lava</b>; sneak + right-click with an empty hand picks one. Empty fireboxes burn fuel from the tanks.",
+        "<b>Hoppers</b> around the shaft get the holds, ores first. Lead them into a Cargo Train <b>Pickup Station</b>.",
+        "The <b>Industrial Oven</b> burns diesel and smelts a stack in seconds; <b>ores come out double</b>. Sell crude (₥40) and diesel (₥100) at the Market."],
   cmds="/fossilfool"),
  dict(name="Riches", colour="#b8860b", tag="Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics.",
   recipes=[shaped("Vault Ledger", ["GIG","ILI","GIG"], dict(G="goldblock",I="ironblock",L="lodestone"), "Ldgr"),
@@ -310,7 +312,7 @@ h1, h2, h3 {{ margin: 0; }}
 .mod h2 {{ font: bold 25pt/1.1 "DejaVu Sans Mono", monospace; }}
 .tag {{ font-size: 11.5pt; color: #3d3a35; margin: 0; }}
 h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: #6b675f; margin-top: 6px; }}
-.recipes {{ display: flex; flex-wrap: wrap; gap: 10px 22px; }}
+.recipes {{ display: flex; flex-wrap: wrap; gap: 10px 16px; }}
 .rc {{ display: flex; flex-direction: column; gap: 3px; }}
 .rn {{ font: bold 9.5pt "DejaVu Sans Mono", monospace; }}
 .any {{ font-weight: normal; color: #6b675f; font-size: 8.5pt; }}

@@ -31,6 +31,9 @@ public final class OilItems {
 	static final String REFINERY = "refinery";
 	static final String ROD = "dowsing_rod";
 	static final String PIPE = "pipe";
+	static final String OVEN = "industrial_oven";
+	/** On a picked-up oven: the diesel in its tank. */
+	static final String DIESEL_IN = "diesel_in";
 	/** On a picked-up tank or refinery: what was inside. */
 	static final String FLUID = "fluid";
 	/** On a tank: the one fluid it's set to take. */
@@ -170,6 +173,34 @@ public final class OilItems {
 		return stack;
 	}
 
+	public static ItemStack oven() {
+		ItemStack stack = make(Items.SMOKER, 1, OVEN);
+		stack.set(DataComponents.MAX_STACK_SIZE, 1);
+		stack.set(DataComponents.ITEM_NAME, Component.literal("Industrial Oven").withStyle(ChatFormatting.GOLD));
+		stack.set(DataComponents.LORE, new ItemLore(List.of(
+			text("Burns diesel. Smelts or cooks anything", ChatFormatting.GRAY),
+			text("a furnace can, a stack in seconds.", ChatFormatting.GRAY),
+			text("Ores and raw metal come out double.", ChatFormatting.YELLOW),
+			text("Drinks diesel from Tanks nearby or on a pipeline.", ChatFormatting.DARK_GRAY))));
+		stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+		return stack;
+	}
+
+	/** An oven that was picked up with diesel still in its tank. */
+	static ItemStack oven(int diesel) {
+		ItemStack stack = oven();
+		if (diesel <= 0) {
+			return stack;
+		}
+		CompoundTag tag = data(stack);
+		tag.putInt(DIESEL_IN, diesel);
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+		stack.set(DataComponents.LORE, new ItemLore(List.of(
+			text("Still holds " + diesel + " buckets of diesel.", ChatFormatting.YELLOW),
+			text("Place it again to set it back up.", ChatFormatting.GRAY))));
+		return stack;
+	}
+
 	/** The block pipes are made of: a copper lightning rod. */
 	static Item pipeBase() {
 		return Gui.item("minecraft:lightning_rod", Items.END_ROD);
@@ -251,6 +282,10 @@ public final class OilItems {
 
 	public static boolean isRod(ItemStack stack) {
 		return ROD.equals(kind(stack));
+	}
+
+	public static boolean isOven(ItemStack stack) {
+		return stack.is(Items.SMOKER) && OVEN.equals(kind(stack));
 	}
 
 	public static boolean isPipe(ItemStack stack) {

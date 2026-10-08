@@ -233,7 +233,51 @@ final class SmokeTest {
 		Machines.validate();
 		check(!Pipes.has(level, new BlockPos(-12, 81, 0)) && !rig.pipeline(level).tanks().contains(far), "a broken pipe cuts the line");
 		log("pipeline");
+		oven(level, rig);
 		offshore(server, level, rig);
+	}
+
+	/**
+	 * An Industrial Oven on the rig's pipeline: it drinks diesel from a tank on the line, the rig sends it raw iron
+	 * (and not diamonds), it smelts the iron double and cobblestone single, and hands output to a hopper underneath.
+	 */
+	private static void oven(ServerLevel level, Rig rig) {
+		BlockPos at = new BlockPos(-6, 82, 0);
+		Cmd.run(level, "setblock " + at.getX() + " " + at.getY() + " " + at.getZ() + " minecraft:smoker");
+		Interactions.onPlaced(level, null, at, OilItems.oven());
+		Oven oven = Machines.ovenAt(level, at);
+		check(oven != null && rig.pipeline(level).ovens().contains(oven), "an Industrial Oven sits on the rig's pipeline");
+		check(Oven.smelt(level, new ItemStack(Items.RAW_IRON)).is(Items.IRON_INGOT) && Oven.smelt(level, new ItemStack(Items.RAW_IRON)).getCount() == 2
+			&& Oven.smelt(level, new ItemStack(Items.COBBLESTONE)).is(Items.STONE) && Oven.smelt(level, new ItemStack(Items.COBBLESTONE)).getCount() == 1
+			&& Oven.smelt(level, new ItemStack(Items.DIAMOND)).isEmpty(), "it smelts like a furnace, ores double");
+
+		Cmd.run(level, "setblock -5 82 0 minecraft:cauldron");
+		Interactions.onPlaced(level, null, new BlockPos(-5, 82, 0), OilItems.tank(Fluid.DIESEL));
+		Tank dieselTank = Machines.tankAt(level, new BlockPos(-5, 82, 0));
+		dieselTank.fill(Fluid.DIESEL, 3);
+		Machines.pipeIn(level, oven);
+		check(oven.diesel == 3 && dieselTank.amount == 0, "it drinks diesel from a tank next to it");
+
+		rig.ores.clearContent();
+		rig.ores.addItem(new ItemStack(Items.RAW_IRON, 10));
+		rig.ores.addItem(new ItemStack(Items.DIAMOND, 3));
+		rig.feedPipes(level);
+		check(count(oven.input, Items.RAW_IRON) == 10 && count(oven.input, Items.DIAMOND) == 0 && count(rig.ores, Items.DIAMOND) == 3,
+			"the rig sends its raw iron down the pipe to the oven, and keeps the diamonds");
+		oven.input.addItem(new ItemStack(Items.COBBLESTONE, 4));
+		for (int i = 0; i < 40; i++) {
+			oven.tick(level);
+		}
+		// every second the oven moves output into the smoker's own bottom slot, where a hopper underneath takes it
+		check(level.getBlockEntity(at) instanceof Container box && count(box, Items.IRON_INGOT) + count(box, Items.STONE) > 0,
+			"output waits in the smoker's own bottom slot for a hopper");
+		Container own = (Container) level.getBlockEntity(at);
+		int iron = count(oven.output, Items.IRON_INGOT) + count(own, Items.IRON_INGOT);
+		int stoneOut = count(oven.output, Items.STONE) + count(own, Items.STONE);
+		check(iron == 20 && stoneOut == 4 && oven.input.isEmpty(), "14 items smelted in 40 ticks: 20 iron ingots and 4 stone (" + iron + ", " + stoneOut + ")");
+		check(oven.diesel == 2 && oven.charge == FossilConfig.get().ovenItemsPerDiesel - 14, "on one bucket of diesel");
+		oven.on = false;
+		log("industrial oven");
 	}
 
 	/** A rig set up on the seabed builds a deck and a cofferdam, pumps it dry and drills on down. */
@@ -280,6 +324,7 @@ final class SmokeTest {
 		int refineries = Machines.REFINERIES.size();
 		int pockets = Pockets.OPENED.size();
 		int pipes = Pipes.count();
+		int ovens = Machines.OVENS.size();
 		int layer = before.layer;
 		int stone = count(before.stone, Items.COBBLESTONE);
 		Tank tankBefore = Machines.tankAt(level, TANK);
@@ -297,6 +342,8 @@ final class SmokeTest {
 		check(far != null && far.set == Fluid.LAVA && far.amount == 2 && Pipes.count() == pipes && pipes == 21,
 			"the Lava Tank remembers its setting, and the pipes are all still there");
 		check(Pockets.isOil(level, HAND_POCKET), "opened pockets remember their oil");
+		check(Machines.OVENS.size() == ovens && ovens == 1 && count(Machines.OVENS.values().iterator().next().output, Items.STONE)
+			+ count(Machines.OVENS.values().iterator().next().output, Items.IRON_INGOT) > 0, "the oven and its output survive a save and load");
 		Rig sea = null;
 		for (Rig r : Rigs.BY_ID.values()) {
 			if (r.offshore()) {
@@ -329,6 +376,9 @@ final class SmokeTest {
 		check(OilItems.isTank(full) && OilItems.data(full).getIntOr(OilItems.AMOUNT, 0) == 40, "a packed tank keeps its oil");
 		ItemStack lava = OilItems.tank(Fluid.LAVA);
 		check(OilItems.isTank(lava) && OilItems.data(lava).getStringOr(OilItems.SET, "").equals("LAVA"), "a Lava Tank is a tank set to lava");
+		check(OilItems.isOven(OilItems.oven()) && !OilItems.isOven(new ItemStack(Items.SMOKER))
+			&& OilItems.data(OilItems.oven(5)).getIntOr(OilItems.DIESEL_IN, 0) == 5, "Industrial Ovens, and a packed one keeps its diesel");
+		check(Oven.doubles(new ItemStack(Items.RAW_IRON)) && !Oven.doubles(new ItemStack(Items.COBBLESTONE)), "raw iron smelts double, cobblestone doesn't");
 		check(OilItems.isPipe(OilItems.pipe(4)) && OilItems.pipe(4).getCount() == 4 && !OilItems.isPipe(new ItemStack(OilItems.pipeBase())),
 			"pipes, and a plain lightning rod isn't one");
 		check(OilItems.fluidOf(new ItemStack(Items.WATER_BUCKET)) == Fluid.WATER && OilItems.fluidOf(new ItemStack(Items.LAVA_BUCKET)) == Fluid.LAVA
@@ -352,7 +402,8 @@ final class SmokeTest {
 
 	@SuppressWarnings("unchecked")
 	private static void prices() {
-		check(Hooks.price(OilItems.crude(1)) == 2500 && Hooks.price(OilItems.diesel(1)) == 4500, "crude ₥25, diesel ₥45");
+		check(Hooks.price(OilItems.crude(1)) == 4000 && Hooks.price(OilItems.diesel(1)) == 10000, "crude ₥40, diesel ₥100");
+		check(Hooks.price(OilItems.oven()) == -1, "ovens don't sell either");
 		check(Hooks.price(OilItems.rig()) == -1 && Hooks.price(new ItemStack(Items.PAPER)) == null, "machines don't sell, paper isn't ours");
 		Object hooks = FabricLoader.getInstance().getObjectShare().get(Hooks.PRICE_HOOKS);
 		check(hooks instanceof List<?> list && !list.isEmpty(), "the Market price hook is published");

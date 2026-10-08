@@ -563,10 +563,20 @@ final class Rig {
 		});
 	}
 
-	/** Pushes the holds down the pipeline into the chests, barrels and shulker boxes on it: ores first, nearest first. */
+	/**
+	 * Pushes the holds down the pipeline: the ore hold into Industrial Ovens on it first (they smelt ores double), then
+	 * both holds into the chests, barrels and shulker boxes on it. Nearest first.
+	 */
 	void feedPipes(ServerLevel level) {
 		int budget = PIPE_BATCH;
-		for (BlockPos pos : pipeline(level).storage()) {
+		Pipes.Network net = pipeline(level);
+		for (Oven oven : net.ovens()) {
+			budget -= move(ores, oven.input, budget, Oven::doubles);
+			if (budget <= 0) {
+				return;
+			}
+		}
+		for (BlockPos pos : net.storage()) {
 			if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof Container box)) {
 				continue;
 			}
@@ -585,10 +595,15 @@ final class Rig {
 
 	/** Moves up to n items from one container to another, filling existing stacks first. Returns how many moved. */
 	static int move(Container from, Container to, int n) {
+		return move(from, to, n, stack -> true);
+	}
+
+	/** The same, but only the items that pass the filter. */
+	static int move(Container from, Container to, int n, java.util.function.Predicate<ItemStack> which) {
 		int moved = 0;
 		for (int i = 0; i < from.getContainerSize() && moved < n; i++) {
 			ItemStack stack = from.getItem(i);
-			if (stack.isEmpty()) {
+			if (stack.isEmpty() || !which.test(stack)) {
 				continue;
 			}
 			for (int pass = 0; pass < 2 && moved < n && !stack.isEmpty(); pass++) {
@@ -624,7 +639,7 @@ final class Rig {
 		return id.endsWith("_ore") || id.equals("ancient_debris") || (id.startsWith("raw_") && id.endsWith("_block"));
 	}
 
-	private static boolean fits(Container hold, List<ItemStack> drops) {
+	static boolean fits(Container hold, List<ItemStack> drops) {
 		int emptyNeeded = 0;
 		for (ItemStack drop : drops) {
 			if (drop.isEmpty()) {

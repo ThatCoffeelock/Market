@@ -18,7 +18,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Hamlets & Horrors](../hamlets/README.md) | Random cottages, castles and dungeons: some lived in by villagers, some overrun by monsters |
 | [Overenchant](../overenchant/README.md) | Higher maximum enchantment levels: every enchantment goes to X (Sharpness X instead of V). Flintlock guns can be enchanted too |
 | [Fuck Illagers](../fuck-illagers/README.md) | Bounty hunting: illager fingers for Marks, and contracts on named illager bosses in wagons, towers, camps, fortresses, dungeons and castles |
-| [Fossil Fool](../fossil-fool/README.md) | Old-timey oil: dowse for pockets, sink a 5×5 shaft with a fuel-guzzling Drill Rig, strike crude, tank it (or water, or lava), pipe it across the map (or from an offshore rig) and refine it into diesel |
+| [Fossil Fool](../fossil-fool/README.md) | Old-timey oil: dowse for pockets, sink a 5×5 shaft with a fuel-guzzling Drill Rig, strike crude, tank it (or water, or lava), pipe it across the map (or from an offshore rig), refine it into diesel and burn it in an Industrial Oven that smelts ores double |
 | [Riches](../riches/README.md) | Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.

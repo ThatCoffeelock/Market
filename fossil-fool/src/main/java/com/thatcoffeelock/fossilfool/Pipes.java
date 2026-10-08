@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * lightning rod. Pipes that touch, touch: a line of them is a pipeline, up to {@code pipeLength} pipes long.
  *
  * A pipeline links whatever it touches: a Drill Rig (a pipe in the ring around its shaft, where hoppers go), Tanks,
- * Refineries, and chests, barrels and shulker boxes. Rigs and refineries treat every tank on their pipeline as if it
+ * Refineries, Industrial Ovens, and chests, barrels and shulker boxes. Rigs and refineries treat every tank on their pipeline as if it
  * stood next to them, rigs push their ore and stone holds into the chests on it, and a Warehouse near the far end of
  * a pipeline counts as near the rig.
  *
@@ -87,9 +87,9 @@ final class Pipes {
 		return (id.endsWith("chest") || id.endsWith("barrel") || id.endsWith("shulker_box")) && level.getBlockEntity(pos) instanceof Container;
 	}
 
-	/** What one pipeline links: its tanks, its storage blocks, and its loose ends. */
-	record Network(int pipes, List<Tank> tanks, List<BlockPos> storage, List<BlockPos> ends) {
-		static final Network NONE = new Network(0, List.of(), List.of(), List.of());
+	/** What one pipeline links: its tanks, its Industrial Ovens, its storage blocks, and its loose ends. */
+	record Network(int pipes, List<Tank> tanks, List<Oven> ovens, List<BlockPos> storage, List<BlockPos> ends) {
+		static final Network NONE = new Network(0, List.of(), List.of(), List.of(), List.of());
 	}
 
 	/**
@@ -115,6 +115,7 @@ final class Pipes {
 		}
 		int max = FossilConfig.get().pipeLength;
 		List<Tank> tanks = new ArrayList<>();
+		List<Oven> ovens = new ArrayList<>();
 		List<BlockPos> storage = new ArrayList<>();
 		List<BlockPos> ends = new ArrayList<>();
 		Set<Long> found = new HashSet<>();
@@ -132,9 +133,14 @@ final class Pipes {
 					continue;
 				}
 				Tank tank = Machines.TANKS.get(Machines.key(dim, next));
+				Oven oven = tank == null ? Machines.OVENS.get(Machines.key(dim, next)) : null;
 				if (tank != null) {
 					if (found.add(l)) {
 						tanks.add(tank);
+					}
+				} else if (oven != null) {
+					if (found.add(l)) {
+						ovens.add(oven);
 					}
 				} else if (level.isLoaded(next) && isStorage(level, next) && found.add(l)) {
 					storage.add(next.immutable());
@@ -144,7 +150,7 @@ final class Pipes {
 				ends.add(pos);
 			}
 		}
-		return new Network(seen.size(), tanks, storage, ends);
+		return new Network(seen.size(), tanks, ovens, storage, ends);
 	}
 
 	/** A machine's view of its pipeline, traced again when pipes change and every few seconds (chests come and go). */

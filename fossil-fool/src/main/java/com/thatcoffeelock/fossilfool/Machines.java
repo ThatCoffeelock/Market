@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 final class Machines {
 	static final Map<String, Tank> TANKS = new HashMap<>();
 	static final Map<String, Refinery> REFINERIES = new HashMap<>();
+	static final Map<String, Oven> OVENS = new HashMap<>();
 	private static @Nullable MinecraftServer server;
 
 	private Machines() {
@@ -35,6 +36,7 @@ final class Machines {
 	static void reset() {
 		TANKS.clear();
 		REFINERIES.clear();
+		OVENS.clear();
 		server = null;
 	}
 
@@ -64,6 +66,44 @@ final class Machines {
 
 	static @Nullable Refinery refineryAt(Level level, BlockPos pos) {
 		return REFINERIES.get(key(dim(level), pos));
+	}
+
+	static @Nullable Oven ovenAt(Level level, BlockPos pos) {
+		return OVENS.get(key(dim(level), pos));
+	}
+
+	static Oven addOven(Level level, BlockPos pos) {
+		Oven o = new Oven(dim(level), pos.immutable());
+		OVENS.put(key(o.dimension, o.pos), o);
+		Pipes.changed();
+		Store.changed();
+		return o;
+	}
+
+	static void removeOven(Oven o) {
+		OVENS.remove(key(o.dimension, o.pos));
+		Labels.remove(o.dimension, o.pos);
+		Pipes.changed();
+		Store.changed();
+	}
+
+	/** Every tank an oven reaches: within reach, and along its pipeline. */
+	static List<Tank> tanksFor(ServerLevel level, Oven o) {
+		return withPipeline(tanksNear(level, o.pos, 0), o.pipeline(level));
+	}
+
+	/** An oven drinks diesel from the tanks it reaches until its own tank is full. */
+	static void pipeIn(ServerLevel level, Oven o) {
+		for (Tank t : tanksFor(level, o)) {
+			int room = Oven.capacity() - o.diesel;
+			if (room <= 0) {
+				return;
+			}
+			int n = t.drain(Fluid.DIESEL, room);
+			if (n > 0) {
+				o.diesel += n;
+			}
+		}
 	}
 
 	static Tank addTank(Level level, BlockPos pos) {
@@ -202,6 +242,17 @@ final class Machines {
 				FossilFoolMod.LOG.error("Refinery at {} crashed while ticking", r.pos, e);
 			}
 		}
+		for (Oven o : new ArrayList<>(OVENS.values())) {
+			ServerLevel level = level(o.dimension);
+			if (level == null || !level.isLoaded(o.pos)) {
+				continue;
+			}
+			try {
+				o.tick(level);
+			} catch (RuntimeException e) {
+				FossilFoolMod.LOG.error("Industrial Oven at {} crashed while ticking", o.pos, e);
+			}
+		}
 		if (ticks % 10 == 0) {
 			Labels.draw();
 			for (Tank t : TANKS.values()) {
@@ -246,6 +297,13 @@ final class Machines {
 			if (level != null && level.isLoaded(r.pos) && !Interactions.isRefineryBlock(level.getBlockState(r.pos))) {
 				FossilFoolMod.LOG.info("Refinery at {} is gone", r.pos);
 				removeRefinery(r);
+			}
+		}
+		for (Oven o : new ArrayList<>(OVENS.values())) {
+			ServerLevel level = level(o.dimension);
+			if (level != null && level.isLoaded(o.pos) && !Interactions.isOvenBlock(level.getBlockState(o.pos))) {
+				FossilFoolMod.LOG.info("Industrial Oven at {} is gone", o.pos);
+				removeOven(o);
 			}
 		}
 	}

@@ -11,7 +11,8 @@ A Fabric mod for Minecraft **26.3** about old-timey oil: dowse for it, drill for
 - **Tanks** hold 1,000 buckets of **crude, diesel, water or lava**, one at a time. Set a tank to one fluid and it takes nothing else. **Refineries** turn 2 crude into 1 diesel.
 - **Pipes** link rigs, tanks, refineries and chests however far apart they are. Crude flows down them into tanks, ore and stone into chests.
 - **The fuel line**: a rig or refinery with an empty firebox burns diesel, crude or lava straight from the tanks it reaches.
-- **Sell it at the [Market](../README.md)**: crude for ₥25 a bucket, diesel for ₥45.
+- **An Industrial Oven** burns diesel and smelts anything a furnace can, a stack in about three seconds. **Ores and raw metal come out double.**
+- **Sell it at the [Market](../README.md)**: crude for ₥40 a bucket, diesel for ₥100 (a diamond's worth).
 - **Level [Wildcatting](../skills/README.md)** in the Skills mod. Rigs unload into a **[Warehouse](../warehouse/README.md)** by themselves.
 
 It's **server-side only**. Friends join with a plain vanilla client. The rig is built from vanilla display entities, the tank is a cauldron, a pipe is a lightning rod, the refinery is a blast furnace, and the screens are chest screens.
@@ -34,6 +35,7 @@ Market, Skills and Warehouse are all optional. Each one adds something when it's
 | **Refinery** | `Copper, Cauldron, Copper` / `Copper, Blast Furnace, Copper` / `Bricks, Bricks, Bricks` |
 | **Dowsing Rod** | `Stick, _, Stick` / `_, Stick, _` / `_, Gold Ingot, _` |
 | **Pipe** ×4 | `Copper, Iron, Copper` (one row) |
+| **Industrial Oven** | `Iron, Blast Furnace, Iron` / `Bricks, Smoker, Bricks` / `Iron, Iron, Iron` |
 
 Buckets of crude come out of the ground and buckets of diesel come out of a refinery. They stack to 16. Pouring one out gives you the empty bucket back. Water and lava go into tanks in their normal buckets.
 
@@ -86,6 +88,19 @@ Tanks on a pipeline work even when nobody's near them: tanks are only numbers in
 
 Machines still reach tanks within 6 blocks without any pipe, like before.
 
+### The Industrial Oven
+
+A smoker that burns **diesel**, not coal. Right-click it for its screen:
+
+- **Row 2** takes anything a furnace takes: ores, raw metal, sand, cobblestone, logs, food, the lot. **Rows 3-4** are what comes out; take it like from a chest.
+- It smelts **20 items a second** (a stack in about three seconds). One bucket of diesel smelts **64 items**.
+- **Double smelt:** ores, raw iron, raw gold, raw copper and ancient debris come out **double**. A stack of raw iron makes two stacks of ingots.
+- **Diesel:** click the diesel gauge to pour in the diesel you carry. It holds 16 buckets, and tops itself up from **Tanks** within 6 blocks or on its **pipeline**.
+- **Hoppers** work the vanilla way: a hopper on top (or at the side) feeds it, a hopper underneath takes the output.
+- **On a rig's pipeline**, the rig sends its raw ores straight to the oven (diamonds, coal and the like go on to the chests). Rig → pipe → oven → hopper → chest: ingots come out the far end.
+
+The oven doesn't give furnace XP; it gives Wildcatting XP instead. Break it and you get it back with its diesel; whatever's inside drops.
+
 ### The fuel line
 
 When a rig's or refinery's firebox runs out, it burns from the tanks it reaches (nearby or on its pipeline): **diesel first, then crude, then lava**, one bucket at a time. Coal still has to go in by hand. Switch it off with `fuelFromTanks` in the config.
@@ -121,14 +136,14 @@ A rig stops (and says why) when a hold is full, it runs out of fuel, its tank is
 
 ## Works with
 
-- **Market**: crude and diesel sell for ₥25 and ₥45 a bucket (set in `config/fossilfool.json`). Machines can't be sold by accident.
+- **Market**: crude and diesel sell for ₥40 and ₥100 a bucket (set in `config/fossilfool.json`; a config that still has 1.0's ₥25 and ₥45 is raised to the new prices). Machines can't be sold by accident.
 - **Skills**: the **Wildcatting** skill. XP from drilling, striking oil, pumping, refining and dowsing, even while you're offline. Passive: up to +25% fuel efficiency. Perks: **Roughneck** (faster rigs), **Refiner** (bonus diesel), **Dowser** (longer rod range).
 - **Cargo Train**: put hoppers around the shaft and lead them into a Pickup Station chest, or run a pipeline to one; the train takes the ore and stone away.
 - **Warehouse**: a rig with a Warehouse Core within 16 blocks, or within 16 blocks of the far end of its pipeline, unloads its holds onto the shelves every few seconds. An ores-only warehouse gets the ores first.
 
 ## Commands
 
-`/fossilfool` shows the help. Ops: `/fossilfool give rig|tank|refinery|rod|crude|diesel|pipe`, `/fossilfool give tank crude|diesel|water|lava` (a tank already set to that fluid), `/fossilfool admin pocket` (exact location of the nearest pocket), `/fossilfool admin reload`.
+`/fossilfool` shows the help. Ops: `/fossilfool give rig|tank|refinery|oven|rod|crude|diesel|pipe`, `/fossilfool give tank crude|diesel|water|lava` (a tank already set to that fluid), `/fossilfool admin pocket` (exact location of the nearest pocket), `/fossilfool admin reload`.
 
 ## Config (`config/fossilfool.json`)
 
@@ -156,7 +171,10 @@ A rig stops (and says why) when a hold is full, it runs out of fuel, its tank is
 | `crudePerDiesel` | `2` | Crude per bucket of diesel |
 | `refineTicks` | `300` | Ticks per bucket of diesel at speed 1 |
 | `refineHeat` | `20` | Fuel per bucket of diesel, in blocks |
-| `crudeSellPrice` / `dieselSellPrice` | `25` / `45` | Market prices |
+| `ovenTank` | `16` | Buckets of diesel an Industrial Oven holds |
+| `ovenItemsPerDiesel` | `64` | Items one bucket of diesel smelts |
+| `ovenTicksPerItem` | `1` | Ticks per item smelted (1 = 20 a second) |
+| `crudeSellPrice` / `dieselSellPrice` | `40` / `100` | Market prices |
 
 Rigs, tanks, refineries, pipes and opened pockets are saved in `<world>/fossilfool.json`.
 
@@ -164,4 +182,4 @@ Rigs, tanks, refineries, pipes and opened pockets are saved in `<world>/fossilfo
 
 - Oil pockets follow from the world seed, so they exist in old chunks too. The crude only appears as blocks when someone breaks in. Black concrete you place yourself isn't oil, nice try.
 - Only the overworld has oil.
-- CI builds the mod, then boots a real server. It checks the items, the fuel ladder and the Market prices, rolls pockets from the seed, breaks into one by hand, dowses one, and drills a real shaft through stone, iron ore and a water leak. It checks the 5×5 shape, the ladder, the seal, ores and stone in separate holds, and diesel leaving its bucket. Then it strikes the pocket, pumps it dry into an Oil Tank, lets a hopper beside the derrick pass the holds into a Pickup Station chest (ores first), refines the crude into diesel, sets a tank to lava, lays a 22-pipe pipeline to a Lava Tank and a chest out of reach, burns diesel next door and then lava down it from an empty firebox, sends stone down it into the chest, and cuts it. It floods a walled-in sea 10 deep, sets a rig up on its floor and checks the deck, the cofferdam, the pumping, the ladder and the drilling below the seabed. Then it saves and reloads it all (the rig's model gets rebuilt).
+- CI builds the mod, then boots a real server. It checks the items, the fuel ladder and the Market prices, rolls pockets from the seed, breaks into one by hand, dowses one, and drills a real shaft through stone, iron ore and a water leak. It checks the 5×5 shape, the ladder, the seal, ores and stone in separate holds, and diesel leaving its bucket. Then it strikes the pocket, pumps it dry into an Oil Tank, lets a hopper beside the derrick pass the holds into a Pickup Station chest (ores first), refines the crude into diesel, sets a tank to lava, lays a 22-pipe pipeline to a Lava Tank and a chest out of reach, burns diesel next door and then lava down it from an empty firebox, sends stone down it into the chest, and cuts it. It puts an Industrial Oven on the pipeline, fills it with diesel from a tank, lets the rig send it raw iron (but not diamonds) and checks 20 ingots from 10 raw iron, 4 stone from 4 cobblestone, on one bucket, with output waiting for a hopper. It floods a walled-in sea 10 deep, sets a rig up on its floor and checks the deck, the cofferdam, the pumping, the ladder and the drilling below the seabed. Then it saves and reloads it all (the rig's model gets rebuilt).

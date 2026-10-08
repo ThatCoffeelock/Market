@@ -80,10 +80,19 @@ public final class FossilConfig {
 	/** Fuel (in drilled-block units) it costs to refine one bucket of diesel. */
 	public double refineHeat = 20;
 
+	// ---------------------------------------------------------------- the Industrial Oven
+
+	/** Buckets of diesel an Industrial Oven holds. */
+	public int ovenTank = 16;
+	/** Items one bucket of diesel smelts. */
+	public int ovenItemsPerDiesel = 64;
+	/** Ticks per item smelted. 1 = 20 items a second, a stack in about three seconds. */
+	public double ovenTicksPerItem = 1;
+
 	// ---------------------------------------------------------------- Market sell prices (needs the Market mod)
 
-	public double crudeSellPrice = 25;
-	public double dieselSellPrice = 45;
+	public double crudeSellPrice = 40;
+	public double dieselSellPrice = 100;
 
 	public static FossilConfig get() {
 		return current;
@@ -109,6 +118,16 @@ public final class FossilConfig {
 		cfg.rigTank = Math.max(1, cfg.rigTank);
 		cfg.tankCapacity = Math.max(1, cfg.tankCapacity);
 		cfg.pipeLength = Math.max(1, cfg.pipeLength);
+		cfg.ovenTank = Math.max(1, cfg.ovenTank);
+		cfg.ovenItemsPerDiesel = Math.max(1, cfg.ovenItemsPerDiesel);
+		cfg.ovenTicksPerItem = Math.max(1, cfg.ovenTicksPerItem);
+		// 1.0 wrote the old prices into every config file; raise them unless someone picked their own
+		if (cfg.crudeSellPrice == 25) {
+			cfg.crudeSellPrice = 40;
+		}
+		if (cfg.dieselSellPrice == 45) {
+			cfg.dieselSellPrice = 100;
+		}
 		cfg.refineryCapacity = Math.max(cfg.crudePerDiesel, cfg.refineryCapacity);
 		if (cfg.pocketMaxY < cfg.pocketMinY) {
 			cfg.pocketMaxY = cfg.pocketMinY;
