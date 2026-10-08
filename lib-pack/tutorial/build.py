@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.14.0"
+VERSION = "1.15.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -215,15 +215,17 @@ MODS = [
   recipes=[shaped("Drill Rig", ["BDB","PFP","LLL"], dict(B="ironblock",D="diamondblock",P="piston",F="blastfurnace",L="log"), "Rig"),
            shaped("Oil Tank", ["I I","IUI","III"], dict(I="iron",U="cauldron"), "Tank"),
            shaped("Refinery", ["CUC","CFC","SSS"], dict(C="copper",U="cauldron",F="blastfurnace",S="bricks"), "Ref"),
-           shaped("Dowsing Rod", ["S S"," S "," G "], dict(S="stick",G="gold"), "Rod")],
+           shaped("Dowsing Rod", ["S S"," S "," G "], dict(S="stick",G="gold"), "Rod"),
+           shaped("Pipe", ["CIC"], dict(C="copper",I="iron"), "Pipe", 4)],
   steps=["Right-click with the <b>Dowsing Rod</b>. It twitches towards the nearest oil pocket: which way, how far, how deep. Walk until it points straight down.",
          "Right-click the ground with the <b>Drill Rig</b>. It sinks a <b>5×5 shaft</b> centred on that block, one block at a time, all the way to bedrock.",
          "Right-click the derrick (anyone can) and put fuel in the <b>firebox</b> (row 2). Ores land in rows 3–4, stone in rows 5–6.",
          "When it hits a pocket: <b>STRUCK OIL!</b> It pumps the pocket dry into its tank and into any <b>Oil Tank</b> within 9 blocks, then keeps drilling.",
-         "Put a <b>Refinery</b> next to the tank. With fuel in its firebox, it turns 2 crude into 1 diesel and pipes the diesel back into an empty tank."],
+         "Put a <b>Refinery</b> next to the tank. With fuel in its firebox, it turns 2 crude into 1 diesel and pipes the diesel back into an empty tank.",
+         "Too far? Lay <b>Pipes</b> from the ring around the shaft: every tank, refinery and chest on the line is linked. Crude goes to the tanks, ore and stone to the chests."],
   tips=["Fuel ladder, each better than the last: <b>coal</b> 2 blocks (0.5× speed) → <b>lava</b> 40 (0.75×) → <b>crude</b> 60 (1×) → <b>diesel</b> 200 (1.5×). A full shaft is about 16 buckets of diesel.",
+        "Tanks hold <b>crude, diesel, water or lava</b>. Sneak + right-click with an empty hand to set one fluid. An empty firebox burns diesel, crude or lava from the tanks.",
         "<b>Hoppers</b> around the shaft (on the ground or one up) get the holds: ores first, then stone. Lead them into a Cargo Train <b>Pickup Station</b>.",
-        "Broke into oil by hand? Right-click the black crude with an empty bucket. Mine it and it oozes away.",
         "Sell crude (₥25) and diesel (₥45) at the Market. Only the owner can pack a rig up. About one pocket in ten is a gusher."],
   cmds="/fossilfool"),
  dict(name="Riches", colour="#b8860b", tag="Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics.",
