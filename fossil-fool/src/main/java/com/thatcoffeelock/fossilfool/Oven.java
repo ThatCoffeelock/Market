@@ -92,7 +92,7 @@ final class Oven {
 		}
 		SingleRecipeInput in = new SingleRecipeInput(stack.copyWithCount(1));
 		ItemStack out = level.recipeAccess().getRecipeFor(RecipeType.SMELTING, in, level)
-			.map(holder -> holder.value().assemble(in, level.registryAccess()))
+			.map(holder -> holder.value().assemble(in))
 			.orElse(ItemStack.EMPTY);
 		if (!out.isEmpty() && doubles(stack)) {
 			out.setCount(Math.min(out.getMaxStackSize(), out.getCount() * 2));
