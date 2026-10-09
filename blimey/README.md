@@ -121,6 +121,7 @@ The captain's skill counts for flying; whoever drops the bomb gets the bombing X
 
 ## Notes
 
+- **Sellswords**: mercenaries following you climb aboard when you do, each taking a free passenger seat (never the controls), and get off when you do. Rangers shoot from their seats.
 - Bombs in flight aren't saved: one still falling when the server stops is gone.
 - Airships stop at the edge of loaded chunks rather than flying off into nothing.
 - CI (`.github/workflows/blimey.yml`) builds the mod, then boots a real dedicated server and runs a smoke test that flies an airship, runs it dry, bombs a stone floor from the air and with a fuse, buys refits and folds it up.

@@ -57,6 +57,7 @@ Ops can also use `/mobilehome give van` or `/mobilehome give tank`.
 
 ## Notes
 
+- **Sellswords**: mercenaries following you climb aboard when you do, each taking a free passenger seat (never the driver's seat), and get off when you do. Rangers shoot from their seats.
 - Driving happens on the server. On a laggy server the ride feels a bit floaty, the same as vanilla minecarts.
 - The hitbox is a box around the middle of the vehicle. Click near the centre.
 - CI (`.github/workflows/mobile-home.yml`) builds the mod, then boots a real dedicated server. It parks a van and a tank, refuels them, drives the van forward and up a step, spins the tank, and checks that packing up keeps fuel and storage.

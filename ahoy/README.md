@@ -89,6 +89,7 @@ Other mods can find ships, reach their holds and add buttons to the captain's me
 
 ## Notes
 
+- **Sellswords**: mercenaries following you climb aboard when you do, each taking a free passenger seat (never the wheel), and get off when you do. Rangers shoot from their seats.
 - The ship stops when it hits land or blocks, and it only moves on water.
 - When nobody is at the wheel, the ship slowly drifts to a stop and stays put.
 - The ship's click hitbox surrounds the deck, so the game thinks a passenger is always pointing at the ship, and never uses what's in their hand while pointing at one. The server works around that: it finds what the passenger is really pointing at and does what vanilla would have done. Left-clicking (attacking, mining) from a seat still isn't passed through.
