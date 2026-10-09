@@ -141,6 +141,30 @@ final class AirshipMenu extends ChestMenu {
 			t("Engines " + Engineer.roman(data.speedLevel) + " · Economy " + Engineer.roman(data.efficiencyLevel) + " · " + holds + " holds", ChatFormatting.GRAY),
 			t("Refit for speed, fuel economy and cargo. Not cheap.", ChatFormatting.DARK_GRAY)), () -> BlimeyMod.nextTick(() -> EngineerMenu.open(viewer, ship)));
 
+		Rope rope = ship.rope;
+		if (ship.mayCommand(viewer)) {
+			button(19, icon(Engineer.item("minecraft:lead"), t(rope.down ? "Reel in the rope" : "Lower the rope", ChatFormatting.GOLD, ChatFormatting.BOLD),
+				t(rope.down ? "It's down: " + Math.round(rope.length) + " m" + (rope.touches ? ", touching the ground." : ", dangling in the air.")
+					: "Hangs from the hatch, up to " + Rope.MAX + " blocks, and follows the airship.", ChatFormatting.GRAY),
+				t("Passengers climb down it; people on the ground grab the end to come up.", ChatFormatting.DARK_GRAY)), () -> {
+				String why = rope.toggle();
+				if (why != null) {
+					nope(why);
+				}
+				render();
+			});
+		}
+		if (rope.down && ship.seatOf(viewer) >= 0) {
+			button(20, icon(Engineer.item("minecraft:ladder"), t("Climb down the rope", ChatFormatting.GREEN, ChatFormatting.BOLD),
+				t("Boots on the ground while the airship stays up.", ChatFormatting.GRAY),
+				t("Shift lets go (you get a parachute).", ChatFormatting.DARK_GRAY)), () -> BlimeyMod.nextTick(() -> {
+				viewer.closeContainer();
+				String why = rope.climbDown(viewer);
+				if (why != null) {
+					nope(why);
+				}
+			}));
+		}
 		if (owner) {
 			button(21, icon(data.locked ? Items.IRON_BARS : Items.TRIPWIRE_HOOK,
 				t(data.locked ? "Locked" : "Unlocked", data.locked ? ChatFormatting.RED : ChatFormatting.GREEN, ChatFormatting.BOLD),

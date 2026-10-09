@@ -4,6 +4,7 @@ A Fabric mod for Minecraft **26.3** that adds a riveted iron airship that runs o
 
 - **A metal airship:** an iron cigar of an envelope with copper ribs and tail fins, a glazed gondola slung underneath, two diesel engines on outriggers, and its name painted down both flanks.
 - **Captain, bombardier + 4 passengers.** The owner takes the controls; friends take the bomb hatch and the benches.
+- **A rope.** Lower it from the hatch and passengers climb down to put boots on the ground while you keep flying; people below grab the end and get hauled up.
 - **Flies anywhere.** Climb to just under the build limit, cruise, hover, land on any flat-ish ground. Bail out mid-air and you get a parachute (it's a bedsheet).
 - **Runs on diesel**, from a [Fossil Fool](../fossil-fool/README.md) Refinery. A bucket keeps it cruising for about five minutes. Run dry and it sinks gently to the ground.
 - **Expensive.** A netherite ingot and two blocks of diamond to build, a diesel habit to fly, and refits that cost blaze rods, ghast tears and more netherite.
@@ -37,6 +38,7 @@ Rename the Flat-Pack Airship in an anvil to name your airship. Ops can use `/bli
 | Fuel up | Sneak + right-click it → **Fuel tank**, and put Buckets of Diesel in. The engines take one at a time and hand back the empty bucket |
 | Board | Right-click it. The owner gets the controls |
 | Fly | **W/S** throttle, **A/D** turn (works on the spot too), **Space** climb, **Ctrl** (sprint) descend. Let go of Space/Ctrl and it holds its height |
+| Rope | Menu → **Lower the rope** (captain, or `/blimey rope`). It hangs from the hatch down to the ground, up to 48 blocks, and follows the airship. Passengers: menu → **Climb down the rope** (or `/blimey climb`). On the ground: right-click the rope's end to be hauled up into a free seat. **Shift** lets go (parachute). Nobody on the rope takes fall damage; you can't reel it in with someone on it, or lower it while parked |
 | Get off | **Shift**. On the ground you step out; in the air you bail out with 30 seconds of slow falling |
 | Menu | Right-click with an **empty hand** while aboard (or `/blimey menu`), or sneak + right-click it from outside: holds, fuel tank, switch seat, Engineer, lock, fold it up |
 | Put it away | Land, then menu → **Fold it up** (owner only). Name, refits, diesel and cargo stay inside the item |
@@ -98,6 +100,8 @@ The captain's skill counts for flying; whoever drops the bomb gets the bombing X
 | `/blimey` | everyone | Help |
 | `/blimey menu` | aboard | The airship's menu |
 | `/blimey tank` | aboard | The fuel tank |
+| `/blimey rope` | captain | Lower or reel in the rope |
+| `/blimey climb` | aboard | Climb down the rope |
 | `/blimey give` | ops | A Flat-Pack Airship and four of each bomb |
 | `/blimey reload` | ops | Re-read `config/blimey.json` |
 

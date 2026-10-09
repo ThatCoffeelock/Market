@@ -41,6 +41,31 @@ final class BlimeyCommands {
 				AirshipMenu.openTank(player, ship);
 				return 1;
 			}))
+			.then(literal("rope").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				Airship ship = Airships.shipOf(player);
+				if (ship == null || !ship.mayCommand(player)) {
+					ctx.getSource().sendFailure(Component.literal(ship == null ? "You're not aboard an airship." : "Only the captain can work the rope."));
+					return 0;
+				}
+				String why = ship.rope.toggle();
+				if (why != null) {
+					ctx.getSource().sendFailure(Component.literal(why));
+					return 0;
+				}
+				ctx.getSource().sendSuccess(() -> Component.literal(ship.rope.down ? "The rope is down." : "The rope is reeled in.").withStyle(ChatFormatting.GOLD), false);
+				return 1;
+			}))
+			.then(literal("climb").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				Airship ship = Airships.shipOf(player);
+				String why = ship == null ? "You're not aboard an airship." : ship.rope.climbDown(player);
+				if (why != null) {
+					ctx.getSource().sendFailure(Component.literal(why));
+					return 0;
+				}
+				return 1;
+			}))
 			.then(literal("give").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				BlimeyItems.give(player, BlimeyItems.airship());
@@ -70,6 +95,7 @@ final class BlimeyCommands {
 			"§bPiloteering§7 (Skills mod): fly as captain and drop bombs to level it. Less diesel, perks for speed, free bombs and bigger blasts.",
 			"§cBombs§7: Small (TNT + 4 iron + string), Big (4 TNT + 4 iron + block of iron), Huge (4 TNT + 4 blocks of iron + end crystal).",
 			"§7Aboard, hold a bomb and right-click to drop it. It keeps the airship's speed: lead your target. On foot, right-click a block to light a fuse.",
+			"§6Rope§7: menu, §fLower the rope§7 (or §f/blimey rope§7): up to 48 blocks from the hatch, it follows the airship. Passengers §fClimb down the rope§7 (or §f/blimey climb§7); people on the ground right-click its end to be hauled up. Shift lets go.",
 			"§7Unlike cannonballs, bombs wreck buildings. Crew don't take blast, fall or fire damage aboard."
 		};
 		for (String line : lines) {

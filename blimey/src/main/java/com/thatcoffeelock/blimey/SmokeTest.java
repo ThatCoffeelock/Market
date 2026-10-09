@@ -122,8 +122,36 @@ final class SmokeTest {
 	private static void hovered(ServerLevel level, double y) {
 		check(Math.abs(ship.y - y) < 1.0 && !ship.isGrounded(), "with nobody touching anything it holds its height (" + fmt(y) + " → " + fmt(ship.y) + ")");
 		check(ship.speed < 0.2, "and slows down (" + fmt(ship.speed) + ")");
-		ship.testControls = new Airship.Controls(false, true, false, true, false, false);
-		later(level, 30, () -> turned(level));
+		rope(level);
+	}
+
+	/** The rope reaches the floor, a passenger slides down to it, someone on the floor gets hauled up. */
+	private static void rope(ServerLevel level) {
+		Rope rope = ship.rope;
+		String why = rope.toggle();
+		check(why == null && rope.down, "the rope goes down (" + why + ")");
+		later(level, 3, () -> {
+			check(rope.entities() == 2, "a rope and a grab handle at its end (" + rope.entities() + ")");
+			check(rope.touches && Math.abs(rope.bottom - KEEL) < 0.01, "it reaches the arena floor (" + fmt(rope.bottom) + ")");
+			check(Math.abs(rope.length - (rope.top() - KEEL)) < 0.01 && rope.length < Rope.MAX, "and is as long as the drop (" + fmt(rope.length) + " m)");
+			FakePlayer player = FakePlayer.get(level);
+			rope.start(player, Rope.Way.DOWN, rope.top() - 1.9);
+			check(rope.isClimbing(player) && Airships.onRope(player), "a passenger is on the rope");
+			check(!Airships.allowDamage(player, level.damageSources().fall()), "and can't take fall damage");
+			check(rope.toggle() != null && rope.down, "you can't reel it in with someone on it");
+			later(level, 60, () -> {
+				check(rope.climbers.isEmpty() && rope.landed == 1, "boots on the ground");
+				rope.start(player, Rope.Way.UP, rope.bottom);
+				later(level, 10, () -> {
+					check(!rope.climbers.isEmpty() && rope.climbers.get(0).at > rope.bottom + 3, "someone on the floor is hauled up ("
+						+ fmt(rope.climbers.isEmpty() ? 0 : rope.climbers.get(0).at - rope.bottom) + " blocks)");
+					rope.release();
+					check(!rope.down && rope.climbers.isEmpty() && rope.entities() == 0, "reeled in, nobody left hanging");
+					ship.testControls = new Airship.Controls(false, true, false, true, false, false);
+					later(level, 30, () -> turned(level));
+				});
+			});
+		});
 	}
 
 	private static void turned(ServerLevel level) {
@@ -186,6 +214,7 @@ final class SmokeTest {
 		ItemStack bomb = BlimeyItems.bomb(BlimeyItems.BombKind.HUGE, 1);
 		String why = ship.dropBomb(player, bomb);
 		check(why != null && bomb.getCount() == 1 && Bomb.live().isEmpty(), "no bombing from a parked airship (" + why + ")");
+		check(ship.rope.toggle() != null && !ship.rope.down, "and no rope while parked");
 		engineer(level);
 	}
 

@@ -161,6 +161,9 @@ public final class Airships {
 	static void onDisconnect(ServerPlayer player) {
 		LAST_CLICK.remove(player.getUUID());
 		LAST_USE.remove(player.getUUID());
+		for (Airship ship : all()) {
+			ship.rope.forget(player);
+		}
 		if (shipOf(player) != null) {
 			player.stopRiding();
 		}
@@ -168,10 +171,23 @@ public final class Airships {
 
 	/** Crew don't take fall or blast damage aboard: their own bombs go off underneath them, after all. */
 	static boolean allowDamage(LivingEntity entity, DamageSource source) {
+		if (entity instanceof ServerPlayer climber && source.is(DamageTypeTags.IS_FALL) && onRope(climber)) {
+			return false;
+		}
 		if (!(entity instanceof ServerPlayer player) || shipOf(player) == null || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
 			return true;
 		}
 		return !source.is(DamageTypeTags.IS_EXPLOSION) && !source.is(DamageTypeTags.IS_FALL) && !source.is(DamageTypeTags.IS_FIRE);
+	}
+
+	/** Is this player climbing some airship's rope? */
+	static boolean onRope(Entity entity) {
+		for (Airship ship : all()) {
+			if (!ship.isRemoved() && ship.rope.isClimbing(entity)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// ---------------------------------------------------------------- unfolding
@@ -311,6 +327,13 @@ public final class Airships {
 			return InteractionResult.PASS;
 		}
 		if (hand != InteractionHand.MAIN_HAND) {
+			return InteractionResult.SUCCESS;
+		}
+		if (ship.rope.isGrab(entity)) {
+			String why = ship.rope.climbUp(player);
+			if (why != null) {
+				player.sendSystemMessage(Component.literal(why).withStyle(ChatFormatting.RED));
+			}
 			return InteractionResult.SUCCESS;
 		}
 		if (shipOf(player) == ship) {

@@ -53,6 +53,8 @@ final class Airship {
 	private final Entity[] seats = new Entity[AirshipModel.SPOTS.size()];
 	private final UUID[] riders = new UUID[AirshipModel.SPOTS.size()];
 	private final Entity[] hitboxes = new Entity[AirshipModel.HITBOX_Z.length];
+	/** The rope down from the hatch. */
+	final Rope rope = new Rope(this);
 
 	double speed;
 	double climb;
@@ -202,6 +204,7 @@ final class Airship {
 			fly(controls);
 		}
 		placeSeatsAndHitboxes();
+		rope.tick();
 		if (hasRiders()) {
 			for (int i = 0; i < seats.length; i++) {
 				ServerPlayer p = rider(i);
@@ -486,6 +489,10 @@ final class Airship {
 		if (grounded) {
 			line.append(Component.literal("  landed").withStyle(ChatFormatting.GRAY));
 		}
+		if (rope.down) {
+			line.append(Component.literal("  🪢 " + (int) Math.round(rope.length) + " m" + (rope.climbers.isEmpty() ? "" : " (" + rope.climbers.size() + " on it)"))
+				.withStyle(ChatFormatting.GOLD));
+		}
 		line.append(Component.literal("   Space up · Ctrl down · Shift bail out").withStyle(ChatFormatting.GRAY));
 		captain.connection.send(new ClientboundSetActionBarTextPacket(line));
 	}
@@ -655,7 +662,7 @@ final class Airship {
 				riders[i] = null;
 				Airships.forgetRider(gone, this);
 				ServerPlayer player = level.getServer().getPlayerList().getPlayer(gone);
-				if (player != null && !player.isDeadOrDying() && player.getVehicle() == null && !grounded) {
+				if (player != null && !player.isDeadOrDying() && player.getVehicle() == null && !grounded && !rope.isClimbing(player)) {
 					bailOut(player);
 				}
 			}
@@ -680,6 +687,7 @@ final class Airship {
 
 	/** Airship → Flat-Pack Airship item, with everything inside. Only on the ground; everyone gets off first. */
 	ItemStack packUp() {
+		rope.release();
 		for (int i = 0; i < seats.length; i++) {
 			ServerPlayer p = rider(i);
 			if (p != null) {
@@ -700,6 +708,7 @@ final class Airship {
 			return;
 		}
 		removed = true;
+		rope.release();
 		for (int i = 0; i < seats.length; i++) {
 			ServerPlayer p = rider(i);
 			if (p != null) {
@@ -721,6 +730,7 @@ final class Airship {
 			return;
 		}
 		removed = true;
+		rope.release();
 		root.setPos(root.getX(), y, root.getZ());
 		for (int i = 0; i < seats.length; i++) {
 			ServerPlayer p = rider(i);
