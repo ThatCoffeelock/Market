@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.15.0"
+VERSION = "1.16.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -50,7 +50,8 @@ MODS = [
          "Right-click the Town Hall's <b>lectern</b> to shop for blueprints: Residence (beds), Farm, Fishery, Lumber Camp, Mine, Workshop, Storehouse, Harbor Office, Train Station.",
          "Right-click inside your colony with a blueprint to see the outline, then click the same spot again to build it.",
          "Every morning you pay wages (₥3 a worker) and the workers deliver to your Storehouses. Can't pay? Everyone strikes.",
-         "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems."],
+         "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems.",
+         "Build a <b>town street</b>: a Trading Post with master traders (emeralds), a Bank with a shared vault, a Museum for your relics, a Chapel, a Library with a maxed enchanting table, a Ranch, an Apiary and a Fuel Depot. The shop, bank and museum earn marks every day."],
   tips=["Every worker needs a bed, so build Residences first.",
         "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically. A staffed <b>Harbor Office</b> adds 5% per tier.",
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",

@@ -35,8 +35,21 @@ Put **Fabric API**, **`market-<version>.jar`** and **`colonycraft-<version>.jar`
 | Harbor Office | ₥2,500 | 1/2/3 | A customs house with a pier out the back. The lantern at the end of the pier is a Warehouse **Loading Dock**. While it's staffed, auto-sales pay +5% / +10% / +15% |
 | Train Station | ₥1,500 | 1 | Straight tracks through a platform: **1 / 2 / 3 tracks** at tier 1 / 2 / 3, each with its own **Pickup Station** and **Drop-off Station** for [Cargo Trains](../cargo-train/README.md) (see below) |
 | Barracks | ₥2,000 | 1/2/3 iron golems | Golems patrol the colony's land and fight monsters. ₥15 a day each, no beds needed |
+| Ranch | ₥1,000 | 2/3/4 | Beef, pork, mutton, chicken, leather, eggs, feathers and wool. Cows, sheep, pigs and chickens in the paddock. The workshop cooks the meat |
+| Apiary | ₥900 | 1/2/3 | Honeycomb and bottles of honey from the hives in its flower garden |
 
-The Town Hall counter has the farms, fishery, tobacco farm, mine, workshop and storehouse in the blueprint row, the harbor, station, barracks, shackles and charter along the top, and the fortifications and law-and-order buildings in the row below.
+**The town street** (since 1.4.0): shops and public buildings, in their own row at the Town Hall. See [The town street](#the-town-street).
+
+| Building | Price | Crew (tier 1/2/3) | Does |
+|---|---|---|---|
+| Trading Post | ₥2,000 | 1/2/3 master traders | A master toolsmith, armorer and librarian (one per tier) sell for emeralds. **Earns ₥25 / ₥55 / ₥100 a day** |
+| Bank | ₥3,000 | 1/1/2 clerks | A walk-in vault **anyone** can pay into or take from. With Riches, the money piles up in gold. **Earns ₥25 / ₥50 / ₥90 a day** |
+| Museum | ₥2,500 | 1 curator | 4 / 8 / 12 Riches display cases and pedestals for your relics. **Earns ₥20 / ₥40 / ₥75 a day, +₥10 per relic on show**. Needs [Riches](../riches/README.md) |
+| Chapel | ₥1,500 | 1 priest | Heals anyone inside. Replacing a worker who died costs 25% / 50% / 75% less |
+| Library | ₥1,800 | – | A level-30 enchanting table: fifteen bookshelves (and then some) around it. No staff, no upgrades |
+| Fuel Depot | ₥2,000 | 1/1/2 | 2 / 4 / 6 [Fossil Fool](../fossil-fool/README.md) tanks (crude and diesel), a refinery and a pipe manifold. Needs Fossil Fool |
+
+The Town Hall counter has the farms, fishery, tobacco farm, mine, workshop and storehouse in the blueprint row, the harbor, station, barracks, shackles and charter along the top, the fortifications and law-and-order buildings in the row below, and the town street below that. Your own buildings are listed under them, nine to a page. The ranch and apiary are in the town street row too.
 
 Since 1.3.0 the buildings are bigger and more detailed: two-storey brick houses with shuttered windows and overhanging roofs, 13 × 13 farms and lumber camps with timber barns and sawmills, a mine in a hill with a timbered portal, a merchant's warehouse with a hoist, and so on. Buildings from older versions keep their old size and look until you **Repair & renovate** them; if a neighbour stands where the bigger design needs room, renovating tells you which one is in the way.
 
@@ -44,7 +57,7 @@ Every building is in the same Dutch neo-renaissance style: red brick dressed in 
 
 Upgrades cost 1.5× the price for tier 2 and 3× for tier 3. Each tier adds workers, and each worker produces more. Demolishing a building refunds half of everything you paid for it. The Town Hall goes last, and demolishing it disbands the colony.
 
-Only the owner can break blocks of colony buildings. Colony villagers don't trade; they're busy.
+Only the owner can break blocks of colony buildings. Colony villagers don't trade, they're busy. The trading post's masters are the exception: trading is their job.
 
 ## Defences
 
@@ -96,6 +109,14 @@ The station's tracks run from one end of the building to the other; carry your l
 
 Tobacco farms grow real Havana tobacco: leaves, the odd seed, and from tier 2 cured (and at tier 3 aged) tobacco out of the curing barn. Without Havana there are no tobacco farms for sale.
 
+### Riches: the bank's vault and the museum
+
+With [Riches](../riches/README.md), the bank's vault money piles up in gold around the Vault Ledger in the middle of the vault, and the vault door is a Riches Vault Door that swings shut by itself (and opens for anyone: it's a public vault). The museum's cases and pedestals are Riches display cases: relics on show there count towards the Royal Society's collections, and each one adds ₥10 a day to the museum's takings. Without Riches the bank still banks (no gold pile), and there's no museum for sale.
+
+### Fossil Fool: the fuel depot
+
+With [Fossil Fool](../fossil-fool/README.md), the fuel depot's cauldrons are Fossil Fool **Tanks** (crude on the left, diesel on the right), its blast furnace is a **Refinery** and the copper rods behind the tanks are a **Pipe** manifold that comes out through both side walls. Lay your pipeline from a Drill Rig onto either end: the crude goes into the crude tanks, the refinery turns it into diesel, and the diesel fills the diesel tanks (and feeds an Industrial Oven on the same pipeline). Without Fossil Fool there's no fuel depot for sale.
+
 ### Burlap Sack: bring your own workers
 
 Bag a villager, carry them to your colony and open the building page of a building with an empty job. **Hire *name* from your Burlap Sack** puts them to work for free, and you get the empty sack back. Iron golems don't come in sacks, so it's every building but the barracks.
@@ -132,6 +153,26 @@ Details:
 ## Repair & renovate
 
 Every building's page at the Town Hall has a **Repair & renovate** button (10% of the building's price). It shows how many blocks are missing or out of place, and rebuilds the building exactly as designed for its tier. Use it after a creeper visit, or on buildings from before the redesign to give them the new look. It clears everything in the footprint that isn't part of the design, so it won't start while a chest or other container in there still has something in it.
+
+## The town street
+
+Eight buildings for the main street, all in the colony style. The bank, the museum and the chapel are a little wider than the rest (15, 15 and 13 blocks).
+
+- **Trading Post**: a market hall open to the street through three arches, a counter and a stall in every bay. Each tier puts a **master trader** in the next stall: a **Master Toolsmith** (iron and diamond tools), a **Master Armorer** (diamond armour and a shield) and a **Master Librarian** (Mending, Unbreaking III, Efficiency V and Protection IV books, and a name tag). They sell for **emeralds**, 4 of each trade, and restock every morning. They stay behind their counters. Right-click one to trade the normal way.
+- **Bank**: a portico up a flight of steps, a banking hall with teller counters and a vault at the back. Right-click the **teller's lectern** (left of the hall) to **pay in or take out** ₥10, ₥100 or ₥1,000. It's a **shared vault: anyone can pay in, anyone can take out**, so it's for a town that trusts each other (or a test of character). The owner gets a message when money moves. A bank with money in the vault can't be demolished.
+- **Museum**: a long gallery with glass display cases on stone plinths along the walls and pedestals down the middle, under a skylight. Right-click a case with something to put it on show (owner and the players they `/riches trust`). Empty the cases before demolishing it.
+- **Chapel**: a nave with stained glass, pews and an altar, and a bell tower with a slate spire over the porch. While the priest is in, anyone inside gets Regeneration (stronger at tier 3), and replacing workers who died costs less.
+- **Library**: a reading room with the enchanting table in the middle of thirty bookshelves, plus an anvil and a grindstone. No staff, no upgrades; it's just a good table.
+- **Ranch** and **Apiary**: see the table above.
+- **Fuel Depot**: see Fossil Fool above. Drain its tanks before demolishing it.
+
+The trading post, the bank and the museum **earn marks every morning** while they're staffed, more than their staff cost: the building page at the Town Hall shows today's earnings next to the wages.
+
+| Building | Tier 1 | Tier 2 | Tier 3 | Staff |
+|---|---|---|---|---|
+| Trading Post | ₥25 | ₥55 | ₥100 | ₥4 per master |
+| Bank | ₥25 | ₥50 | ₥90 | ₥4 per clerk |
+| Museum | ₥20 + ₥10/relic | ₥40 + ₥10/relic | ₥75 + ₥10/relic | ₥3 |
 
 ## Commands
 

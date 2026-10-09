@@ -5,7 +5,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | Mod | What it adds |
 |---|---|
 | [Market](../README.md) | Sell anything for Marks (₥), buy items back, flex with pallets of cash |
-| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks: farms, fisheries, tobacco farms, a harbor with a Loading Dock, a train station, medieval walls and towers. Storehouses are real warehouses |
+| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks: farms, ranches, apiaries, fisheries, tobacco farms, a harbor with a Loading Dock, a train station, medieval walls and towers, and a town street with a trading post (master traders), a bank with a shared walk-in vault, a museum for your relics, a chapel, a library and a fuel depot. Storehouses are real warehouses |
 | [Ahoy](../ahoy/README.md) | A sailing ship in a bottle: captain + 8 passengers, cargo holds, wind |
 | [Burlap Sack](../burlap-sack/README.md) | Bag villagers and wandering traders, let them out somewhere else |
 | [Cannon](../cannon/README.md) | An aimable cannon and iron + gunpowder cannonballs |

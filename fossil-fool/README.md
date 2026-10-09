@@ -179,6 +179,7 @@ A rig stops (and says why) when a hold is full, it runs out of fuel, its tank is
 - **Skills**: the **Wildcatting** skill. XP from drilling, striking oil, pumping, refining and dowsing, even while you're offline. Passive: up to +25% fuel efficiency. Perks: **Roughneck** (faster rigs), **Refiner** (bonus diesel), **Dowser** (longer rod range).
 - **Cargo Train**: put hoppers around the shaft and lead them into a Pickup Station chest, or run a pipeline to one; the train takes the ore and stone away.
 - **Warehouse**: a rig with a Warehouse Core within 16 blocks, or within 16 blocks of the far end of its pipeline, unloads its holds onto the shelves every few seconds. An ores-only warehouse gets the ores first.
+- **Colonycraft**: the **Fuel Depot** is a colony building with Fossil Fool tanks (crude and diesel), a refinery and a pipe manifold to plug your pipeline into. Other mods can set up tanks, refineries and pipes through `fossilfool:api` in Fabric's ObjectShare.
 
 ## Commands
 

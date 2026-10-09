@@ -41,6 +41,10 @@ Put **Fabric API**, **`market-<version>.jar`** (1.1.0 or newer) and **`riches-<v
 
 Mobs only count when a player kills them. Chest relics turn up the first time anyone opens that structure chest. Relics can't be sold to the Market (priceless, darling), but you can trade them. Lose one in lava and it's gone for good. Admins can bring a lost relic back with `/riches admin unfind <id>`.
 
+## Works with Colonycraft
+
+A Colonycraft **Bank** has a Vault Ledger in its vault: the pile shows what's in the bank's shared vault (not anyone's own balance), and its Vault Door opens for anyone. A Colonycraft **Museum** is full of Display Cases and Pedestals that belong to the colony's owner, so relics on show there count towards your collections. Other mods can set up vaults, doors and cases (and shared "pool" vaults) through `riches:api` in Fabric's ObjectShare.
+
 ## Commands
 
 `/riches` (help), `/riches relics`, `/riches trust <player>`, `/riches untrust <player>`, `/riches trusted`. Ops: `/riches give ledger|door|case|pedestal|relic <id>`, `/riches admin reload`, `/riches admin unfind <id>`.

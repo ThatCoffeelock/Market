@@ -210,6 +210,14 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
             <tr><th>Workshop</th><td class="num money">₥1,500</td><td>2 / 3 / 4</td><td>Ore to ingots, logs to planks</td></tr>
             <tr><th>Mine</th><td class="num money">₥2,500</td><td>3 / 4 / 5</td><td>Cobble, ores, the odd diamond</td></tr>
             <tr><th>Barracks</th><td class="num money">₥2,000</td><td>1 / 2 / 3 golems</td><td>Patrols the claim</td></tr>
+            <tr><th>Ranch</th><td class="num money">₥1,000</td><td>2 / 3 / 4</td><td>Meat, leather, eggs, feathers, wool</td></tr>
+            <tr><th>Apiary</th><td class="num money">₥900</td><td>1 / 2 / 3</td><td>Honeycomb, honey bottles</td></tr>
+            <tr><th>Trading Post</th><td class="num money">₥2,000</td><td>1 / 2 / 3 masters</td><td>Toolsmith, armorer, librarian sell for emeralds; earns ₥25 / 55 / 100 a day</td></tr>
+            <tr><th>Bank</th><td class="num money">₥3,000</td><td>1 / 1 / 2</td><td>Shared walk-in vault (gold pile with Riches); earns ₥25 / 50 / 90 a day</td></tr>
+            <tr><th>Museum</th><td class="num money">₥2,500</td><td>1</td><td>4 / 8 / 12 Riches display cases; earns ₥20 / 40 / 75 + ₥10 a relic</td></tr>
+            <tr><th>Chapel</th><td class="num money">₥1,500</td><td>1</td><td>Heals inside; replacements 25 / 50 / 75% cheaper</td></tr>
+            <tr><th>Library</th><td class="num money">₥1,800</td><td class="dash">–</td><td>A level-30 enchanting table</td></tr>
+            <tr><th>Fuel Depot</th><td class="num money">₥2,000</td><td>1 / 1 / 2</td><td>Fossil Fool tanks, refinery and pipe manifold</td></tr>
             <tr><th>Wall</th><td class="num money">₥300</td><td class="dash">–</td><td>9 long curtain wall, snaps end to end</td></tr>
             <tr><th>Wall Stairs</th><td class="num money">₥350</td><td class="dash">–</td><td>A wall with steps up to the walkway</td></tr>
             <tr><th>Wall Tower</th><td class="num money">₥800</td><td class="dash">–</td><td>Corners: walls join on every side</td></tr>
@@ -320,7 +328,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.15.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches</span>
+    <span>LIB Pack 1.16.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -366,6 +374,7 @@ const MODS = [
           "Shackle illagers under 40% health, jail them in a Cellblock, then ransom them or hang them on the Scaffold",
           "Storehouses are warehouses; the Harbor's pier is a Loading Dock; the Train Station feeds Cargo Trains",
           "Bring a villager in a Burlap Sack to fill an empty job for free",
+          "Town street: the Trading Post, Bank and Museum earn marks every day; the Bank's vault is shared by everyone",
           "Needs Market (it's in the pack)"],
     cmds: ["/colonycraft", "/colonycraft charter", ["/colonycraft give", true], ["/colonycraft payday", true]] },
   { name: "Ahoy", id: "ahoy", colour: "#3e8fc7", tag: "A two-masted sailing ship in a bottle. Captain + 8 passengers, two 54-slot holds, wind.",

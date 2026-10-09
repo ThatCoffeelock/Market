@@ -665,9 +665,9 @@ final class SmokeTest {
 		check(library.villagers.isEmpty() && library.type.maxTier() == 1, "the library needs no staff and no upgrades");
 
 		// the ranch's animals, in their paddock
-		int animals = level.getEntities((Entity) null, new AABB(ranch.world(new BlockPos(-6, 0, -6)).getCenter(), ranch.world(new BlockPos(6, 4, 6)).getCenter())
-			.inflate(1), e -> e.hasCustomName() == false && e.getType() != net.minecraft.world.entity.EntityType.VILLAGER
-			&& BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).getPath().matches("cow|sheep|pig|chicken")).size();
+		BlockPos c = ranch.origin;
+		int animals = level.getEntities((Entity) null, new AABB(c.getX() - 7, c.getY(), c.getZ() - 7, c.getX() + 8, c.getY() + 5, c.getZ() + 8),
+			e -> BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).getPath().matches("cow|sheep|pig|chicken")).size();
 		check(animals == 7, "the ranch has its cows, sheep, pigs and chickens (" + animals + ")");
 
 		// the fuel depot: Fossil Fool tanks (crude left, diesel right), a refinery, a pipe manifold out both sides
