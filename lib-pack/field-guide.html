@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.18.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.19.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -237,7 +237,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div class="sheet">
       <header>
         <p class="eyebrow">Skills · level 0 to 100 by doing</p>
-        <h2>Thirteen skills</h2>
+        <h2>The skills</h2>
       </header>
       <div class="scroll">
         <table>
@@ -256,6 +256,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
             <tr><th>Blacksmithing</th><td>Crafting tools, weapons, armor</td><td>25% chance of no wear</td></tr>
             <tr><th>Brewing</th><td>Potions brewed</td><td>25% ingredient saving</td></tr>
             <tr><th>Mercantile</th><td>Villager trades, Market sales</td><td>+10% Market sell prices</td></tr>
+            <tr><th>Leadership</th><td>Hiring, promoting and the kills of your Sellswords</td><td>+25% mercenary health, +4 squad size</td></tr>
           </tbody>
         </table>
       </div>
@@ -329,7 +330,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.18.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey</span>
+    <span>LIB Pack 1.19.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -348,6 +349,7 @@ const I = {
   crafting_table: ["Wbn", "#9c6b3a"], book: ["Book", "#7a3b2a"], cartography_table: ["Map", "#7b5a3a"], lantern: ["Lntn", "#e0a33a"], lead: ["Lead", "#a58a5e"],
   phantom_membrane: ["Phm", "#b9c7a8"], netherite_ingot: ["Nthr", "#4a3f3f"], blast_furnace: ["BlF", "#4e4e55"], diamond_block: ["DiB", "#5fd8cf"],
   piston: ["Pstn", "#9a7d4f"], tnt: ["TNT", "#c8322a"], end_crystal: ["Crys", "#c49ad8"],
+  crossbow: ["Xbow", "#6b4a2b"], iron_sword: ["Swd", "#cfcfcf"], target: ["Tgt", "#d23a3a"],
 };
 const names = {
   gold_ingot: "Gold Ingot", obsidian: "Obsidian", emerald: "Emerald", wool: "Any Wool", glass_bottle: "Glass Bottle", chest: "Chest",
@@ -359,9 +361,10 @@ const names = {
   crafting_table: "Crafting Table", book: "Book", cartography_table: "Cartography Table", lantern: "Lantern", lead: "Lead",
   phantom_membrane: "Phantom Membrane", netherite_ingot: "Netherite Ingot", blast_furnace: "Blast Furnace", diamond_block: "Block of Diamond",
   piston: "Piston", tnt: "TNT", end_crystal: "End Crystal",
+  crossbow: "Crossbow", iron_sword: "Iron Sword", target: "Target",
 };
 // Lighter swatches need dark text.
-const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget", "phantom_membrane", "diamond_block"]);
+const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget", "phantom_membrane", "diamond_block", "iron_sword"]);
 
 const MODS = [
   { name: "Market", id: "market", colour: "#e8b923", tag: "Sell anything for Marks, buy it back at a markup, flex with pallets of cash.",
@@ -509,6 +512,16 @@ const MODS = [
           "Menu → <b>Lower the rope</b> (48 blocks): passengers climb down while you fly, people below grab the end to come up",
           "Menu → <b>Engineer</b>: engines (+80% speed), fuel economy (−50% diesel), two to five 54-slot holds. With Skills: <b>Piloteering</b>"],
     cmds: ["/blimey", "/blimey menu", "/blimey tank", ["/blimey give", true], ["/blimey reload", true]] },
+  { name: "Sellswords", id: "sellswords", colour: "#e07a1f", tag: "Hire Dutch mercenaries with crossbows and swords. They follow you, hold a spot, hunt with you and die for good.",
+    recipes: [
+      { name: "Mercenary Station", pattern: [" C ", "STS", "GGG"], key: { C: "crossbow", S: "iron_sword", T: "target", G: "gold_ingot" }, out: ["Merc", "#e07a1f"] }],
+    how: ["Right-click the station: <b>hire a Recruit</b> for ₥250 (cheaper at a Colonycraft <b>Guildhouse</b>: −20/35/50%). Squad of 3, +1 per 25 Leadership",
+          "Right-click a mercenary with an <b>empty hand</b>: <b>Follow me</b>, <b>Hold this spot</b>, <b>Back to the station</b>, <b>Hunting</b>, <b>Dismiss</b>",
+          "Promote for <b>gold ingots</b> (5, 10, 20, 40). The first promotion picks the path: <b>Ranged</b> → Musketeer, <b>Melee</b> → Foestopper Bulwark",
+          "<b>Goat horn</b>: rally everyone in 48 blocks, or make your followers hold. <b>Sneak</b> + horn: Charge! at what you look at",
+          "They fight what attacks you and what you hit, never villagers, players or pets. Idle ones patrol 50 blocks around their station",
+          "They board your ships, airships and campers, follow you through portals, heal slowly. Logged out? They guard where you left them"],
+    cmds: ["/sellswords", "/sellswords list", "/sellswords rally", "/sellswords charge", ["/sellswords give station", true], ["/sellswords hire", true]] },
 ];
 
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };

@@ -66,6 +66,18 @@ final class SmokeTest {
 		check(!Stations.allowBreak(player, level, pos) && level.getBlockState(pos).isAir() && !Bounties.isStation(level, pos), "breaking it removes it");
 		check(!level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2), e -> Trophies.isStation(e.getItem())).isEmpty(), "and drops a Bounty Station, not a plain fletching table");
 
+		// other mods (a Colonycraft guildhouse) can make a Bounty Station through the API
+		@SuppressWarnings("unchecked")
+		var api = (java.util.function.BiFunction<String, java.util.Map<String, Object>, Object>) net.fabricmc.loader.api.FabricLoader.getInstance()
+			.getObjectShare().get(FuckIllagersApi.KEY);
+		BlockPos guild = pos.east(3);
+		level.setBlockAndUpdate(guild, Blocks.FLETCHING_TABLE.defaultBlockState());
+		check(api != null && Boolean.TRUE.equals(api.apply("station", java.util.Map.of("level", level, "pos", guild))) && Bounties.isStation(level, guild)
+			&& Boolean.TRUE.equals(api.apply("is_station", java.util.Map.of("level", level, "pos", guild))), "the API makes a Bounty Station (for a guildhouse)");
+		api.apply("remove", java.util.Map.of("level", level, "pos", guild));
+		check(!Bounties.isStation(level, guild), "and forgets it");
+		level.removeBlock(guild, false);
+
 		// fingers: only from player kills
 		BlockPos ground = pos.above(2);
 		LivingEntity killed = summon(level, "vindicator", ground);

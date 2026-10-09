@@ -117,6 +117,10 @@ With [Riches](../riches/README.md), the bank's vault money piles up in gold arou
 
 With [Fossil Fool](../fossil-fool/README.md), the fuel depot's cauldrons are Fossil Fool **Tanks** (crude on the left, diesel on the right), its blast furnace is a **Refinery** and the copper rods behind the tanks are a **Pipe** manifold that comes out through both side walls. Lay your pipeline from a Drill Rig onto either end: the crude goes into the crude tanks, the refinery turns it into diesel, and the diesel fills the diesel tanks (and feeds an Industrial Oven on the same pipeline). Without Fossil Fool there's no fuel depot for sale.
 
+### Sellswords and Fuck Illagers: the guildhouse
+
+With [Sellswords](../sellswords/README.md) installed, the Town Hall sells a **Guildhouse** (₥2,000, top row next to the barracks): a half-timbered hall with a long table, a hearth and orange banners. Its **target block is a Mercenary Station** where hiring costs **20% less**, **35%** at tier 2 and **50%** at tier 3, and mercenaries hired there idle around the guildhouse, protecting it and the colony's villagers within 50 blocks. With [Fuck Illagers](../fuck-illagers/README.md) too, its **fletching table is a Bounty Station**: hire your squad on one side of the hall and pick their next target on the other. A guildmaster runs the place (₥4 a day). Without Sellswords there's no guildhouse for sale.
+
 ### Burlap Sack: bring your own workers
 
 Bag a villager, carry them to your colony and open the building page of a building with an empty job. **Hire *name* from your Burlap Sack** puts them to work for free, and you get the empty sack back. Iron golems don't come in sacks, so it's every building but the barracks.

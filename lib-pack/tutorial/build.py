@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.18.0"
+VERSION = "1.19.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -28,6 +28,7 @@ I = {
  "membrane": ("Phm", "#b9c7a8", "Phantom Membrane", True), "netherite": ("Nthr", "#4a3f3f", "Netherite Ingot", False),
  "tnt": ("TNT", "#c8322a", "TNT", False), "endcrystal": ("Crys", "#c49ad8", "End Crystal", True),
  "smoker": ("Smk", "#5b4a3a", "Smoker", False),
+ "crossbow": ("Xbow", "#6b4a2b", "Crossbow", False), "sword": ("Swd", "#cfcfcf", "Iron Sword", True), "target": ("Tgt", "#d23a3a", "Target", False),
 }
 
 def shaped(name, rows, key, out, count=None): return dict(name=name, rows=rows, key=key, out=out, count=count)
@@ -169,7 +170,7 @@ MODS = [
   cmds="/warehouse · /warehouse list"),
  dict(name="Skills", colour="#6a4fb3", tag="Elder Scrolls style skills: you get better at things by doing them.",
   recipes=[], getit="No recipe: just play. Type <code>/skills</code> to open the menu.",
-  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 20 skills, levels 0–100.",
+  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 21 skills, levels 0–100.",
          "Every level gives a small passive bonus. Level 100 is about twice as good as a beginner.",
          "Every 10 levels you earn a <b>perk point</b> for that skill. Open <code>/skills</code>, click the skill, click a perk.",
          "Each skill has 3 perks × 5 ranks but only 10 points, so choose."],
@@ -177,7 +178,7 @@ MODS = [
         "Blocks you placed yourself give no XP. No cheesing.",
         "Changed your mind? <b>Forget perks</b> on a skill page (costs 5 XP levels).",
         "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices.",
-        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana), <b>Piloteering</b> (Blimey) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
+        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana), <b>Piloteering</b> (Blimey), <b>Leadership</b> (Sellswords) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
   cmds="/skills · /skills top"),
  dict(name="Hamlets & Horrors", colour="#4f6b3a", tag="Random cottages, castles and dungeons. Some lived in by villagers, some overrun by monsters.",
   recipes=[], getit="Nothing to craft: they generate in <b>new, unexplored terrain</b>.",
@@ -263,6 +264,18 @@ MODS = [
         "Bombs: small 4 (TNT), big 7, huge 12. On foot, right-click a block to set one with a 4-second fuse. Unlike cannonballs, they break blocks.",
         "Crew aboard take no blast, fall or fire damage. Menu → <b>Lower the rope</b>: passengers climb down to put boots on the ground while you fly; people below right-click its end to be hauled up. Land, then menu → <b>Fold it up</b> to carry it."],
   cmds="/blimey · /blimey menu · /blimey tank"),
+ dict(name="Sellswords", colour="#e07a1f", tag="Hire Dutch mercenaries with crossbows and swords. They follow you, hold a spot, hunt with you, guard your walls and villagers, and die for good.",
+  recipes=[shaped("Mercenary Station", [" C ","STS","GGG"], dict(C="crossbow",S="sword",T="target",G="gold"), "Merc")],
+  steps=["Craft a <b>Mercenary Station</b> and place it. Right-click it and <b>hire a Recruit</b> for ₥250. They bring their own crossbow, sword and orange tunic.",
+         "Right-click a mercenary with an <b>empty hand</b> for their menu: <b>Follow me</b>, <b>Hold this spot</b> (like telling a dog to stay), <b>Back to the station</b>, <b>Hunting</b> and <b>Dismiss</b>.",
+         "Following, they fight whatever attacks you and whatever you hit (a hunting party), climb aboard your ship, airship or camper with you, and come through portals.",
+         "Promote them with <b>gold ingots</b> in the same menu: 5, 10, 20, then 40. The first promotion picks a path for good: <b>Ranged</b> ends as a <b>Musketeer</b>, <b>Melee</b> as a <b>Foestopper Bulwark</b>.",
+         "Blow a <b>goat horn</b> to rally everyone within 48 blocks, or to make your followers hold where they stand. <b>Sneak</b> and blow it: <b>Charge!</b> at whatever you're looking at."],
+  tips=["Idle mercenaries patrol <b>50 blocks</b> around their station and protect it and its villagers. Hold-this-spot on a wall makes a fine archer post.",
+        "They never hurt players, villagers, golems or pets, and their bolts fly straight past friends. They heal slowly. <b>Death is for good</b>.",
+        "Log out and your followers guard where you left them. Die and they guard your things.",
+        "A Colonycraft <b>Guildhouse</b> hires 20/35/50% cheaper and has a Bounty Station too. Mercenary kills drop illager fingers. With Skills: <b>Leadership</b> (bigger squad, cheaper promotions, harder hits, thicker skin)."],
+  cmds="/sellswords · /sellswords list · /sellswords rally · /sellswords charge"),
 ]
 
 def item(k, big=False):

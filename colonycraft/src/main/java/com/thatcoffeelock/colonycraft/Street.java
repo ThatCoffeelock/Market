@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The town street (Colonycraft 1.4.0): the trading post's master traders, the bank's vault, the museum's cases, the
- * chapel, the ranch's animals and the fuel depot's tanks. Colonies calls in here at the moments that matter:
+ * chapel, the ranch's animals and the fuel depot's tanks. And the guildhouse's stations (1.5.0). Colonies calls in here at the moments that matter:
  * hiring, furnishing, payday, demolishing.
  */
 final class Street {
@@ -237,6 +237,10 @@ final class Street {
 				}
 			}
 			case TRADING_POST -> restock(level, b);
+			case GUILDHOUSE -> {
+				GuildLink.mercenaryStation(level, b.world(BuildingType.GUILD_MERCENARIES), BuildingType.guildDiscount(b.tier), c.name + " Guildhouse");
+				GuildLink.bountyStation(level, b.world(BuildingType.GUILD_BOUNTIES));
+			}
 			default -> {
 			}
 		}
@@ -264,6 +268,10 @@ final class Street {
 				}
 			}
 			case RANCH -> Cmd.run(level, "kill @e[tag=" + animalTag(b) + "]");
+			case GUILDHOUSE -> {
+				GuildLink.removeMercenaryStation(level, b.world(BuildingType.GUILD_MERCENARIES));
+				GuildLink.removeBountyStation(level, b.world(BuildingType.GUILD_BOUNTIES));
+			}
 			default -> {
 			}
 		}

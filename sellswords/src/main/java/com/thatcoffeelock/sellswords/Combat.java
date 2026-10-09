@@ -83,8 +83,8 @@ public final class Combat {
 		if (!(e instanceof LivingEntity living) || !living.isAlive() || living.isBaby() || e.hasCustomName() || e.isPassenger()) {
 			return false;
 		}
-		if (e instanceof Mob mob && mob.isLeashed()) {
-			return false;
+		if (e instanceof Mob mob && (mob.isLeashed() || mob.isPersistenceRequired())) {
+			return false; // somebody's: a colony's ranch animals, a lead-tied cow
 		}
 		return GAME.contains(type(e)) && !friendly(e);
 	}

@@ -70,6 +70,7 @@ public final class FuckIllagersMod implements ModInitializer {
 		});
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> Stations.allowBreak(player, world, pos));
 		CommandRegistrationCallback.EVENT.register(BountyCommands::register);
+		FuckIllagersApi.publish();
 		LOG.info("Fuck Illagers loaded. Bring a bag for the fingers.");
 	}
 

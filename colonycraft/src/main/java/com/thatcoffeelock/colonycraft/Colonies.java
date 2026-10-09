@@ -577,6 +577,7 @@ public final class Colonies {
 			case RANCH -> "Rancher";
 			case APIARY -> "Beekeeper";
 			case FUEL_DEPOT -> "Depot Hand";
+			case GUILDHOUSE -> "Guildmaster";
 		};
 	}
 

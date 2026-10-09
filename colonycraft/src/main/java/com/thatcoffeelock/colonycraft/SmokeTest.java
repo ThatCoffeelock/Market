@@ -584,11 +584,12 @@ final class SmokeTest {
 	private static void street(ServerLevel level) {
 		Object[][] plan = {
 			{BuildingType.BANK, -50, -46}, {BuildingType.MUSEUM, -32, -46}, {BuildingType.CHAPEL, -14, -46}, {BuildingType.TRADING_POST, 4, -46},
-			{BuildingType.LIBRARY, 22, -46}, {BuildingType.RANCH, 40, -46}, {BuildingType.APIARY, -48, -26}, {BuildingType.FUEL_DEPOT, -48, -8}};
+			{BuildingType.LIBRARY, 22, -46}, {BuildingType.RANCH, 40, -46}, {BuildingType.APIARY, -48, -26}, {BuildingType.FUEL_DEPOT, -48, -8},
+			{BuildingType.GUILDHOUSE, -48, 10}};
 		List<Colony.Building> built = new ArrayList<>();
 		for (Object[] p : plan) {
 			BuildingType type = (BuildingType) p[0];
-			check(type.available(), type.id + " can be bought here (Riches and Fossil Fool are on the smoke test's server)");
+			check(type.available(), type.id + " can be bought here (Riches, Fossil Fool and Sellswords are on the smoke test's server)");
 			built.add(Colonies.construct(level, colony, type, new BlockPos((int) p[1], 99, (int) p[2]), 0, Bank.cents(type.price), true));
 		}
 		Colony.Building bank = find(BuildingType.BANK);
@@ -598,6 +599,7 @@ final class SmokeTest {
 		Colony.Building library = find(BuildingType.LIBRARY);
 		Colony.Building ranch = find(BuildingType.RANCH);
 		Colony.Building depot = find(BuildingType.FUEL_DEPOT);
+		Colony.Building guild = find(BuildingType.GUILDHOUSE);
 
 		// the trading post: a master toolsmith who sells for emeralds and stays put; two more masters at tier 3
 		check(shop.alive() == 1 && level.getEntity(shop.villagers.get(0)) != null, "the trading post has its master toolsmith");
@@ -685,6 +687,23 @@ final class SmokeTest {
 		check(more != null && "DIESEL".equals(more.get("set")), "a tier 2 depot has four tanks");
 		check(Colonies.whyNoDemolish(depot) == null, "an empty depot can go");
 
+		// the guildhouse: a Sellswords Mercenary Station (cheaper hiring, more so per tier) and a Fuck Illagers Bounty Station
+		BlockPos hiring = guild.world(BuildingType.GUILD_MERCENARIES);
+		BlockPos bounties = guild.world(BuildingType.GUILD_BOUNTIES);
+		check(level.getBlockState(hiring).is(Blocks.TARGET) && level.getBlockState(bounties).is(Blocks.FLETCHING_TABLE),
+			"the guildhouse has its target and its fletching table");
+		Map<String, Object> station = GuildLink.mercenaryInfo(level, hiring);
+		check(station != null && Math.abs(((Number) station.get("discount")).doubleValue() - 0.20) < 1e-9
+			&& "Testville Guildhouse".equals(station.get("name")), "Sellswords hires at the guildhouse for 20% less (" + station + ")");
+		check(GuildLink.isBountyStation(level, bounties), "and Fuck Illagers posts contracts at its fletching table");
+		check(guild.alive() == 1, "the guildmaster is in");
+		Colonies.upgrade(level, guild, 0);
+		Colonies.upgrade(level, guild, 0);
+		Colonies.finishJobs();
+		station = GuildLink.mercenaryInfo(level, hiring);
+		check(station != null && Math.abs(((Number) station.get("discount")).doubleValue() - 0.50) < 1e-9, "a tier 3 guildhouse hires at half price");
+		check(level.getBlockState(guild.world(new BlockPos(0, 4, 4))).is(Blocks.GOLD_BLOCK), "with a trophy over the hearth");
+
 		// payday: the ranch and apiary deliver; the trading post, bank and museum earn more than their staff cost
 		Colony.Building store = find(BuildingType.STOREHOUSE);
 		empty(store);
@@ -714,6 +733,7 @@ final class SmokeTest {
 			Colonies.demolish(level, b);
 		}
 		check(RichesLink.info(level, ledger) == null && FossilLink.info(level, tank) == null, "Riches and Fossil Fool forget the demolished buildings");
+		check(GuildLink.mercenaryInfo(level, hiring) == null && !GuildLink.isBountyStation(level, bounties), "and so do Sellswords and Fuck Illagers");
 		ColonycraftMod.LOG.info("[smoke] ok: the town street");
 	}
 

@@ -12,10 +12,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -406,7 +407,7 @@ final class Duty {
 
 	/** The arm swing everyone nearby sees. */
 	static void swing(ServerLevel level, LivingEntity body) {
-		level.getChunkSource().broadcast(body, new ClientboundAnimatePacket(body, ClientboundAnimatePacket.SWING_MAIN_HAND));
+		body.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
 	}
 
 	/** A Bulwark bellows: every monster within 10 blocks going after someone else comes for him instead. */

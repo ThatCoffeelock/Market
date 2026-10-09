@@ -52,7 +52,8 @@ public enum BuildingType {
 	LIBRARY("library", "Library", Items.ENCHANTING_TABLE, 1800, 5, 5, 12, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, false, BuildingType::library),
 	RANCH("ranch", "Ranch", Items.LEATHER, 1000, 6, 6, 9, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::ranch),
 	APIARY("apiary", "Apiary", Items.HONEYCOMB, 900, 5, 5, 8, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 3, false, BuildingType::apiary),
-	FUEL_DEPOT("fuel_depot", "Fuel Depot", Items.BLAST_FURNACE, 2000, 6, 5, 10, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 3, false, BuildingType::fuelDepot);
+	FUEL_DEPOT("fuel_depot", "Fuel Depot", Items.BLAST_FURNACE, 2000, 6, 5, 10, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 3, false, BuildingType::fuelDepot),
+	GUILDHOUSE("guildhouse", "Guildhouse", Items.TARGET, 2000, 6, 6, 13, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 4, false, BuildingType::guildhouse);
 
 	public static final int MAX_TIER = 3;
 
@@ -103,7 +104,7 @@ public enum BuildingType {
 	 */
 	public boolean rebuildsOnUpgrade() {
 		return fortification || this == CELLBLOCK || this == STOREHOUSE || this == RESIDENCE || this == TRAIN_STATION
-			|| this == MUSEUM || this == FUEL_DEPOT;
+			|| this == MUSEUM || this == FUEL_DEPOT || this == GUILDHOUSE;
 	}
 
 	/** The highest tier this building goes to. The library is as good as it gets from the start. */
@@ -140,13 +141,15 @@ public enum BuildingType {
 
 	/**
 	 * Can it be bought here? The tobacco farm needs the Havana mod for its tobacco, the museum needs Riches for its
-	 * display cases and the fuel depot needs Fossil Fool for its tanks and refinery.
+	 * display cases, the fuel depot needs Fossil Fool for its tanks and refinery, and the guildhouse needs Sellswords
+	 * for its Mercenary Station (its Bounty Station comes with Fuck Illagers, if that's here too).
 	 */
 	public boolean available() {
 		return switch (this) {
 			case TOBACCO_FARM -> HavanaLink.present();
 			case MUSEUM -> RichesLink.present();
 			case FUEL_DEPOT -> FossilLink.present();
+			case GUILDHOUSE -> GuildLink.sellswords();
 			default -> true;
 		};
 	}
@@ -156,6 +159,7 @@ public enum BuildingType {
 		return switch (this) {
 			case MUSEUM -> "Riches";
 			case FUEL_DEPOT -> "Fossil Fool";
+			case GUILDHOUSE -> "Sellswords";
 			default -> "Havana";
 		};
 	}
@@ -177,6 +181,7 @@ public enum BuildingType {
 			case CHAPEL -> "priest";
 			case RANCH -> "rancher";
 			case APIARY -> "beekeeper";
+			case GUILDHOUSE -> "guildmaster";
 			default -> "worker";
 		};
 		return n == 1 ? noun : noun + "s";
@@ -231,6 +236,7 @@ public enum BuildingType {
 			case CHAPEL -> new BlockPos(0, 1, 4);
 			case RANCH -> new BlockPos(0, 1, -1);
 			case APIARY, FUEL_DEPOT -> new BlockPos(0, 1, -2);
+			case GUILDHOUSE -> new BlockPos(0, 1, -2);
 			default -> new BlockPos(0, 1, 0);
 		};
 	}
@@ -2252,6 +2258,90 @@ public enum BuildingType {
 		for (int x : new int[] {-6, 6}) {
 			p.set(x, 1, -7, RAIL);
 			p.set(x, 2, -7, "minecraft:lantern[hanging=false]");
+		}
+	}
+
+	/** The guildhouse's Mercenary Station (a target block) and Bounty Station (a fletching table), either side of the hall. */
+	public static final BlockPos GUILD_MERCENARIES = new BlockPos(-4, 1, 3);
+	public static final BlockPos GUILD_BOUNTIES = new BlockPos(4, 1, 3);
+
+	/** Off the hiring price at a guildhouse's Mercenary Station, by tier: 20%, 35%, then 50%. */
+	public static double guildDiscount(int tier) {
+		return new double[] {0.20, 0.35, 0.50}[Math.max(1, Math.min(MAX_TIER, tier)) - 1];
+	}
+
+	/**
+	 * A guildhouse: a half-timbered hall under a steep spruce roof, orange banners, a long table down the middle with a
+	 * hearth at the back. The Mercenary Station stands on the left with a weapon rack, the Bounty Station on the right
+	 * with a lectern for the Wanted posters. Higher tiers hang more banners, stock the racks and put a gold trophy over
+	 * the hearth (and hire cheaper).
+	 */
+	private static void guildhouse(Plan p) {
+		String post = "minecraft:stripped_spruce_log[axis=y]";
+		String plaster = "minecraft:white_terracotta";
+		p.fillMix(-6, 0, -6, 6, 0, -5, PAVING, "minecraft:cobblestone");
+		p.fill(-5, 0, -4, 5, 0, 5, PLINTH);
+		p.fillMix(-4, 0, -3, 4, 0, 4, "minecraft:spruce_planks", "minecraft:stripped_spruce_wood");
+		// the half-timbered walls: a stone footing, plaster between spruce posts, a spruce band under the eaves
+		for (int y = 1; y <= 5; y++) {
+			p.rect(-5, -4, 5, 5, y, y == 1 ? PLINTH : y == 5 ? "minecraft:spruce_planks" : plaster);
+		}
+		for (int[] c : new int[][] {{-5, -4}, {5, -4}, {-5, 5}, {5, 5}, {-2, -4}, {2, -4}, {-5, 0}, {5, 0}, {-2, 5}, {2, 5}}) {
+			p.fill(c[0], 2, c[1], c[0], 4, c[1], post);
+		}
+		p.door(-4, "spruce");
+		p.set(0, 3, -4, "minecraft:spruce_planks");
+		p.windowX(-4, -4, -3, 2, 3);
+		p.windowX(-4, 3, 4, 2, 3);
+		for (int x : new int[] {-5, 5}) {
+			p.windowZ(x, -3, -2, 2, 3);
+			p.windowZ(x, 2, 3, 2, 3);
+		}
+		// the roof, with the gables in plaster and a sign of the trade over the door
+		p.roofAlongZ(-5, -4, 5, 5, 6, "minecraft:spruce_stairs", "minecraft:spruce_planks", plaster);
+		p.set(0, 7, -4, "minecraft:target");
+		p.set(-1, 7, -5, "minecraft:orange_wall_banner[facing=north]");
+		p.set(1, 7, -5, "minecraft:orange_wall_banner[facing=north]");
+		for (int x : new int[] {-4, 4}) {
+			p.set(x, 1, -5, "minecraft:spruce_fence");
+			p.set(x, 2, -5, "minecraft:lantern[hanging=false]");
+		}
+		// the hall: a long table with benches, a hearth at the back
+		p.fill(-1, 1, -1, 1, 1, 2, "minecraft:spruce_slab[type=top]");
+		for (int z = -1; z <= 2; z++) {
+			p.stairs(-2, 1, z, "minecraft:spruce_stairs", "west", false);
+			p.stairs(2, 1, z, "minecraft:spruce_stairs", "east", false);
+		}
+		p.fill(-1, 1, 5, 1, 4, 5, PLINTH);
+		p.set(0, 1, 4, "minecraft:campfire[lit=true,signal_fire=false,facing=north]");
+		p.set(-1, 1, 4, "minecraft:stone_brick_wall");
+		p.set(1, 1, 4, "minecraft:stone_brick_wall");
+		p.set(0, 2, 4, "minecraft:air");
+		p.fill(-1, 3, 4, 1, 3, 4, "minecraft:stone_brick_slab[type=bottom]");
+		// the Mercenary Station and its weapon rack, the Bounty Station and its posters
+		p.set(GUILD_MERCENARIES.getX(), GUILD_MERCENARIES.getY(), GUILD_MERCENARIES.getZ(), "minecraft:target");
+		p.set(-4, 1, 4, "minecraft:grindstone[face=floor,facing=east]");
+		p.set(-4, 1, 2, "minecraft:barrel[facing=up]");
+		p.set(GUILD_BOUNTIES.getX(), GUILD_BOUNTIES.getY(), GUILD_BOUNTIES.getZ(), "minecraft:fletching_table");
+		p.set(4, 1, 4, "minecraft:lectern[facing=west,has_book=false]");
+		p.set(4, 1, 2, "minecraft:barrel[facing=up]");
+		p.set(-4, 3, 5, "minecraft:orange_wall_banner[facing=north]");
+		p.set(4, 3, 5, "minecraft:black_wall_banner[facing=north]");
+		for (int z : new int[] {-2, 2}) {
+			p.set(0, 5, z, "minecraft:lantern[hanging=true]");
+		}
+		if (p.tier >= 2) {
+			p.set(-4, 2, 2, "minecraft:anvil[facing=north]");
+			p.set(-4, 1, 1, "minecraft:smithing_table");
+			p.set(4, 1, 1, "minecraft:chiseled_bookshelf[facing=west]");
+			p.set(-4, 3, 0, "minecraft:orange_wall_banner[facing=east]");
+			p.set(4, 3, 0, "minecraft:orange_wall_banner[facing=west]");
+		}
+		if (p.tier >= 3) {
+			p.set(0, 4, 4, "minecraft:gold_block");
+			p.set(-1, 4, 4, "minecraft:gilded_blackstone");
+			p.set(1, 4, 4, "minecraft:gilded_blackstone");
+			p.fill(-1, 1, -3, 1, 1, -3, "minecraft:orange_carpet");
 		}
 	}
 

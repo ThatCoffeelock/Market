@@ -10,6 +10,8 @@ on:
       - 'burlap-sack/**'
       - 'riches/**'
       - 'fossil-fool/**'
+      - 'sellswords/**'
+      - 'fuck-illagers/**'
       - '.github/workflows/colonycraft.yml'
   pull_request:
     paths:
@@ -20,6 +22,8 @@ on:
       - 'burlap-sack/**'
       - 'riches/**'
       - 'fossil-fool/**'
+      - 'sellswords/**'
+      - 'fuck-illagers/**'
       - '.github/workflows/colonycraft.yml'
   workflow_dispatch:
 
@@ -48,7 +52,7 @@ jobs:
         working-directory: .
         run: ./gradlew build
 
-      - name: Build Warehouse, Havana and Burlap Sack (the smoke test runs Colonycraft with them too)
+      - name: Build Warehouse, Havana, Burlap Sack, Riches, Fossil Fool, Sellswords and Fuck Illagers (the smoke test runs Colonycraft with them too)
         working-directory: .
         run: |
           (cd cannon && ./gradlew build -x test)
@@ -59,6 +63,8 @@ jobs:
           (cd havana && ./gradlew build -x test)
           (cd burlap-sack && ./gradlew build -x test)
           (cd riches && ./gradlew build -x test)
+          (cd sellswords && ./gradlew build -x test)
+          (cd fuck-illagers && ./gradlew build -x test)
 
       - name: Build
         run: |
