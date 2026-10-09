@@ -20,3 +20,9 @@ dump net.minecraft.world.damagesource.DamageSource 'getSourcePosition|getEntity|
 dump net.minecraft.world.entity.ai.attributes.Attributes 'MAX_HEALTH|ARMOR|KNOCKBACK|MOVEMENT_SPEED|FOLLOW_RANGE'
 dump net.minecraft.world.entity.TamableAnimal 'isTame'
 dump net.minecraft.world.entity.monster.Enemy
+dump net.minecraft.world.entity.Mob 'isPersistenceRequired|requiresCustomPersistence'
+dump net.minecraft.server.level.ServerChunkCache 'broadcast'
+dump net.minecraft.network.protocol.game.ClientboundAnimatePacket
+dump net.minecraft.world.item.component.SwingAnimation
+dump net.minecraft.world.entity.Entity 'Tag'
+dump net.minecraft.world.entity.decoration.Mannequin

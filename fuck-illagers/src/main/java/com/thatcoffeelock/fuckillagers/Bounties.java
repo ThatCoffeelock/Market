@@ -319,11 +319,31 @@ final class Bounties {
 				}
 			}
 		}
-		if (source.getEntity() instanceof ServerPlayer) {
+		if (source.getEntity() instanceof ServerPlayer || isMercenary(source.getEntity())) {
 			int fingers = fingersFor(entity);
 			if (fingers > 0) {
 				drop(level, entity, Trophies.finger(fingers));
 			}
+		}
+	}
+
+	/**
+	 * A Sellswords mercenary, asked through Sellswords' ObjectShare API ({@code sellswords:api}, "is_mercenary"), so
+	 * neither mod needs the other. False without Sellswords.
+	 */
+	@SuppressWarnings("unchecked")
+	static boolean isMercenary(@Nullable Entity entity) {
+		if (entity == null) {
+			return false;
+		}
+		Object api = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get("sellswords:api");
+		if (!(api instanceof java.util.function.BiFunction<?, ?, ?> f)) {
+			return false;
+		}
+		try {
+			return Boolean.TRUE.equals(((java.util.function.BiFunction<String, Map<String, Object>, Object>) f).apply("is_mercenary", Map.of("entity", entity)));
+		} catch (RuntimeException e) {
+			return false;
 		}
 	}
 

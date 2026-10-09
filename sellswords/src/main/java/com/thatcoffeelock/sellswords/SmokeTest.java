@@ -132,8 +132,11 @@ final class SmokeTest {
 		// strays: a tagged entity nobody knows about is tidied up
 		UUID stray = UUID.randomUUID();
 		BlockPos at = ground(level, 20, 20);
-		Cmd.run(level, "summon minecraft:wandering_trader " + Cmd.pos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) + " {" + Cmd.uuidNbt(stray)
-			+ ",NoAI:1b,Tags:[\"sellswords\",\"sellswords_brain\",\"sellswords_id_nobody\"]}");
+		Cmd.run(level, "summon minecraft:wandering_trader " + Cmd.pos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) + " {" + Cmd.uuidNbt(stray) + ",NoAI:1b}");
+		Entity strayEntity = level.getEntity(stray);
+		check(strayEntity != null, "summoned a stray");
+		strayEntity.setAttached(SellswordsMod.MERC, "brain:nobody");
+		Mercs.onLoad(strayEntity, level); // as if its chunk had just loaded
 
 		// the body keeps up with the brain
 		BlockPos over = ground(level, 4, 6);

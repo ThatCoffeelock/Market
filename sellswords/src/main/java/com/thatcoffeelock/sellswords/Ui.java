@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -34,6 +35,19 @@ abstract class Ui extends ChestMenu {
 		super(MenuType.GENERIC_9x6, syncId, viewer.getInventory(), box, 6);
 		this.viewer = viewer;
 		this.box = box;
+	}
+
+	private static final Map<String, Item> ITEMS = new HashMap<>();
+
+	/** An item by id ("lime_stained_glass_pane"): the coloured ones aren't fields of Items any more. */
+	static Item item(String id, Item fallback) {
+		if (ITEMS.isEmpty()) {
+			for (Item item : BuiltInRegistries.ITEM) {
+				ITEMS.put(BuiltInRegistries.ITEM.getKey(item).getPath(), item);
+			}
+		}
+		Item item = ITEMS.get(id);
+		return item == null || item == Items.AIR ? fallback : item;
 	}
 
 	static MutableComponent t(String text, ChatFormatting... formats) {
@@ -69,7 +83,7 @@ abstract class Ui extends ChestMenu {
 		draw();
 		for (int i = 0; i < SIZE; i++) {
 			if (box.getItem(i).isEmpty()) {
-				box.setItem(i, icon(Items.BLACK_STAINED_GLASS_PANE, Component.literal(" "), List.of()));
+				box.setItem(i, icon(item("black_stained_glass_pane", Items.GLASS_PANE), Component.literal(" "), List.of()));
 			}
 		}
 	}

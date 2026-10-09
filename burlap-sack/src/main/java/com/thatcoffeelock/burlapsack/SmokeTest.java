@@ -95,6 +95,17 @@ final class SmokeTest {
 		Cmd.run(level, "summon minecraft:wandering_trader -3.5 100 -3.5 {" + Cmd.uuidNbt(TRADER) + ",NoAI:1b,DespawnDelay:24000}");
 		Entity trader = level.getEntity(TRADER);
 		check(trader != null && Sacks.fits(trader), "a wandering trader fits in the sack");
+		var share = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare();
+		Object realApi = share.get("sellswords:api");
+		Entity merc = trader;
+		share.put("sellswords:api", (java.util.function.BiFunction<String, java.util.Map<String, Object>, Object>) (op, args) ->
+			"is_mercenary".equals(op) && args.get("entity") == merc);
+		check(!Sacks.fits(trader), "a Sellswords mercenary doesn't (Sellswords stood in for)");
+		if (realApi == null) {
+			share.remove("sellswords:api");
+		} else {
+			share.put("sellswords:api", realApi);
+		}
 		CompoundTag traderData = Sacks.save(trader);
 		check(traderData.getIntOr("DespawnDelay", -1) == 0, "a bagged wandering trader never leaves again");
 		Sacks.bag(trader);

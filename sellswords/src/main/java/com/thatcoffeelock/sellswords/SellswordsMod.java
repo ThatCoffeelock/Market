@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -19,6 +22,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -30,6 +34,10 @@ import org.slf4j.LoggerFactory;
 public final class SellswordsMod implements ModInitializer {
 	public static final String MOD_ID = "sellswords";
 	public static final Logger LOG = LoggerFactory.getLogger("Sellswords");
+
+	/** On a mercenary's brain and body: "brain:<id>" or "body:<id>". Saved with the entity, so it survives restarts and portals. */
+	public static final AttachmentType<String> MERC = AttachmentRegistry.create(
+		Identifier.fromNamespaceAndPath(MOD_ID, "merc"), builder -> builder.persistent(Codec.STRING));
 
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();

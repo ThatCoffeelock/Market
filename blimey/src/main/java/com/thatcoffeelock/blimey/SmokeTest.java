@@ -87,6 +87,15 @@ final class SmokeTest {
 
 	private static void noFuel(ServerLevel level) {
 		check(ship.markerCount() >= AirshipModel.HITBOX_Z.length, "the hitboxes were made");
+		// a Sellswords mercenary following its captain aboard gets a passenger seat (an armor stand stands in for one)
+		java.util.UUID guestId = java.util.UUID.randomUUID();
+		Cmd.run(level, "summon minecraft:armor_stand " + Cmd.pos(ship.root.getX(), ship.root.getY() + 1, ship.root.getZ()) + " {" + Cmd.uuidNbt(guestId) + ",NoGravity:1b}");
+		net.minecraft.world.entity.Entity guest = level.getEntity(guestId);
+		check(guest != null && ship.seatGuest(guest) && guest.getVehicle() != null, "a guest (a mercenary) gets a passenger seat");
+		guest.stopRiding();
+		guest.discard();
+		check(net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get("sellswords:board") instanceof java.util.List<?> hooks && !hooks.isEmpty(),
+			"the boarding hook for Sellswords is registered");
 		check(ship.isGrounded() && !ship.burning, "with an empty tank it stays on the ground");
 		check(Math.abs(ship.y - KEEL) < 0.01, "at the height it was unfolded (" + fmt(ship.y) + ")");
 

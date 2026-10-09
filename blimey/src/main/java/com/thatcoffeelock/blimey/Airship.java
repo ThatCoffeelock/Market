@@ -640,6 +640,28 @@ final class Airship {
 		return true;
 	}
 
+	/**
+	 * Seats someone who isn't a player (a Sellswords mercenary following their captain aboard) in the first free
+	 * passenger seat. Never the controls.
+	 */
+	boolean seatGuest(Entity guest) {
+		for (int i = 1; i < seats.length; i++) {
+			if (!seatFree(i)) {
+				continue;
+			}
+			Entity seat = seatEntity(i);
+			if (seat == null) {
+				return false;
+			}
+			if (guest.getVehicle() != null) {
+				guest.stopRiding();
+			}
+			Cmd.run(level, "ride " + guest.getUUID() + " mount " + seat.getUUID());
+			return guest.getVehicle() == seat;
+		}
+		return false;
+	}
+
 	/** Owners take the controls if they're free; guests take the first free seat. */
 	int pickSeat(Player player) {
 		if (isOwner(player) && seatFree(AirshipModel.CAPTAIN)) {

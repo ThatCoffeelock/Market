@@ -20,7 +20,7 @@ It's a fletching table with a gold name. Place it and right-click it. Breaking i
 
 ## Trophies
 
-Every illager **a player kills** drops an **Illager Finger** (a bone with a name): pillagers and vindicators one, evokers and illusioners two. Illagers that die some other way (lava, a golem) drop nothing. At a Bounty Station, **Sell trophies** sells every finger in your inventory for **₥3** each, and every skull for its reward.
+Every illager **a player kills** drops an **Illager Finger** (a bone with a name): pillagers and vindicators one, evokers and illusioners two. Kills by your [Sellswords](../sellswords/README.md) mercenaries count too (they hit illagers 25% harder: they have history). Illagers that die some other way (lava, a golem) drop nothing. At a Bounty Station, **Sell trophies** sells every finger in your inventory for **₥3** each, and every skull for its reward.
 
 ## Contracts
 
@@ -52,4 +52,5 @@ At the station, pick a contract:
 
 - Contracts and stations are saved in `fuckillagers.json` in the world folder. Bosses remember their contract, also after a restart.
 - Raid farms produce illagers too, and fingers with them. That's between you and your conscience.
+- With Colonycraft and Sellswords, a colony's **Guildhouse** has a Bounty Station of its own, next to its Mercenary Station. Take your squad along on a contract: their kill gets you the skull just the same.
 - CI (`.github/workflows/fuck-illagers.yml`) builds the Market mod and this one, then boots a real server. It places and breaks a station, kills illagers for fingers (and a cow and a non-player kill for none), sells them, accepts, refuses and abandons contracts, builds all six hideouts and checks every boss (name, health, contract tag), every loot chest and the guards, kills a boss for its skull, cashes it in, and saves and loads.

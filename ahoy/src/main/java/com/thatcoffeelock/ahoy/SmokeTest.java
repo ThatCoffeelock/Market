@@ -263,6 +263,15 @@ final class SmokeTest {
 		double moved = ship.root.getZ() - startZ;
 		check(moved > 2, "ship sailed forward (" + String.format("%.2f", moved) + " blocks)");
 		check(ship.markerCount() >= ShipModel.HITBOX_Z.length, "hitboxes follow the ship");
+		// a Sellswords mercenary following its captain aboard gets a passenger seat (an armor stand stands in for one)
+		java.util.UUID guestId = java.util.UUID.randomUUID();
+		Cmd.run(level, "summon minecraft:armor_stand " + Cmd.pos(ship.root.getX(), ship.root.getY() + 1, ship.root.getZ()) + " {" + Cmd.uuidNbt(guestId) + ",NoGravity:1b}");
+		net.minecraft.world.entity.Entity guest = level.getEntity(guestId);
+		check(guest != null && ship.seatGuest(guest) && guest.getVehicle() != null, "a guest (a mercenary) gets a passenger seat");
+		guest.stopRiding();
+		guest.discard();
+		check(net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get("sellswords:board") instanceof java.util.List<?> hooks && !hooks.isEmpty(),
+			"the boarding hook for Sellswords is registered");
 		check(portDistance(0) < 1.0, "the cannon sailed along with the ship (" + portDistance(0) + ")");
 		ship.testControls = new Ship.Controls(false, false, true, false, false);
 		AhoyMod.later(30, () -> step(level.getServer(), () -> turned(level)));

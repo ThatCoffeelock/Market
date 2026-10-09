@@ -84,6 +84,7 @@ public final class MobileHomeMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register(MobileHomeCommands::register);
+		Vehicles.offerSeatsToMercenaries();
 		LOG.info("Mobile Home loaded. Buckle up.");
 	}
 

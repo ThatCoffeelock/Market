@@ -84,6 +84,22 @@ public final class Ships {
 		return ship;
 	}
 
+	/**
+	 * Sellswords: mercenaries following a player climb aboard the ship that player is on. Registered in the
+	 * ObjectShare list {@code sellswords:board}; neither mod needs the other.
+	 */
+	@SuppressWarnings("unchecked")
+	static void offerSeatsToMercenaries() {
+		var share = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare();
+		share.putIfAbsent("sellswords:board", new java.util.concurrent.CopyOnWriteArrayList<java.util.function.BiFunction<ServerPlayer, Entity, Boolean>>());
+		if (share.get("sellswords:board") instanceof List<?> list) {
+			((List<java.util.function.BiFunction<ServerPlayer, Entity, Boolean>>) list).add((player, guest) -> {
+				Ship ship = shipOf(player);
+				return ship != null && ship.seatGuest(guest);
+			});
+		}
+	}
+
 	static List<Ship> all() {
 		return new ArrayList<>(BY_ROOT.values());
 	}

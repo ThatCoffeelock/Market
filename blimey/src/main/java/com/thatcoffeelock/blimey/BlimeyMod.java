@@ -99,6 +99,7 @@ public final class BlimeyMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register(BlimeyCommands::register);
+		Airships.offerSeatsToMercenaries();
 		LOG.info("Blimey loaded. Mind your heads, and the diesel bill.");
 	}
 

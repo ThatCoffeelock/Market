@@ -69,7 +69,7 @@ final class MercMenu extends Ui {
 			merc.orders(Merc.Orders.FOLLOW);
 			done("\"Lead the way.\"");
 		});
-		button(11, order(Items.WHITE_BANNER, "Hold this spot", orders == Merc.Orders.GUARD, List.of(
+		button(11, order(item("white_banner", Items.SHIELD), "Hold this spot", orders == Merc.Orders.GUARD, List.of(
 			t("Stays right here like a good dog. Fights", ChatFormatting.GRAY),
 			t("anything that comes within " + (int) Duty.GUARD_RADIUS + " blocks, protects", ChatFormatting.GRAY),
 			t("villagers, then goes back to the spot.", ChatFormatting.GRAY),
@@ -154,8 +154,8 @@ final class MercMenu extends Ui {
 			Rank r = ranks.get(i);
 			boolean have = current.path == path && current.tier >= r.tier;
 			boolean next = current.canBecome(r);
-			Item glass = closed ? Items.RED_STAINED_GLASS_PANE : have ? Items.LIME_STAINED_GLASS_PANE
-				: next ? Items.YELLOW_STAINED_GLASS_PANE : Items.GRAY_STAINED_GLASS_PANE;
+			Item glass = item(closed ? "red_stained_glass_pane" : have ? "lime_stained_glass_pane"
+				: next ? "yellow_stained_glass_pane" : "gray_stained_glass_pane", Items.GLASS_PANE);
 			button(slots[i] - 1, icon(glass, t(" "), List.of()), null);
 			List<Component> lore = new ArrayList<>();
 			lore.add(t(r.stars(), path.color));

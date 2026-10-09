@@ -2,6 +2,7 @@ package com.thatcoffeelock.burlapsack;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -72,8 +73,31 @@ public final class Sacks {
 	}
 
 	static boolean fits(Entity entity) {
+		if (isMercenary(entity)) {
+			return false; // a Sellswords mercenary (their hidden half is a wandering trader): they don't do sacks
+		}
 		String type = typeId(entity);
 		return type.equals(VILLAGER) || type.equals(WANDERING_TRADER);
+	}
+
+	/**
+	 * A Sellswords mercenary, asked through Sellswords' ObjectShare API ({@code sellswords:api}, "is_mercenary"), so
+	 * neither mod needs the other. False without Sellswords.
+	 */
+	@SuppressWarnings("unchecked")
+	static boolean isMercenary(@Nullable Entity entity) {
+		if (entity == null) {
+			return false;
+		}
+		Object api = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get("sellswords:api");
+		if (!(api instanceof java.util.function.BiFunction<?, ?, ?> f)) {
+			return false;
+		}
+		try {
+			return Boolean.TRUE.equals(((java.util.function.BiFunction<String, Map<String, Object>, Object>) f).apply("is_mercenary", Map.of("entity", entity)));
+		} catch (RuntimeException e) {
+			return false;
+		}
 	}
 
 	/** Right-click on an entity. */

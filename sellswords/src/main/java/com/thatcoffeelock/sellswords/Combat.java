@@ -50,12 +50,12 @@ public final class Combat {
 		return type(e).equals("creeper");
 	}
 
-	/** Players, mercenaries, villagers, golems, colony folk, tamed and named animals. */
+	/** Players, mercenaries, villagers, golems, tamed and named animals. */
 	static boolean friendly(@Nullable Entity e) {
 		if (e == null) {
 			return false;
 		}
-		if (e instanceof Player || Mercs.isMerc(e) || e.getTags().contains("colonycraft")) {
+		if (e instanceof Player || Mercs.isMerc(e)) {
 			return true;
 		}
 		if (FRIENDS.contains(type(e))) {
@@ -166,7 +166,7 @@ public final class Combat {
 	 * its owner's Shield Wall perk, and a shield-bearer blocks part of a hit from the front.
 	 */
 	public static float incoming(LivingEntity entity, DamageSource source, float amount) {
-		if (!entity.getTags().contains(Mercs.BRAIN_TAG) || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+		if (!Mercs.isBrain(entity) || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
 			return amount;
 		}
 		Merc m = Mercs.of(entity);

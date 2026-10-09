@@ -419,6 +419,25 @@ public final class Vehicle {
 		return -1;
 	}
 
+	/**
+	 * Seats someone who isn't a player (a Sellswords mercenary following the driver in) in the first free passenger
+	 * seat. Never the driver's seat.
+	 */
+	boolean seatGuest(Entity guest) {
+		for (int i = 1; i < seats.length; i++) {
+			Entity seat = seats[i];
+			if (seat == null || !seat.getPassengers().isEmpty()) {
+				continue;
+			}
+			if (guest.getVehicle() != null) {
+				guest.stopRiding();
+			}
+			Cmd.run(level, "ride " + guest.getUUID() + " mount " + seat.getUUID());
+			return guest.getVehicle() == seat;
+		}
+		return false;
+	}
+
 	/** Puts the player in the given seat. */
 	boolean seat(ServerPlayer player, int index) {
 		Entity seat = seats[index];

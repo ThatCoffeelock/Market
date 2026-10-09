@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -338,7 +338,7 @@ final class Duty {
 			if (s.meleeCooldown <= 0) {
 				s.meleeCooldown = r.meleeCooldown();
 				if (body != null) {
-					body.swing(InteractionHand.MAIN_HAND);
+					swing(level, body);
 				}
 				Combat.hit(level, m, brain, target, r.melee, false);
 				Cmd.sound(level, "minecraft:entity.player.attack.strong", brain.getX(), brain.getY() + 1, brain.getZ(), 0.7f, 1f);
@@ -399,9 +399,14 @@ final class Duty {
 		s.shootCooldown = r.shootCooldown;
 		if (body != null) {
 			Mercs.wield(level, m, body, true);
-			body.swing(InteractionHand.MAIN_HAND);
+			swing(level, body);
 		}
 		Bolt.fire(level, m, brain, target);
+	}
+
+	/** The arm swing everyone nearby sees. */
+	static void swing(ServerLevel level, LivingEntity body) {
+		level.getChunkSource().broadcast(body, new ClientboundAnimatePacket(body, ClientboundAnimatePacket.SWING_MAIN_HAND));
 	}
 
 	/** A Bulwark bellows: every monster within 10 blocks going after someone else comes for him instead. */

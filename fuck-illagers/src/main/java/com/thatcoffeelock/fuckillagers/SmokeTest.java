@@ -73,6 +73,24 @@ final class SmokeTest {
 		List<ItemEntity> fingers = level.getEntitiesOfClass(ItemEntity.class, new AABB(ground).inflate(3), e -> Trophies.isFinger(e.getItem()));
 		check(fingers.size() == 1 && fingers.get(0).getItem().getCount() == 1, "a vindicator killed by a player drops a finger");
 		fingers.forEach(Entity::discard);
+		// a Sellswords mercenary's kill counts too (Sellswords isn't here, so stand in for its API)
+		LivingEntity merc = summon(level, "wandering_trader", ground.offset(6, 0, 0));
+		var share = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare();
+		Object realApi = share.get("sellswords:api");
+		share.put("sellswords:api", (java.util.function.BiFunction<String, java.util.Map<String, Object>, Object>) (op, args) ->
+			"is_mercenary".equals(op) && args.get("entity") == merc);
+		LivingEntity pillager = summon(level, "pillager", ground);
+		Bounties.onDeath(pillager, level.damageSources().mobAttack(merc));
+		fingers = level.getEntitiesOfClass(ItemEntity.class, new AABB(ground).inflate(3), e -> Trophies.isFinger(e.getItem()));
+		check(fingers.size() == 1, "a pillager killed by a mercenary drops a finger");
+		fingers.forEach(Entity::discard);
+		if (realApi == null) {
+			share.remove("sellswords:api");
+		} else {
+			share.put("sellswords:api", realApi);
+		}
+		merc.discard();
+		pillager.discard();
 		LivingEntity evoker = summon(level, "evoker", ground);
 		Bounties.onDeath(evoker, level.damageSources().playerAttack(player));
 		fingers = level.getEntitiesOfClass(ItemEntity.class, new AABB(ground).inflate(3), e -> Trophies.isFinger(e.getItem()));

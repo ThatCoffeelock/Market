@@ -86,6 +86,22 @@ public final class Vehicles {
 		return vehicle;
 	}
 
+	/**
+	 * Sellswords: mercenaries following a player climb into the vehicle that player is in. Registered in the
+	 * ObjectShare list {@code sellswords:board}; neither mod needs the other.
+	 */
+	@SuppressWarnings("unchecked")
+	static void offerSeatsToMercenaries() {
+		var share = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare();
+		share.putIfAbsent("sellswords:board", new java.util.concurrent.CopyOnWriteArrayList<java.util.function.BiFunction<net.minecraft.server.level.ServerPlayer, Entity, Boolean>>());
+		if (share.get("sellswords:board") instanceof List<?> list) {
+			((List<java.util.function.BiFunction<net.minecraft.server.level.ServerPlayer, Entity, Boolean>>) list).add((player, guest) -> {
+				Vehicle vehicle = vehicleOf(player);
+				return vehicle != null && vehicle.seatGuest(guest);
+			});
+		}
+	}
+
 	static List<Vehicle> all() {
 		return new ArrayList<>(BY_ROOT.values());
 	}

@@ -76,6 +76,15 @@ final class SmokeTest {
 				check(v.seats[i] != null && !v.seats[i].isRemoved(), v.type.id + " seat " + i + " exists");
 			}
 		}
+		// a Sellswords mercenary following its captain aboard gets a passenger seat (an armor stand stands in for one)
+		java.util.UUID guestId = java.util.UUID.randomUUID();
+		Cmd.run(level, "summon minecraft:armor_stand " + Cmd.pos(van.root.getX(), van.root.getY() + 1, van.root.getZ()) + " {" + Cmd.uuidNbt(guestId) + ",NoGravity:1b}");
+		net.minecraft.world.entity.Entity guest = level.getEntity(guestId);
+		check(guest != null && van.seatGuest(guest) && guest.getVehicle() != null, "a guest (a mercenary) gets a passenger seat");
+		guest.stopRiding();
+		guest.discard();
+		check(net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get("sellswords:board") instanceof java.util.List<?> hooks && !hooks.isEmpty(),
+			"the boarding hook for Sellswords is registered");
 		int before = van.data.fuel;
 		check(van.feed(new ItemStack(Items.COAL, 3)).isEmpty(), "all 3 coal eaten");
 		check(van.data.fuel - before == 3 * 1600 * VehicleType.FUEL_EFFICIENCY, "coal goes in the tank");

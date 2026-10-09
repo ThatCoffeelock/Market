@@ -46,8 +46,9 @@ import org.jetbrains.annotations.Nullable;
  * <li>a <b>body</b>: a mannequin (a player model with a vanilla skin, a name, armour and weapons) that we put where
  * the brain is every tick. Hits on the body are passed on to the brain.</li>
  * </ul>
- * Both carry the tags {@code sellswords}, {@code sellswords_brain}/{@code sellswords_body} and {@code sellswords_id_<id>},
- * so they're found again when their chunk loads, after a restart or a trip through a portal. Saved in sellswords.json.
+ * Both carry the attachment {@link SellswordsMod#MERC} ("brain:<id>" or "body:<id>"), so they're found again when their
+ * chunk loads, after a restart or a trip through a portal (and the tags {@code sellswords}, {@code sellswords_brain} or
+ * {@code sellswords_body} for command selectors). Saved in sellswords.json.
  */
 final class Mercs {
 	static final String TAG = "sellswords";
@@ -152,25 +153,28 @@ final class Mercs {
 
 	// ---------------------------------------------------------------- finding them
 
+	/** "brain:<id>", "body:<id>" or null. */
+	static @Nullable String mark(@Nullable Entity e) {
+		return e == null ? null : e.getAttached(SellswordsMod.MERC);
+	}
+
 	static boolean isMerc(@Nullable Entity e) {
-		return e != null && e.getTags().contains(TAG);
+		return mark(e) != null;
 	}
 
 	static boolean isBrain(@Nullable Entity e) {
-		return e != null && e.getTags().contains(BRAIN_TAG);
+		String mark = mark(e);
+		return mark != null && mark.startsWith("brain:");
 	}
 
 	static boolean isBody(@Nullable Entity e) {
-		return e != null && e.getTags().contains(BODY_TAG);
+		String mark = mark(e);
+		return mark != null && mark.startsWith("body:");
 	}
 
 	static @Nullable String idOf(Entity e) {
-		for (String tag : e.getTags()) {
-			if (tag.startsWith(ID_TAG)) {
-				return tag.substring(ID_TAG.length());
-			}
-		}
-		return null;
+		String mark = mark(e);
+		return mark == null ? null : mark.substring(mark.indexOf(':') + 1);
 	}
 
 	/** The mercenary this brain or body belongs to, or null. */
@@ -340,6 +344,7 @@ final class Mercs {
 		if (!(level.getEntity(id) instanceof LivingEntity brain)) {
 			return null;
 		}
+		brain.setAttached(SellswordsMod.MERC, "brain:" + m.id);
 		m.brain = id.toString();
 		BRAINS.put(m.id, brain);
 		if (brain instanceof Mob mob) {
@@ -373,6 +378,7 @@ final class Mercs {
 			}
 			return null;
 		}
+		body.setAttached(SellswordsMod.MERC, "body:" + m.id);
 		m.body = id.toString();
 		BODIES.put(m.id, body);
 		Cmd.run(level, "team join " + TEAM + " " + id);
@@ -382,7 +388,7 @@ final class Mercs {
 
 	/** The line under their name: "Marksman ★★☆☆", in the colour of their path. */
 	static String description(Rank rank) {
-		return "{text:\"" + rank.title + " " + rank.stars() + "\",color:\"" + rank.path.color.getName() + "\"}";
+		return "{text:\"" + rank.title + " " + rank.stars() + "\",color:\"" + rank.path.color.name().toLowerCase(java.util.Locale.ROOT) + "\"}";
 	}
 
 	// ---------------------------------------------------------------- ranks and gear
