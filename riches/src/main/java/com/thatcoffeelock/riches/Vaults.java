@@ -46,6 +46,10 @@ final class Vaults {
 		if (v.owner.isEmpty()) {
 			return 0;
 		}
+		long pool = RichesApi.pool(v.owner);
+		if (pool >= 0) {
+			return height(pool); // a shared vault (another mod says what's in it)
+		}
 		try {
 			return height(Bank.balance(UUID.fromString(v.owner)));
 		} catch (IllegalArgumentException e) {

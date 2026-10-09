@@ -3,7 +3,7 @@
 	"id": "colonycraft",
 	"version": "${version}",
 	"name": "Colonycraft",
-	"description": "Found colonies with a Town Hall, buy prefab farms, fisheries, mines, lumber camps, workshops, storehouses, harbors, train stations and medieval walls with Marks, and let your villagers gather for you. Wages every morning, optional auto-sell to the Market. Works with Warehouse, Cargo Train, Havana and Burlap Sack. Server-side: vanilla clients can join.",
+	"description": "Found colonies with a Town Hall, buy prefab farms, ranches, apiaries, fisheries, mines, lumber camps, workshops, storehouses, harbors, train stations, trading posts with master traders, a bank, a museum, a chapel, a library and medieval walls with Marks, and let your villagers gather for you. Wages every morning, optional auto-sell to the Market. Works with Warehouse, Cargo Train, Havana, Burlap Sack, Riches and Fossil Fool. Server-side: vanilla clients can join.",
 	"authors": ["thatcoffeelock"],
 	"contact": {
 		"sources": "https://github.com/thatcoffeelock/market"
@@ -23,6 +23,8 @@
 		"warehouse": ">=1.2.0",
 		"cargotrain": "*",
 		"havana": ">=1.2.0",
-		"burlapsack": ">=1.1.0"
+		"burlapsack": ">=1.1.0",
+		"riches": ">=1.2.0",
+		"fossilfool": ">=1.1.0"
 	}
 }

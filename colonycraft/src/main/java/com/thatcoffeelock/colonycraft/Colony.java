@@ -36,6 +36,8 @@ public final class Colony {
 		public @Nullable String warehouse;
 		/** Train stations only: keep the Pickup Station topped up from the storehouses, so trains carry the goods away. */
 		public boolean export;
+		/** Banks only: what's in the vault, in cents. Anyone can pay in or take out at the teller. */
+		public long vault;
 		public SimpleContainer storage = new SimpleContainer(27);
 		/** Cellblocks only: who's locked up in which cell. */
 		public final Map<Integer, Prison.Prisoner> prisoners = new TreeMap<>();

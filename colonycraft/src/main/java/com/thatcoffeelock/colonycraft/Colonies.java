@@ -106,6 +106,7 @@ public final class Colonies {
 			}
 		}
 		Prison.index(COLONIES);
+		RichesLink.publishPools();
 		ColonycraftMod.LOG.info("Loaded {} colonies", COLONIES.size());
 	}
 
@@ -568,6 +569,14 @@ public final class Colonies {
 			case TRAIN_STATION -> "Station Master";
 			case CELLBLOCK -> "Jailer";
 			case SCAFFOLD -> "Executioner";
+			case TRADING_POST -> "Trader";
+			case BANK -> "Clerk";
+			case MUSEUM -> "Curator";
+			case CHAPEL -> "Priest";
+			case LIBRARY -> "Librarian";
+			case RANCH -> "Rancher";
+			case APIARY -> "Beekeeper";
+			case FUEL_DEPOT -> "Depot Hand";
 		};
 	}
 
@@ -597,21 +606,32 @@ public final class Colonies {
 		String extra = switch (b.type) {
 			case BARRACKS -> ",PlayerCreated:1b";
 			case WATCHTOWER -> ",NoAI:1b";
+			case TRADING_POST -> Street.traderNbt(index);
 			default -> "";
 		};
 		Cmd.run(level, "summon " + mob + " " + Cmd.pos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5)
 			+ " {" + Cmd.uuidNbt(id) + ",PersistenceRequired:1b" + extra + ",Tags:[\"colonycraft\"]}");
 		Entity villager = level.getEntity(id);
+		if (villager == null && b.type == BuildingType.TRADING_POST) {
+			// the trades didn't load (a game version that writes them differently): hire the master, stock up after
+			ColonycraftMod.LOG.warn("A master trader's wares didn't load on hiring; restocking them separately");
+			Cmd.run(level, "summon " + mob + " " + Cmd.pos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) + " {" + Cmd.uuidNbt(id)
+				+ ",PersistenceRequired:1b" + Street.traderNbt(index).replaceAll(",Offers:.*$", "") + ",Tags:[\"colonycraft\"]}");
+			villager = level.getEntity(id);
+		}
 		if (villager == null) {
 			ColonycraftMod.LOG.error("Could not hire a villager for the {} in {}", b.type.id, b.colony.name);
 			return null;
 		}
 		villager.setAttached(ColonycraftMod.WORKER, true);
-		villager.setCustomName(Component.literal(name + " the " + job(b.type)));
+		villager.setCustomName(Component.literal(name + " the " + (b.type == BuildingType.TRADING_POST ? Street.title(index) : job(b.type))));
 		if (b.type == BuildingType.WATCHTOWER && villager instanceof LivingEntity archer) {
 			archer.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
 		}
 		VILLAGERS.put(id, b);
+		if (b.type == BuildingType.TRADING_POST) {
+			Street.stock(level, villager, index);
+		}
 		return id;
 	}
 
@@ -651,7 +671,7 @@ public final class Colonies {
 					}
 					BlockPos at = b.world(b.type.station(i));
 					boolean away = switch (b.type) {
-						case WATCHTOWER -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > 1;
+						case WATCHTOWER, TRADING_POST -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > 1;
 						case BARRACKS -> !c.claims(villager.blockPosition());
 						default -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > max;
 					};
@@ -667,6 +687,7 @@ public final class Colonies {
 				}
 			}
 			Prison.keep(level, c);
+			Street.chapels(level, c);
 		}
 	}
 
@@ -883,8 +904,7 @@ public final class Colonies {
 					name(level, b.world(BuildingType.DROP_OFFS[t]), "Drop-off Station", "gold");
 				}
 			}
-			default -> {
-			}
+			default -> Street.furnish(level, b);
 		}
 	}
 
@@ -1048,6 +1068,10 @@ public final class Colonies {
 		if (!b.prisoners.isEmpty()) {
 			return "There are still prisoners in the cells. Take them out or execute them first.";
 		}
+		String street = Street.whyNoDemolish(b);
+		if (street != null) {
+			return street;
+		}
 		int leaving = b.type.needsBeds() ? b.villagers.size() : 0;
 		if (b.type.housing(b.tier) > 0 && b.colony.housing() - b.type.housing(b.tier) < b.colony.jobs() - leaving) {
 			return "Your workers would have nowhere to sleep. Demolish some workplaces first.";
@@ -1077,6 +1101,7 @@ public final class Colonies {
 		if (b.type == BuildingType.HARBOR_OFFICE) {
 			WarehouseLink.undock(level, b.world(BuildingType.HARBOR_DOCK));
 		}
+		Street.forget(level, b);
 		int h = b.half;
 		int d = b.depth;
 		BlockState air = Blocks.AIR.defaultBlockState();
@@ -1205,9 +1230,34 @@ public final class Colonies {
 				}
 			}
 		}
+		// the trading post, the bank and the museum earn their keep; the masters restock
+		ServerLevel here = level(c);
+		for (Colony.Building b : c.buildings) {
+			earned += Street.earnings(here, b);
+			if (b.type == BuildingType.TRADING_POST && here != null) {
+				Street.restock(here, b);
+			}
+		}
 		if (earned > 0) {
 			Bank.credit(c.owner, c.ownerName, earned);
 		}
+	}
+
+	/** What a bank's vault holds, in cents, by the bank's id (for the Riches mod's pile of gold). */
+	static Long vaultOf(String buildingId) {
+		for (Colony c : COLONIES) {
+			for (Colony.Building b : c.buildings) {
+				if (b.type == BuildingType.BANK && b.id.equals(buildingId)) {
+					return b.vault;
+				}
+			}
+		}
+		return 0L;
+	}
+
+	/** Price in cents to replace one dead worker: a staffed chapel takes a quarter off per tier. */
+	static long replacePrice(Colony c) {
+		return Math.round(Bank.cents(REPLACE_PRICE) * (1.0 - Street.replaceDiscount(c)));
 	}
 
 	static List<Colony.Building> storesOf(Colony c) {
@@ -1412,6 +1462,12 @@ public final class Colonies {
 		if (b == null) {
 			return InteractionResult.PASS;
 		}
+		if (b.type == BuildingType.BANK && pos.equals(b.world(BuildingType.BANK_TELLER))) {
+			if (hand == InteractionHand.MAIN_HAND) {
+				BankMenu.open(player, b); // anyone may bank here
+			}
+			return InteractionResult.SUCCESS;
+		}
 		boolean counter = b.type == BuildingType.TOWN_HALL && pos.equals(b.world(BuildingType.COUNTER));
 		boolean store = b.type == BuildingType.STOREHOUSE && level.getBlockState(pos).is(Blocks.BARREL);
 		int cell = Prison.cellAt(b, pos);
@@ -1452,6 +1508,9 @@ public final class Colonies {
 		}
 		if (b.type == BuildingType.BARRACKS && player.getItemInHand(hand).is(Items.IRON_INGOT)) {
 			return InteractionResult.PASS; // patching up an iron golem works as usual
+		}
+		if (b.type == BuildingType.TRADING_POST) {
+			return InteractionResult.PASS; // the masters trade, the vanilla way
 		}
 		if (hand == InteractionHand.MAIN_HAND) {
 			String what = switch (b.type) {

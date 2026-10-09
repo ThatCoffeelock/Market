@@ -543,6 +543,8 @@ final class SmokeTest {
 		Cmd.run(level, "kill @e[type=minecraft:husk]");
 		Cmd.run(level, "kill @e[type=minecraft:arrow]");
 
+		street(level);
+
 		// demolish everything, Town Hall last
 		Colony.Building workshop = find(BuildingType.WORKSHOP);
 		BlockPos anvil = workshop.world(new BlockPos(0, 1, 2));
@@ -571,6 +573,148 @@ final class SmokeTest {
 		Colonies.demolish(level, hall);
 		check(Colonies.all().isEmpty(), "the colony is disbanded");
 		ColonycraftMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
+	}
+
+	/**
+	 * The town street: a trading post (master traders with their wares, more stalls per tier), a bank (its vault,
+	 * ledger and public door with Riches; paying in, taking out), a museum (Riches cases, more per tier), a chapel
+	 * (cheaper replacements), a library (a level-30 table), a ranch (its animals, its goods), an apiary and a fuel
+	 * depot (Fossil Fool tanks, refinery and manifold). Then a payday with their earnings, and demolishing them.
+	 */
+	private static void street(ServerLevel level) {
+		Object[][] plan = {
+			{BuildingType.BANK, -50, -46}, {BuildingType.MUSEUM, -32, -46}, {BuildingType.CHAPEL, -14, -46}, {BuildingType.TRADING_POST, 4, -46},
+			{BuildingType.LIBRARY, 22, -46}, {BuildingType.RANCH, 40, -46}, {BuildingType.APIARY, -48, -26}, {BuildingType.FUEL_DEPOT, -48, -8}};
+		List<Colony.Building> built = new ArrayList<>();
+		for (Object[] p : plan) {
+			BuildingType type = (BuildingType) p[0];
+			check(type.available(), type.id + " can be bought here (Riches and Fossil Fool are on the smoke test's server)");
+			built.add(Colonies.construct(level, colony, type, new BlockPos((int) p[1], 99, (int) p[2]), 0, Bank.cents(type.price), true));
+		}
+		Colony.Building bank = find(BuildingType.BANK);
+		Colony.Building museum = find(BuildingType.MUSEUM);
+		Colony.Building chapel = find(BuildingType.CHAPEL);
+		Colony.Building shop = find(BuildingType.TRADING_POST);
+		Colony.Building library = find(BuildingType.LIBRARY);
+		Colony.Building ranch = find(BuildingType.RANCH);
+		Colony.Building depot = find(BuildingType.FUEL_DEPOT);
+
+		// the trading post: a master toolsmith who sells for emeralds and stays put; two more masters at tier 3
+		check(shop.alive() == 1 && level.getEntity(shop.villagers.get(0)) != null, "the trading post has its master toolsmith");
+		Entity toolsmith = level.getEntity(shop.villagers.get(0));
+		check(Street.stocked(toolsmith, 0), "the toolsmith sells our wares for emeralds");
+		check(toolsmith instanceof Mob m && m.isNoAi(), "masters stay behind their counters");
+		Colonies.upgrade(level, shop, 0);
+		Colonies.upgrade(level, shop, 0);
+		check(shop.alive() == 3, "a tier 3 trading post has three masters (" + shop.alive() + ")");
+		check(Street.stocked(level.getEntity(shop.villagers.get(1)), 1), "the armorer sells diamond armour");
+		check(Street.stocked(level.getEntity(shop.villagers.get(2)), 2), "the librarian sells enchanted books (they loaded on this game version)");
+		check(level.getEntity(shop.villagers.get(2)).getCustomName().getString().endsWith("the Master Librarian"), "masters are named for their trade");
+
+		// the bank: the ledger, the vault door, the teller; Riches knows the vault and the door; a shared vault
+		check(level.getBlockState(bank.world(BuildingType.BANK_TELLER)).is(Blocks.LECTERN), "the bank has its teller's lectern");
+		check(level.getBlockState(bank.world(BuildingType.BANK_LEDGER)).is(Blocks.LODESTONE), "the vault has its ledger");
+		check(level.getBlockState(bank.world(BuildingType.BANK_DOOR)).is(Blocks.IRON_DOOR), "and its door");
+		Map<String, Object> vault = RichesLink.info(level, bank.world(BuildingType.BANK_LEDGER));
+		check(vault != null && "vault".equals(vault.get("kind")) && ("pool:colonycraft:" + bank.id).equals(vault.get("owner")),
+			"Riches piles the bank's vault around the ledger (" + vault + ")");
+		Map<String, Object> door = RichesLink.info(level, bank.world(BuildingType.BANK_DOOR));
+		check(door != null && "door".equals(door.get("kind")) && "".equals(door.get("owner")), "the vault door opens for anyone");
+		UUID stranger = UUID.fromString("00000000-0000-0000-0000-0000000000b0");
+		Bank.credit(stranger, "Stranger", Bank.cents(500));
+		check(Street.deposit(OWNER, bank, Bank.cents(1000)) && bank.vault == Bank.cents(1000), "paying into the vault");
+		check(Colonies.vaultOf(bank.id) == Bank.cents(1000), "Riches sees what's in the vault");
+		check(Colonies.whyNoDemolish(bank) != null, "a bank with money in the vault can't be knocked down");
+		check(!Street.deposit(stranger, bank, Bank.cents(600)), "nobody pays in more than they have");
+		long before = Bank.balance(stranger);
+		check(Street.withdraw(stranger, "Stranger", bank, Bank.cents(1500)) == Bank.cents(1000) && Bank.balance(stranger) - before == Bank.cents(1000)
+			&& bank.vault == 0, "anyone can take out what's in it, and no more");
+
+		// the museum: Riches display cases and pedestals, four more per tier
+		for (int i = 0; i < BuildingType.shows(1); i++) {
+			Map<String, Object> show = RichesLink.info(level, museum.world(BuildingType.show(i)));
+			check(show != null && "case".equals(show.get("kind")) && OWNER.toString().equals(show.get("owner")), "museum case " + i + " is a Riches display case");
+		}
+		Colonies.upgrade(level, museum, 0);
+		Colonies.upgrade(level, museum, 0);
+		Colonies.finishJobs();
+		check(level.getBlockState(museum.world(BuildingType.show(7))).is(Blocks.GLASS), "a tier 3 museum has more cases");
+		Map<String, Object> pedestal = RichesLink.info(level, museum.world(BuildingType.show(11)));
+		check(pedestal != null && "pedestal".equals(pedestal.get("kind")), "and pedestals down the middle");
+		check(RichesLink.occupied(level, Street.shows(museum)) == 0 && Colonies.whyNoDemolish(museum) == null, "an empty museum");
+
+		// the chapel: replacing the dead costs a quarter less; the library: a level-30 table
+		check(chapel.alive() == 1 && Colonies.replacePrice(colony) == Bank.cents(75), "a chapel makes replacements cheaper ("
+			+ Bank.format(Colonies.replacePrice(colony)) + ")");
+		BlockPos table = library.world(BuildingType.ENCHANTING);
+		check(level.getBlockState(table).is(Blocks.ENCHANTING_TABLE), "the library has its enchanting table");
+		int shelves = 0;
+		for (int dx = -2; dx <= 2; dx++) {
+			for (int dz = -2; dz <= 2; dz++) {
+				for (int dy = 0; dy <= 1; dy++) {
+					boolean ring = Math.abs(dx) == 2 || Math.abs(dz) == 2;
+					BlockPos at = table.offset(dx, dy, dz);
+					BlockPos between = table.offset(dx / 2, dy, dz / 2);
+					if (ring && level.getBlockState(at).is(Blocks.BOOKSHELF) && level.getBlockState(between).isAir()) {
+						shelves++;
+					}
+				}
+			}
+		}
+		check(shelves >= 15, "with at least 15 bookshelves around it, so it enchants at level 30 (" + shelves + ")");
+		check(library.villagers.isEmpty() && library.type.maxTier() == 1, "the library needs no staff and no upgrades");
+
+		// the ranch's animals, in their paddock
+		int animals = level.getEntities((Entity) null, new AABB(ranch.world(new BlockPos(-6, 0, -6)).getCenter(), ranch.world(new BlockPos(6, 4, 6)).getCenter())
+			.inflate(1), e -> e.hasCustomName() == false && e.getType() != net.minecraft.world.entity.EntityType.VILLAGER
+			&& BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).getPath().matches("cow|sheep|pig|chicken")).size();
+		check(animals == 7, "the ranch has its cows, sheep, pigs and chickens (" + animals + ")");
+
+		// the fuel depot: Fossil Fool tanks (crude left, diesel right), a refinery, a pipe manifold out both sides
+		Map<String, Object> crude = FossilLink.info(level, depot.world(BuildingType.depotTank(0)));
+		Map<String, Object> diesel = FossilLink.info(level, depot.world(BuildingType.depotTank(1)));
+		check(crude != null && "tank".equals(crude.get("kind")) && "CRUDE".equals(crude.get("set")), "the depot's left tank takes crude (" + crude + ")");
+		check(diesel != null && "DIESEL".equals(diesel.get("set")), "the right one diesel");
+		Map<String, Object> refinery = FossilLink.info(level, depot.world(BuildingType.DEPOT_REFINERY));
+		check(refinery != null && "refinery".equals(refinery.get("kind")), "the depot has its refinery");
+		Map<String, Object> inlet = FossilLink.info(level, depot.world(new BlockPos(6, 1, BuildingType.DEPOT_PIPE_Z)));
+		check(inlet != null && "pipe".equals(inlet.get("kind")), "and a pipe manifold coming out of the side wall");
+		Colonies.upgrade(level, depot, 0);
+		Colonies.finishJobs();
+		Map<String, Object> more = FossilLink.info(level, depot.world(BuildingType.depotTank(3)));
+		check(more != null && "DIESEL".equals(more.get("set")), "a tier 2 depot has four tanks");
+		check(Colonies.whyNoDemolish(depot) == null, "an empty depot can go");
+
+		// payday: the ranch and apiary deliver; the trading post, bank and museum earn more than their staff cost
+		Colony.Building store = find(BuildingType.STOREHOUSE);
+		empty(store);
+		long earnings = 0;
+		for (Colony.Building b : List.of(shop, bank, museum)) {
+			long earns = Street.earnings(level, b);
+			check(earns > Bank.cents(b.type.wage) * b.alive(), b.type.id + " earns more (" + Bank.format(earns) + ") than its staff cost");
+			earnings += earns;
+		}
+		check(Street.earnings(level, shop) == Bank.cents(100) && Street.earnings(level, museum) == Bank.cents(75), "earnings go up with the tier");
+		Bank.credit(OWNER, "SmokeTest", Bank.cents(10_000));
+		long wages = colony.dailyWages();
+		before = Bank.balance(OWNER);
+		Colonies.payday(colony);
+		check(!colony.striking, "the wages were paid");
+		check(Bank.balance(OWNER) - before == earnings - wages, "payday paid " + Bank.format(earnings) + " in earnings and " + Bank.format(wages)
+			+ " in wages (" + Bank.format(Bank.balance(OWNER) - before) + ")");
+		check(count(store, Items.LEATHER) + count(store, Items.EGG) > 0, "the ranch delivered");
+		check(count(store, Items.HONEYCOMB) > 0, "the apiary delivered");
+		check(count(store, Items.COOKED_BEEF) + count(store, Items.BEEF) > 0, "beef, cooked or not");
+
+		// knocking them down clears up after them
+		BlockPos ledger = bank.world(BuildingType.BANK_LEDGER);
+		BlockPos tank = depot.world(BuildingType.depotTank(0));
+		for (Colony.Building b : built) {
+			check(Colonies.whyNoDemolish(b) == null, b.type.id + " can be demolished");
+			Colonies.demolish(level, b);
+		}
+		check(RichesLink.info(level, ledger) == null && FossilLink.info(level, tank) == null, "Riches and Fossil Fool forget the demolished buildings");
+		ColonycraftMod.LOG.info("[smoke] ok: the town street");
 	}
 
 	private static void cleanup(ServerLevel level) {

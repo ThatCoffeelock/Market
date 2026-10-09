@@ -8,6 +8,8 @@ on:
       - 'warehouse/**'
       - 'havana/**'
       - 'burlap-sack/**'
+      - 'riches/**'
+      - 'fossil-fool/**'
       - '.github/workflows/colonycraft.yml'
   pull_request:
     paths:
@@ -16,6 +18,8 @@ on:
       - 'warehouse/**'
       - 'havana/**'
       - 'burlap-sack/**'
+      - 'riches/**'
+      - 'fossil-fool/**'
       - '.github/workflows/colonycraft.yml'
   workflow_dispatch:
 
@@ -54,6 +58,7 @@ jobs:
           (cd warehouse && ./gradlew build -x test)
           (cd havana && ./gradlew build -x test)
           (cd burlap-sack && ./gradlew build -x test)
+          (cd riches && ./gradlew build -x test)
 
       - name: Build
         run: |

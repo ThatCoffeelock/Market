@@ -170,7 +170,41 @@ final class SmokeTest {
 		Cmd.run(level, "setblock -8 101 0 minecraft:chest");
 		check(Relics.lootKey(level, CHEST).isEmpty(), "a plain chest isn't");
 		log("loot chests");
+		api(level);
 		saveAndLoad(server, level);
+	}
+
+	/** riches:api, as Colonycraft's bank and museum use it: a shared vault, a public door, a museum case. */
+	@SuppressWarnings("unchecked")
+	private static void api(ServerLevel level) {
+		Object hook = FabricLoader.getInstance().getObjectShare().get(RichesApi.KEY);
+		check(hook instanceof java.util.function.BiFunction<?, ?, ?>, "riches:api is published");
+		var api = (java.util.function.BiFunction<String, java.util.Map<String, Object>, Object>) hook;
+		api.apply("pools", java.util.Map.of("namespace", "smoke", "resolver", (java.util.function.Function<String, Long>) id -> id.equals("bank") ? 500_000L : 0L));
+		BlockPos ledger = new BlockPos(20, 101, 20);
+		BlockPos door = new BlockPos(20, 101, 24);
+		BlockPos show = new BlockPos(22, 101, 20);
+		Cmd.run(level, "setblock 20 101 20 minecraft:lodestone");
+		Cmd.run(level, "setblock 22 101 20 minecraft:glass");
+		api.apply("vault", java.util.Map.of("level", level, "pos", ledger, "owner", "pool:smoke:bank", "owner_name", "Smokeville Bank"));
+		api.apply("door", java.util.Map.of("level", level, "pos", door, "owner", "", "owner_name", ""));
+		api.apply("showcase", java.util.Map.of("level", level, "pos", show, "kind", "case", "owner", SCROOGE.toString(), "owner_name", "Scrooge"));
+		Places.Vault vault = Places.VAULTS.get(Places.key(level, ledger));
+		check(vault != null && RichesApi.pool(vault.owner) == 500_000 && Vaults.balanceHeight(vault) == Vaults.height(500_000),
+			"a pool vault piles up what the pool holds, not anyone's balance");
+		check(Places.DOORS.get(Places.key(level, door)) != null && Places.DOORS.get(Places.key(level, door)).owner.isEmpty(), "a public vault door");
+		Places.Showcase s = Places.SHOWCASES.get(Places.key(level, show));
+		java.util.List<BlockPos> cases = java.util.List.of(show);
+		check(s != null && (int) api.apply("relics", java.util.Map.of("level", level, "positions", cases)) == 0, "an empty museum case");
+		Showcases.put(level, s, RichesItems.relic(Relic.TRILOBITE), "Scrooge");
+		check((int) api.apply("relics", java.util.Map.of("level", level, "positions", cases)) == 1
+			&& (int) api.apply("occupied", java.util.Map.of("level", level, "positions", cases)) == 1, "a relic in it counts");
+		api.apply("vault", java.util.Map.of("level", level, "pos", ledger, "owner", "someone else", "owner_name", "x"));
+		check(Places.VAULTS.get(Places.key(level, ledger)).owner.equals("pool:smoke:bank"), "registering again leaves it as it was");
+		api.apply("remove", java.util.Map.of("level", level, "pos", show));
+		check(Places.SHOWCASES.get(Places.key(level, show)) == null, "remove forgets it (the relic drops)");
+		Showcases.clear(level, s);
+		log("riches:api");
 	}
 
 	private static void saveAndLoad(MinecraftServer server, ServerLevel level) {

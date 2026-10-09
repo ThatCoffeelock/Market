@@ -99,9 +99,11 @@ public final class Interactions {
 			return InteractionResult.SUCCESS;
 		}
 		if (vault != null) {
-			long cents = 0;
+			long cents = Math.max(0, RichesApi.pool(vault.owner));
 			try {
-				cents = Bank.balance(java.util.UUID.fromString(vault.owner));
+				if (RichesApi.pool(vault.owner) < 0) {
+					cents = Bank.balance(java.util.UUID.fromString(vault.owner));
+				}
 			} catch (IllegalArgumentException ignored) {
 				// no owner
 			}

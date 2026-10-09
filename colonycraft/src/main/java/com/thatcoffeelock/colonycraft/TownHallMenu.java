@@ -31,9 +31,12 @@ import org.jetbrains.annotations.Nullable;
  */
 final class TownHallMenu extends ChestMenu {
 	private static final int SIZE = 54;
-	private static final int PER_PAGE = 18;
+	private static final int PER_PAGE = 9;
 	private static final BuildingType[] SHOP = {BuildingType.RESIDENCE, BuildingType.FARM, BuildingType.LUMBER_CAMP,
 		BuildingType.MINE, BuildingType.FISHERY, BuildingType.TOBACCO_FARM, BuildingType.WORKSHOP, BuildingType.STOREHOUSE};
+	/** The town street: shops, the bank, the museum, the chapel, the library, the ranch, the apiary and the fuel depot. */
+	private static final BuildingType[] STREET = {BuildingType.TRADING_POST, BuildingType.BANK, BuildingType.MUSEUM, BuildingType.CHAPEL,
+		BuildingType.LIBRARY, BuildingType.RANCH, BuildingType.APIARY, BuildingType.FUEL_DEPOT};
 	private static final BuildingType[] FORTIFICATIONS = {BuildingType.WALL, BuildingType.WALL_STAIRS, BuildingType.WALL_TOWER,
 		BuildingType.GATEHOUSE, BuildingType.WATCHTOWER};
 
@@ -176,6 +179,14 @@ final class TownHallMenu extends ChestMenu {
 				t("shackles in a cell's holding block.", ChatFormatting.GRAY), t("Then ransom them, or make a show of it.", ChatFormatting.GRAY))), null);
 		shopButton(25, BuildingType.CELLBLOCK);
 		shopButton(26, BuildingType.SCAFFOLD);
+
+		button(27, icon(Items.EMERALD, t("The town street", ChatFormatting.AQUA, ChatFormatting.BOLD),
+			List.of(t("Shops and public buildings.", ChatFormatting.GRAY), t("The trading post, bank and museum", ChatFormatting.GRAY),
+				t("earn marks every day.", ChatFormatting.GRAY), Component.empty(),
+				t("Your buildings are listed below.", ChatFormatting.DARK_GRAY))), null);
+		for (int i = 0; i < STREET.length; i++) {
+			shopButton(28 + i, STREET[i]);
+		}
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		page = Math.min(page, pages - 1);
@@ -206,7 +217,7 @@ final class TownHallMenu extends ChestMenu {
 			if (b.dead() > 0) {
 				icon.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 			}
-			button(27 + i, icon, () -> {
+			button(36 + i, icon, () -> {
 				selected = b;
 				confirmDemolish = false;
 				render();
@@ -240,13 +251,16 @@ final class TownHallMenu extends ChestMenu {
 		if (crew > 0) {
 			lore.add(t(crew + " " + type.crewNoun(crew) + ", " + Bank.format(Bank.cents(type.wage) * crew) + " wages a day", ChatFormatting.DARK_GRAY));
 		}
+		if (Street.income(type, 1) > 0) {
+			lore.add(t("Earns " + Bank.format(Bank.cents(Street.income(type, 1))) + " a day at tier 1, more at higher tiers.", ChatFormatting.GOLD));
+		}
 		if (type.fortification) {
 			lore.add(t("Doesn't use a building slot.", ChatFormatting.DARK_GRAY));
 		}
 		lore.add(Component.empty());
 		String name = type == BuildingType.TOWN_HALL ? "Colony Charter (a new colony)" : type.displayName;
 		if (!type.available()) {
-			lore.add(t("Needs the Havana mod on the server.", ChatFormatting.RED));
+			lore.add(t("Needs the " + type.needs() + " mod on the server.", ChatFormatting.RED));
 			button(slot, icon(type.icon, t(name, ChatFormatting.DARK_GRAY, ChatFormatting.BOLD), lore), null);
 			return;
 		}
@@ -305,6 +319,15 @@ final class TownHallMenu extends ChestMenu {
 			case GATEHOUSE -> "A way through the wall. You can open the gates, monsters can't.";
 			case CELLBLOCK -> "Cells for the illagers you catch. Lock them up, ransom them, or execute them for a bounty.";
 			case SCAFFOLD -> "Public executions on the square: " + factor(1) + " the bounty, and the whole server is invited.";
+			case TRADING_POST -> "Master traders who sell diamond tools, diamond armour and top enchanted books for emeralds. One per tier.";
+			case BANK -> "A walk-in vault anyone can pay into or take from at the teller."
+				+ (RichesLink.present() ? " Its money piles up in gold." : "");
+			case MUSEUM -> "A gallery of Riches display cases: put your relics on show. Earns more per relic.";
+			case CHAPEL -> "Heals anyone inside, and replacing workers who died costs a quarter less per tier.";
+			case LIBRARY -> "A reading room with a fully powered enchanting table (fifteen bookshelves and then some).";
+			case RANCH -> "Cows, sheep, pigs and chickens: beef, pork, mutton, chicken, leather, eggs, feathers, wool.";
+			case APIARY -> "Beehives in a flower garden: honeycomb and bottles of honey.";
+			case FUEL_DEPOT -> "Fossil Fool tanks for crude and diesel and a refinery, with a pipe manifold to plug your pipeline into.";
 		};
 	}
 
@@ -347,7 +370,7 @@ final class TownHallMenu extends ChestMenu {
 		}
 		// replacements
 		if (b.dead() > 0) {
-			long price = Bank.cents(Colonies.REPLACE_PRICE) * b.dead();
+			long price = Colonies.replacePrice(colony) * b.dead();
 			button(30, icon(Items.EMERALD, t("Hire " + b.dead() + " replacement" + (b.dead() > 1 ? "s" : ""), ChatFormatting.GREEN, ChatFormatting.BOLD),
 				List.of(money("Price: ", price), t("They move in right away.", ChatFormatting.GRAY))), () -> replace(b, price));
 		}
@@ -433,6 +456,7 @@ final class TownHallMenu extends ChestMenu {
 				render();
 			});
 		}
+		street(b);
 		// repair and renovate
 		ServerLevel here = level();
 		int broken = here == null ? 0 : Colonies.damaged(here, b);
@@ -456,6 +480,54 @@ final class TownHallMenu extends ChestMenu {
 		});
 	}
 
+	/** The town street's buildings: what's in them, what they earn. */
+	private void street(Colony.Building b) {
+		ServerLevel level = level();
+		long earns = Street.earnings(level, b);
+		switch (b.type) {
+			case TRADING_POST -> {
+				for (int i = 0; i < b.villagers.size() && i < 3; i++) {
+					List<Component> lore = new ArrayList<>();
+					lore.add(t("Restocks every morning (" + Street.STOCK + " of each).", ChatFormatting.GRAY));
+					for (String w : Street.wares(i)) {
+						lore.add(t(" " + w, ChatFormatting.DARK_GRAY));
+					}
+					button(32 + i, icon(Items.EMERALD, t(Street.title(i), ChatFormatting.AQUA, ChatFormatting.BOLD), lore), null);
+				}
+			}
+			case BANK -> button(32, icon(Items.GOLD_BLOCK, t("The vault", ChatFormatting.GOLD, ChatFormatting.BOLD),
+				List.of(money("Holds: ", b.vault), t("Anyone can pay in or take out", ChatFormatting.GRAY),
+					t("at the teller's lectern, left of the hall.", ChatFormatting.GRAY),
+					t(RichesLink.present() ? "It piles up in gold around the ledger." : "With Riches, it piles up in gold.", ChatFormatting.DARK_GRAY))),
+				() -> ColonycraftMod.nextTick(() -> BankMenu.open(viewer, b)));
+			case MUSEUM -> {
+				int relics = level == null ? 0 : RichesLink.relics(level, Street.shows(b));
+				int shown = level == null ? 0 : RichesLink.occupied(level, Street.shows(b));
+				button(32, icon(Items.GLASS, t("The gallery", ChatFormatting.AQUA, ChatFormatting.BOLD),
+					List.of(t(shown + " of " + BuildingType.shows(b.tier) + " cases filled, " + relics + " relics", ChatFormatting.GRAY),
+						t("Right-click a case with something to show it.", ChatFormatting.GRAY),
+						t("Relics here count for the Royal Society.", ChatFormatting.DARK_GRAY))), null);
+			}
+			case FUEL_DEPOT -> button(32, icon(Items.CAULDRON, t("The tanks", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t(level == null ? "" : FossilLink.buckets(level, Street.tanks(b)) + " buckets in " + BuildingType.depotTanks(b.tier) + " tanks",
+						ChatFormatting.GRAY), t("Crude tanks on the left, diesel on the right.", ChatFormatting.GRAY),
+					t("The refinery turns crude into diesel.", ChatFormatting.GRAY),
+					t("Plug a pipeline into the copper manifold", ChatFormatting.DARK_GRAY), t("where it comes out of either side wall.", ChatFormatting.DARK_GRAY))), null);
+			case CHAPEL -> button(32, icon(Items.LANTERN, t("Sanctuary", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("Anyone inside is healed while it's staffed.", ChatFormatting.GRAY),
+					money("Replacements now cost: ", Colonies.replacePrice(colony)))), null);
+			case LIBRARY -> button(32, icon(Items.ENCHANTING_TABLE, t("Reading room", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("The enchanting table has all its bookshelves:", ChatFormatting.GRAY), t("level 30 enchantments.", ChatFormatting.GRAY))), null);
+			default -> {
+			}
+		}
+		if (Street.income(b.type, b.tier) > 0) {
+			button(42, icon(Items.SUNFLOWER, t("Earnings", ChatFormatting.GOLD, ChatFormatting.BOLD),
+				List.of(money("Today: ", earns), money("Wages: ", Bank.cents(b.type.wage) * b.alive()),
+					t(b.alive() == 0 ? "Nobody's at work: hire a replacement." : "Paid every morning.", b.alive() == 0 ? ChatFormatting.RED : ChatFormatting.DARK_GRAY))), null);
+		}
+	}
+
 	private static String upgradeText(Colony.Building b) {
 		int next = b.tier + 1;
 		return switch (b.type) {
@@ -471,6 +543,12 @@ final class TownHallMenu extends ChestMenu {
 			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + stone(next);
 			case WALL, WALL_STAIRS, WALL_TOWER, GATEHOUSE -> "Rebuilt in " + stone(next);
 			case CELLBLOCK -> BuildingType.cells(next) + " cells: two more get unbricked.";
+			case TRADING_POST -> "A " + Street.title(next - 1) + " in the next stall, and " + Bank.format(Bank.cents(Street.income(b.type, next))) + " a day.";
+			case BANK -> (next == 3 ? "A second clerk, and " : "") + Bank.format(Bank.cents(Street.income(b.type, next))) + " a day.";
+			case MUSEUM -> BuildingType.shows(next) + " display cases and pedestals, and " + Bank.format(Bank.cents(Street.income(b.type, next)))
+				+ " a day (plus " + Bank.format(Bank.cents(Street.PER_RELIC)) + " per relic on show).";
+			case CHAPEL -> "Replacing the dead costs " + (25 * next) + "% less" + (next == 3 ? ", and the healing is stronger." : ".");
+			case FUEL_DEPOT -> BuildingType.depotTanks(next) + " tanks (half crude, half diesel).";
 			case SCAFFOLD -> "Bigger crowds: public executions pay " + factor(next) + " the bounty.";
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
@@ -566,7 +644,7 @@ final class TownHallMenu extends ChestMenu {
 		}
 		int hired = Colonies.replaceDead(level, b);
 		if (hired < dead) {
-			Bank.credit(viewer.getUUID(), viewer.getName().getString(), Bank.cents(Colonies.REPLACE_PRICE) * (dead - hired));
+			Bank.credit(viewer.getUUID(), viewer.getName().getString(), Colonies.replacePrice(colony) * (dead - hired));
 		}
 		kaching();
 		render();

@@ -461,6 +461,8 @@ final class SmokeTest {
 		check(Hooks.price(OilItems.rig()) == -1 && Hooks.price(new ItemStack(Items.PAPER)) == null, "machines don't sell, paper isn't ours");
 		Object hooks = FabricLoader.getInstance().getObjectShare().get(Hooks.PRICE_HOOKS);
 		check(hooks instanceof List<?> list && !list.isEmpty(), "the Market price hook is published");
+		check(FabricLoader.getInstance().getObjectShare().get(FossilFoolApi.KEY) instanceof java.util.function.BiFunction<?, ?, ?>,
+			"fossilfool:api is published (Colonycraft's Fuel Depot uses it)");
 		log("market prices");
 	}
 

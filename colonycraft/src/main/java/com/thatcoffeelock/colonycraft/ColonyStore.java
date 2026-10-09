@@ -66,6 +66,9 @@ final class ColonyStore {
 				bo.addProperty("spent", b.spent);
 				bo.addProperty("autosell", b.autosell);
 				bo.addProperty("export", b.export);
+				if (b.vault != 0) {
+					bo.addProperty("vault", b.vault);
+				}
 				if (b.warehouse != null) {
 					bo.addProperty("warehouse", b.warehouse);
 				}
@@ -139,6 +142,7 @@ final class ColonyStore {
 				b.spent = bo.get("spent").getAsLong();
 				b.autosell = bo.has("autosell") && bo.get("autosell").getAsBoolean();
 				b.export = bo.has("export") && bo.get("export").getAsBoolean();
+				b.vault = bo.has("vault") ? bo.get("vault").getAsLong() : 0;
 				b.warehouse = bo.has("warehouse") ? bo.get("warehouse").getAsString() : null;
 				for (JsonElement v : bo.getAsJsonArray("villagers")) {
 					String s = v.getAsString();
