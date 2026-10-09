@@ -1,0 +1,15 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_crossbow": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:crossbow"}]}
+		},
+		"has_target": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:target"}]}
+		}
+	},
+	"requirements": [["has_crossbow", "has_target"]],
+	"rewards": {"recipes": ["sellswords:mercenary_station"]}
+}

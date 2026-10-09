@@ -2,7 +2,7 @@
 
 A Fabric mod for Minecraft **26.3** that adds an **Elder Scrolls style skill system**: you get better at things by doing them.
 
-- **20 skills**, from Combat and Mining to Sailing, Mercantile, Governance, Treasure Hunting and Piloteering. Each levels **0 to 100** as you use it.
+- **21 skills**, from Combat and Mining to Sailing, Mercantile, Governance, Treasure Hunting, Piloteering and Leadership. Each levels **0 to 100** as you use it.
 - **Every level gives a small passive bonus.** Level 100 makes you about **twice as good** at that thing as a beginner. Demigod tier, not "the server blows up" tier.
 - **Every 10 levels you earn a perk point** for that skill. Each skill has **3 perks with 5 ranks each**: 15 ranks, but only 10 points. Pick what suits you.
 - **A long road.** Early levels come fast, then each level costs 4.5% more than the last. Level 50 is about 10% of the way to 100.
@@ -55,6 +55,7 @@ Admin commands (op level 2): `/skills admin setlevel <player> <skill> <level>`, 
 | **Connoisseur** | Harvesting ripe tobacco (6), rolling cigars (4 each), puffing (1), finishing a cigar (5, Gran Reserva 10) | +50% cigar effect duration | **Green Leaf** 6% chance of double leaves · **Master Roller** 6% chance of a bonus cigar · **Iron Lungs** -20% chance to cough |
 | **Piloteering** | Flying an airship as its captain (0.4 per block), steering a happy ghast (0.2 per block), bombs you drop going off (5 / 10 / 20 by size, +6 per mob caught) | 30% less airship diesel and +30% happy ghast speed | **Ace** +4% airship and happy ghast speed · **Bombardier** 6% chance a dropped bomb isn't used up · **Payload** +5% bomb blast |
 | **Wildcatting** | Fossil Fool: blocks your Drill Rig drills (0.4, ores 2), striking oil (50), buckets pumped or scooped (1), diesel refined (6), dowsing (0.5) | +25% fuel efficiency in Drill Rigs and Refineries | **Roughneck** +6% Drill Rig speed · **Refiner** 5% chance of a bonus bucket of diesel · **Dowser** Dowsing Rod reaches +8 blocks |
+| **Leadership** | Sellswords: hiring a mercenary (10), promoting one (20 per rank), every kill your mercenaries make (3, more for big mobs) | +25% mercenary health, and room for one more mercenary per 25 levels (up to +4) | **Quartermaster** -6% gold for promotions · **Drillmaster** +5% mercenary damage · **Shield Wall** -4% damage taken by your mercenaries |
 
 Damage reductions from all perks together are capped at 60%. Market buy prices never drop below 1.25x what the market pays, so even a maxed merchant can't print money.
 
@@ -80,7 +81,7 @@ Skill progress is saved in `<world>/skills.json`. Player-placed blocks are remem
 - **Market**: Mercantile raises your sell prices and lowers your buy prices, and selling and buying gives Mercantile XP. Neither mod needs the other.
 - **Flintlock**: gun damage levels Marksmanship and gets its bonuses.
 - **Ahoy**: sailing the ship levels Sailing.
-- **Cannon**: Artillery. **Fuck Illagers**: Bounty Hunting. **Colonycraft**: Governance (it works for offline colony owners too). **Havana**: Connoisseur. **Blimey**: Piloteering. **Riches**: Treasure Hunting's relic perks. Treasure Hunting's chest bonus works without any other mod.
+- **Cannon**: Artillery. **Fuck Illagers**: Bounty Hunting. **Colonycraft**: Governance (it works for offline colony owners too). **Havana**: Connoisseur. **Blimey**: Piloteering. **Sellswords**: Leadership. **Riches**: Treasure Hunting's relic perks. Treasure Hunting's chest bonus works without any other mod.
 - **For mod makers**: other mods read bonuses through the ObjectShare function `skills:bonus` ("artillery/passive", "artillery/powder_monkey") and give XP through `skills:xp`. Nobody needs anybody else to compile.
 - **Fossil Fool**: Wildcatting is the oil skill. Your Drill Rigs and Refineries earn it for you even while you're offline (the level-up message waits until you're back). Neither mod needs the other.
 - **Havana**: Green Thumb never replants potatoes while Havana is installed, so it can't mix up young tobacco plants.

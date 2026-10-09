@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "sellswords",
+	"version": "${version}",
+	"name": "Sellswords",
+	"description": "Hire mercenaries at a Mercenary Station: Dutch sellswords with crossbows and swords who follow you, hold a spot, hunt with you, guard your walls and your villagers, ride along on your ships and airships, and climb the ranks for gold to become a Musketeer or a Foestopper Bulwark. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.sellswords.SellswordsMod"]
+	},
+	"mixins": ["sellswords.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*",
+		"market": ">=1.0.0"
+	}
+}

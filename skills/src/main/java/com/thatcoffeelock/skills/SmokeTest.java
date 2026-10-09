@@ -187,7 +187,7 @@ final class SmokeTest {
 		check(api.apply(oilman, "artillery/haggler") == 0.0 && api.apply(oilman, "nonsense") == 0.0, "wrong keys give nothing");
 		((java.util.function.BiConsumer<UUID, java.util.Map.Entry<String, Double>>) apiXp).accept(oilman, java.util.Map.entry("governance", 300.0));
 		check(profile.level(Skill.GOVERNANCE) >= 2, "offline Governance XP is banked");
-		check(Skill.values().length == 20 && Perk.values().length == 60, "20 skills, 60 perks");
+		check(Skill.values().length == 21 && Perk.values().length == 63, "21 skills, 63 perks");
 		profile.xp.put(Skill.PILOTEERING.id(), Skill.totalFor(100));
 		profile.perks.put(Perk.ACE.id(), 5);
 		check(Math.abs(api.apply(oilman, "piloteering/passive") - 0.30) < 1e-9, "Piloteering 100 burns 30% less diesel");
@@ -195,6 +195,10 @@ final class SmokeTest {
 		check(Skill.PILOTEERING.passiveText(100).equals("-30% airship diesel, +30% happy ghast speed"), "Piloteering's passive covers ghasts ("
 			+ Skill.PILOTEERING.passiveText(100) + ")");
 		check(!Tracker.isHappyGhast(null), "nothing isn't a happy ghast");
+		profile.xp.put(Skill.LEADERSHIP.id(), Skill.totalFor(100));
+		profile.perks.put(Perk.QUARTERMASTER.id(), 5);
+		check(Math.abs(api.apply(oilman, "leadership/passive") - 0.25) < 1e-9, "Leadership 100 = +25% mercenary health");
+		check(Math.abs(api.apply(oilman, "leadership/quartermaster") - 0.30) < 1e-9, "Quartermaster 5 = 30% cheaper promotions");
 		for (Skill skill : Skill.values()) {
 			check(Perk.of(skill).size() == 3, skill.id() + " has 3 perks");
 		}

@@ -110,7 +110,12 @@ public enum Perk {
 	// Piloteering
 	ACE(Skill.PILOTEERING, "Ace", "feather", 0.04, "+%s airship and happy ghast speed"),
 	BOMBARDIER(Skill.PILOTEERING, "Bombardier", "tnt", 0.06, "%s chance a dropped bomb isn't used up"),
-	PAYLOAD(Skill.PILOTEERING, "Payload", "fire_charge", 0.05, "+%s bomb blast");
+	PAYLOAD(Skill.PILOTEERING, "Payload", "fire_charge", 0.05, "+%s bomb blast"),
+
+	// Leadership
+	QUARTERMASTER(Skill.LEADERSHIP, "Quartermaster", "gold_ingot", 0.06, "-%s gold for mercenary promotions"),
+	DRILLMASTER(Skill.LEADERSHIP, "Drillmaster", "iron_sword", 0.05, "+%s damage dealt by your mercenaries"),
+	SHIELD_WALL(Skill.LEADERSHIP, "Shield Wall", "shield", 0.04, "-%s damage taken by your mercenaries");
 
 	public static final int MAX_RANK = 5;
 

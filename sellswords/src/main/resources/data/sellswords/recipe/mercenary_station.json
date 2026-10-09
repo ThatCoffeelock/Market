@@ -1,0 +1,29 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		" C ",
+		"STS",
+		"GGG"
+	],
+	"key": {
+		"C": "minecraft:crossbow",
+		"S": "minecraft:iron_sword",
+		"T": "minecraft:target",
+		"G": "minecraft:gold_ingot"
+	},
+	"result": {
+		"id": "minecraft:target",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"sellswords_station": true},
+			"minecraft:item_name": {"text": "Mercenary Station", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Place it, then right-click it to hire", "color": "gray", "italic": false},
+				{"text": "sellswords. Idle ones patrol 50 blocks around it.", "color": "gray", "italic": false},
+				{"text": "They work for Marks. And for gold. Mostly gold.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

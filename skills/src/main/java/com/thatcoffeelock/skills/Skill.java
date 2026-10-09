@@ -6,7 +6,7 @@ import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The twenty skills. Every level gives a small passive bonus ({@link #perLevel} percent per level, so level 100 is
+ * The twenty-one skills. Every level gives a small passive bonus ({@link #perLevel} percent per level, so level 100 is
  * 100x that), and every 10 levels gives one perk point to spend in this skill's own perks. A maxed skill (passive +
  * all the perks you can afford) makes you roughly twice as good at that thing as an unskilled player.
  */
@@ -70,7 +70,10 @@ public enum Skill {
 		"+%s cigar effect duration"),
 	PILOTEERING("Piloteering", "elytra", ChatFormatting.AQUA, 0.3,
 		"Flying a Blimey airship as its captain, dropping bombs from one, and steering a happy ghast.",
-		"-%1$s airship diesel, +%1$s happy ghast speed");
+		"-%1$s airship diesel, +%1$s happy ghast speed"),
+	LEADERSHIP("Leadership", "goat_horn", ChatFormatting.BLUE, 0.25,
+		"Leading Sellswords mercenaries: hiring them, promoting them, and every kill they make.",
+		"+%s mercenary health, and room for 1 more mercenary per 25 levels");
 
 	public static final int MAX_LEVEL = 100;
 	/** One perk point per this many levels: 10 points at level 100. */
