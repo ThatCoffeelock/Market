@@ -20,6 +20,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Fuck Illagers](../fuck-illagers/README.md) | Bounty hunting: illager fingers for Marks, and contracts on named illager bosses in wagons, towers, camps, fortresses, dungeons and castles |
 | [Fossil Fool](../fossil-fool/README.md) | Old-timey oil: dowse for pockets, sink a 5×5 shaft with a fuel-guzzling Drill Rig, strike crude, tank it and refine it into diesel |
 | [Riches](../riches/README.md) | Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics |
+| [Blimey](../blimey/README.md) | A riveted iron airship that runs on Fossil Fool diesel: refits for speed, fuel economy and cargo, plus small, big and huge bombs that wreck buildings |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 
@@ -39,4 +40,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all sixteen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all sixteen mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all seventeen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all seventeen mods load and the server starts.

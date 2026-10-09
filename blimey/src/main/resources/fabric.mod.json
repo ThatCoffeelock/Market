@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "blimey",
+	"version": "${version}",
+	"name": "Blimey",
+	"description": "A riveted iron airship that runs on diesel: captain, bombardier and 4 passengers, up to 4 cargo holds, Engineer refits for speed, fuel economy and cargo. Plus small, big and huge bombs that wreck buildings. Built from display entities. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.blimey.BlimeyMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"fossilfool": "*"
+	}
+}

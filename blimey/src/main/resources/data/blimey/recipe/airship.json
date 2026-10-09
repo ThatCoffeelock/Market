@@ -1,0 +1,60 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"MNM",
+		"IFI",
+		"DPD"
+	],
+	"key": {
+		"M": "minecraft:phantom_membrane",
+		"N": "minecraft:netherite_ingot",
+		"I": "minecraft:iron_block",
+		"F": "minecraft:blast_furnace",
+		"D": "minecraft:diamond_block",
+		"P": "minecraft:piston"
+	},
+	"result": {
+		"id": "minecraft:paper",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"blimey": "airship"
+			},
+			"minecraft:item_model": "minecraft:elytra",
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {
+				"text": "Flat-Pack Airship",
+				"color": "gold"
+			},
+			"minecraft:lore": [
+				{
+					"text": "A riveted iron dirigible, some assembly required.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Right-click the ground to unfold it.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Needs about 9 × 26 blocks of clear ground and 14 up.",
+					"color": "dark_gray",
+					"italic": false
+				},
+				{
+					"text": "Runs on diesel. Lots of diesel.",
+					"color": "dark_gray",
+					"italic": false
+				},
+				{
+					"text": "Rename it in an anvil to name your airship.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

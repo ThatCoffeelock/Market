@@ -9,7 +9,7 @@ A server-side Fabric mod for Minecraft **26.3** that adds an economy you can far
 
 It's **server-side only**. Players join with a plain vanilla client and don't need to install anything. The GUIs are chest screens, the Market block is a lectern with a glow, and the luxury items are built from vanilla display entities.
 
-> **Want all the mods?** The [LIB Pack](lib-pack/README.md) has Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets & Horrors, Overenchant, Fuck Illagers, Fossil Fool and Riches in one jar.
+> **Want all the mods?** The [LIB Pack](lib-pack/README.md) has Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets & Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches and Blimey in one jar.
 
 ## Install (plug and play)
 

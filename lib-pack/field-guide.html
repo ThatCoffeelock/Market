@@ -129,13 +129,13 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Fourteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there push every enchantment to level X and hunt illagers for bounties. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Seventeen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.14.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.15.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -154,6 +154,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
         <thead><tr><th>Ride</th><th>Get on</th><th>Move</th><th>Space</th><th>Shift</th><th>Menu</th><th>Put away</th></tr></thead>
         <tbody>
           <tr><th>Ship (Ahoy)</th><td>Right-click the ship. Owner takes the wheel</td><td><span class="key">W</span><span class="key">S</span> sails · <span class="key">A</span><span class="key">D</span> rudder</td><td>Ring the bell</td><td>Get off (ashore, or overboard)</td><td>Empty-hand right-click aboard (or <code>/ahoy menu</code>), or sneak + right-click</td><td>Menu → Bottle it up</td></tr>
+          <tr><th>Airship (Blimey)</th><td>Right-click it. Owner takes the controls</td><td><span class="key">W</span><span class="key">S</span> throttle · <span class="key">A</span><span class="key">D</span> turn · <span class="key">Ctrl</span> descend</td><td>Climb</td><td>Get off (bail out mid-air: parachute)</td><td>Empty-hand right-click aboard (or <code>/blimey menu</code>), or sneak + right-click</td><td>Land, then menu → Fold it up</td></tr>
           <tr><th>Van / Tank</th><td>Right-click it. Owner drives</td><td><span class="key">W</span><span class="key">S</span> gas · <span class="key">A</span><span class="key">D</span> steer · <span class="key">Ctrl</span> turbo</td><td>Honk</td><td>Get out by the door</td><td>Right-click seated, or sneak + right-click</td><td>Menu → Pack up</td></tr>
           <tr><th>Cargo Train</th><td>Right-click the locomotive (cab)</td><td>Drives itself. Stop it, then <span class="key">W</span><span class="key">S</span></td><td>Horn</td><td>Get off</td><td>Sneak + right-click the locomotive</td><td>Menu → Pick up the train</td></tr>
           <tr><th>Cannon</th><td>Right-click the cannon</td><td>Look to aim (−10° to 60°)</td><td>Fire (2 s reload)</td><td>Get off</td><td class="dash">–</td><td>Sneak + right-click</td></tr>
@@ -320,7 +321,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.14.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches</span>
+    <span>LIB Pack 1.15.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -337,6 +338,8 @@ const I = {
   glass: ["Gls", "#bfe3ee"], minecart: ["Mc", "#7b7b7b"], furnace: ["Frn", "#6a6a6a"],
   flint: ["Flt", "#3b3b40"], copper_ingot: ["Cu", "#c86f4a"], paper: ["Ppr", "#f2efe6"], iron_nugget: ["Nug", "#d6d6d6"], gravel: ["Grv", "#8a8580"],
   crafting_table: ["Wbn", "#9c6b3a"], book: ["Book", "#7a3b2a"], cartography_table: ["Map", "#7b5a3a"], lantern: ["Lntn", "#e0a33a"], lead: ["Lead", "#a58a5e"],
+  phantom_membrane: ["Phm", "#b9c7a8"], netherite_ingot: ["Nthr", "#4a3f3f"], blast_furnace: ["BlF", "#4e4e55"], diamond_block: ["DiB", "#5fd8cf"],
+  piston: ["Pstn", "#9a7d4f"], tnt: ["TNT", "#c8322a"], end_crystal: ["Crys", "#c49ad8"],
 };
 const names = {
   gold_ingot: "Gold Ingot", obsidian: "Obsidian", emerald: "Emerald", wool: "Any Wool", glass_bottle: "Glass Bottle", chest: "Chest",
@@ -346,9 +349,11 @@ const names = {
   glass: "Glass", minecart: "Minecart", furnace: "Furnace",
   flint: "Flint", copper_ingot: "Copper Ingot", paper: "Paper", iron_nugget: "Iron Nugget", gravel: "Gravel",
   crafting_table: "Crafting Table", book: "Book", cartography_table: "Cartography Table", lantern: "Lantern", lead: "Lead",
+  phantom_membrane: "Phantom Membrane", netherite_ingot: "Netherite Ingot", blast_furnace: "Blast Furnace", diamond_block: "Block of Diamond",
+  piston: "Piston", tnt: "TNT", end_crystal: "End Crystal",
 };
 // Lighter swatches need dark text.
-const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget"]);
+const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget", "phantom_membrane", "diamond_block"]);
 
 const MODS = [
   { name: "Market", id: "market", colour: "#e8b923", tag: "Sell anything for Marks, buy it back at a markup, flex with pallets of cash.",
@@ -480,6 +485,20 @@ const MODS = [
           "The hideout is built when you get within ~160 blocks: guards, loot chests, sometimes a prisoner",
           "Kill the named boss, sell its <b>skull</b> at the station for the reward. One contract at a time"],
     cmds: ["/bounty", "/bounty contract", ["/bounty give station", true], ["/bounty build", true]] },
+  { name: "Blimey", id: "blimey", colour: "#8b2a1f", tag: "A riveted iron airship that runs on diesel, and bombs that wreck buildings. Expensive to build, expensive to fly.",
+    recipes: [
+      { name: "Flat-Pack Airship", pattern: ["MNM", "IFI", "DPD"], key: { M: "phantom_membrane", N: "netherite_ingot", I: "iron_block", F: "blast_furnace", D: "diamond_block", P: "piston" }, out: ["Air", "#8b2a1f"] },
+      { name: "Small Bomb", pattern: [" S ", "ITI", " I "], key: { S: "string", I: "iron_ingot", T: "tnt" }, out: ["Bmb", "#c8322a"] },
+      { name: "Big Bomb", pattern: ["ITI", "TBT", "ITI"], key: { I: "iron_ingot", T: "tnt", B: "iron_block" }, out: ["BIG", "#2a2a2a"] },
+      { name: "Huge Bomb", pattern: ["BTB", "TCT", "BTB"], key: { B: "iron_block", T: "tnt", C: "end_crystal" }, out: ["HUGE", "#7a3fa0"] }],
+    how: ["Right-click the ground to unfold it (about 9 × 26 blocks, 14 up). Rename it in an anvil first to name it",
+          "Sneak + right-click it → <b>Fuel tank</b>: Buckets of <b>Diesel</b> from a Fossil Fool Refinery. One bucket ≈ 2 minutes cruising",
+          "Hovering burns less, climbing and racing more. Dry tanks: it sinks gently to the ground",
+          "Captain, bombardier and 4 passengers. Bail out mid-air and you get a parachute",
+          "Aboard, hold a bomb and right-click to drop it. It keeps the airship's speed, so lead your target",
+          "On foot, right-click a block with a bomb to light a 4 s fuse. Blasts: small 4, big 7, huge 12. They break blocks",
+          "Menu → <b>Engineer</b>: engines (+80% speed), fuel economy (−50% diesel), up to four 54-slot holds"],
+    cmds: ["/blimey", "/blimey menu", "/blimey tank", ["/blimey give", true], ["/blimey reload", true]] },
 ];
 
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };

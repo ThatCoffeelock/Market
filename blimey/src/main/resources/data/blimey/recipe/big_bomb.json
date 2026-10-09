@@ -1,0 +1,51 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"ITI",
+		"TBT",
+		"ITI"
+	],
+	"key": {
+		"I": "minecraft:iron_ingot",
+		"T": "minecraft:tnt",
+		"B": "minecraft:iron_block"
+	},
+	"result": {
+		"id": "minecraft:firework_star",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"blimey": "big_bomb"
+			},
+			"minecraft:item_model": "minecraft:coal_block",
+			"minecraft:max_stack_size": 16,
+			"minecraft:item_name": {
+				"text": "Big Bomb",
+				"color": "dark_red"
+			},
+			"minecraft:lore": [
+				{
+					"text": "Takes the roof off. And the walls. And the floor.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Aboard an airship: right-click to drop it.",
+					"color": "yellow",
+					"italic": false
+				},
+				{
+					"text": "On foot: right-click a block to light the fuse.",
+					"color": "dark_gray",
+					"italic": false
+				},
+				{
+					"text": "Unlike a cannonball, it wrecks buildings.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

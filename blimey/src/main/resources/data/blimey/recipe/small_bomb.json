@@ -1,0 +1,51 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		" S ",
+		"ITI",
+		" I "
+	],
+	"key": {
+		"S": "minecraft:string",
+		"I": "minecraft:iron_ingot",
+		"T": "minecraft:tnt"
+	},
+	"result": {
+		"id": "minecraft:firework_star",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"blimey": "small_bomb"
+			},
+			"minecraft:item_model": "minecraft:tnt",
+			"minecraft:max_stack_size": 16,
+			"minecraft:item_name": {
+				"text": "Small Bomb",
+				"color": "red"
+			},
+			"minecraft:lore": [
+				{
+					"text": "About as much bang as a block of TNT.",
+					"color": "gray",
+					"italic": false
+				},
+				{
+					"text": "Aboard an airship: right-click to drop it.",
+					"color": "yellow",
+					"italic": false
+				},
+				{
+					"text": "On foot: right-click a block to light the fuse.",
+					"color": "dark_gray",
+					"italic": false
+				},
+				{
+					"text": "Unlike a cannonball, it wrecks buildings.",
+					"color": "dark_gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

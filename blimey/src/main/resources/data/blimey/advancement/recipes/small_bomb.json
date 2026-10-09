@@ -1,0 +1,25 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_it": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {
+				"items": [
+					{
+						"items": "minecraft:tnt"
+					}
+				]
+			}
+		}
+	},
+	"requirements": [
+		[
+			"has_it"
+		]
+	],
+	"rewards": {
+		"recipes": [
+			"blimey:small_bomb"
+		]
+	}
+}

@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.14.0"
+VERSION = "1.15.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -25,6 +25,8 @@ I = {
  "goldblock": ("AuB", "#f2c84b", "Block of Gold", True), "lodestone": ("Lode", "#77787d", "Lodestone", False),
  "irondoor": ("Door", "#b8b8b8", "Iron Door", True), "goldnugget": ("AuN", "#f0cf5a", "Gold Nugget", True),
  "quartzpillar": ("QzP", "#ece6dc", "Quartz Pillar", True),
+ "membrane": ("Phm", "#b9c7a8", "Phantom Membrane", True), "netherite": ("Nthr", "#4a3f3f", "Netherite Ingot", False),
+ "tnt": ("TNT", "#c8322a", "TNT", False), "endcrystal": ("Crys", "#c49ad8", "End Crystal", True),
 }
 
 def shaped(name, rows, key, out, count=None): return dict(name=name, rows=rows, key=key, out=out, count=count)
@@ -241,6 +243,21 @@ MODS = [
         "Show a whole collection of 6 in your own cases and the <b>Royal Society pays ₥5,000</b>.",
         "Relics can't be sold to the Market. Trade them with players instead. Needs the Market mod (it's in the pack)."],
   cmds="/riches · /riches relics · /riches trust"),
+ dict(name="Blimey", colour="#8b2a1f", tag="A riveted iron airship that runs on diesel, and small, big and huge bombs that wreck buildings. Expensive to build, expensive to fly.",
+  recipes=[shaped("Flat-Pack Airship", ["MNM","IFI","DPD"], dict(M="membrane",N="netherite",I="ironblock",F="blastfurnace",D="diamondblock",P="piston"), "Air"),
+           shaped("Small Bomb", [" S ","ITI"," I "], dict(S="string",I="iron",T="tnt"), "Bmb"),
+           shaped("Big Bomb", ["ITI","TBT","ITI"], dict(I="iron",T="tnt",B="ironblock"), "BIG"),
+           shaped("Huge Bomb", ["BTB","TCT","BTB"], dict(B="ironblock",T="tnt",C="endcrystal"), "HUGE")],
+  steps=["Optional: rename the <b>Flat-Pack Airship</b> in an anvil. That's your airship's name, painted down both flanks.",
+         "Right-click the ground with it. It needs about 9 × 26 blocks of clear ground and 14 blocks of sky. The bow points where you look.",
+         "Sneak + right-click it, open the <b>Fuel tank</b> and put in Buckets of <b>Diesel</b> from a Fossil Fool Refinery. No diesel, no flying.",
+         "Right-click it to board. <b>W/S</b> throttle, <b>A/D</b> turn, <b>Space</b> climb, <b>Ctrl</b> descend. Let go and it holds its height. <b>Shift</b> gets you off (a parachute, if you're up high).",
+         "Hold a bomb and right-click while aboard: it drops out of the hatch and goes off on whatever it hits. It keeps the airship's speed, so let go early."],
+  tips=["One bucket of diesel is about <b>2 minutes cruising</b>, 6 hovering. Climbing and racing burn more. Run dry and it sinks gently to the ground.",
+        "Menu → <b>Engineer</b>: Engines (up to +80% speed), Fuel economy (up to −50% diesel), Cargo holds (up to four 54-slot holds). Paid in netherite, diamonds, blaze rods and ghast tears.",
+        "Bombs: small 4 (TNT), big 7, huge 12. On foot, right-click a block to set one with a 4-second fuse. Unlike cannonballs, they break blocks.",
+        "Crew aboard take no blast, fall or fire damage. Land, then menu → <b>Fold it up</b> to carry it, cargo and diesel included."],
+  cmds="/blimey · /blimey menu · /blimey tank"),
 ]
 
 def item(k, big=False):
@@ -333,7 +350,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Sixteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Seventeen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>
