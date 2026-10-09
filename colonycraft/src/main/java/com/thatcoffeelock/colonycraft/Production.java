@@ -31,6 +31,12 @@ final class Production {
 		new Yield(Items.RAW_COPPER, 12), new Yield(Items.RAW_GOLD, 3), new Yield(Items.REDSTONE, 8),
 		new Yield(Items.LAPIS_LAZULI, 6), new Yield(Items.DIAMOND, 0.25), new Yield(Items.EMERALD, 0.1));
 
+	private static final List<Yield> RANCH = List.of(
+		new Yield(Items.BEEF, 10), new Yield(Items.PORKCHOP, 8), new Yield(Items.MUTTON, 8), new Yield(Items.CHICKEN, 8),
+		new Yield(Items.LEATHER, 6), new Yield(Items.EGG, 12), new Yield(Items.FEATHER, 6), new Yield(Items.WOOL.white(), 8));
+	private static final List<Yield> APIARY = List.of(
+		new Yield(Items.HONEYCOMB, 10), new Yield(Items.HONEY_BOTTLE, 4));
+
 	private static final List<Yield> FISHERY = List.of(
 		new Yield(Items.COD, 24), new Yield(Items.SALMON, 12), new Yield(Items.TROPICAL_FISH, 2), new Yield(Items.PUFFERFISH, 1),
 		new Yield(Items.INK_SAC, 3), new Yield(Items.KELP, 6), new Yield(Items.NAUTILUS_SHELL, 0.05));
@@ -41,7 +47,9 @@ final class Production {
 		new Recipe(Items.RAW_COPPER, 1, Items.COPPER_INGOT, 1), new Recipe(Items.RAW_GOLD, 1, Items.GOLD_INGOT, 1),
 		new Recipe(Items.COBBLESTONE, 1, Items.STONE, 1), new Recipe(Items.WHEAT, 3, Items.BREAD, 1),
 		new Recipe(Items.POTATO, 1, Items.BAKED_POTATO, 1), new Recipe(Items.COD, 1, Items.COOKED_COD, 1),
-		new Recipe(Items.SALMON, 1, Items.COOKED_SALMON, 1));
+		new Recipe(Items.SALMON, 1, Items.COOKED_SALMON, 1), new Recipe(Items.BEEF, 1, Items.COOKED_BEEF, 1),
+		new Recipe(Items.PORKCHOP, 1, Items.COOKED_PORKCHOP, 1), new Recipe(Items.MUTTON, 1, Items.COOKED_MUTTON, 1),
+		new Recipe(Items.CHICKEN, 1, Items.COOKED_CHICKEN, 1));
 	/** How many input items one workshop worker gets through in a day. */
 	static final int WORKSHOP_PER_WORKER = 64;
 
@@ -87,13 +95,15 @@ final class Production {
 		}
 	}
 
-	/** Raw goods from farms, lumber camps and mines. */
+	/** Raw goods from farms, lumber camps, mines, fisheries, ranches and apiaries. */
 	static List<ItemStack> gather(BuildingType type, int tier, int workers, Random random) {
 		List<Yield> yields = switch (type) {
 			case FARM -> FARM;
 			case LUMBER_CAMP -> LUMBER;
 			case MINE -> MINE;
 			case FISHERY -> FISHERY;
+			case RANCH -> RANCH;
+			case APIARY -> APIARY;
 			default -> List.of();
 		};
 		List<ItemStack> out = new ArrayList<>();

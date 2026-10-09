@@ -48,7 +48,7 @@ final class RefineryMenu extends MachineMenu {
 		button(2, Gui.icon(Items.BUCKET, Gui.text("Crude: " + refinery.crude + " / " + cap, ChatFormatting.DARK_GRAY, ChatFormatting.BOLD), List.of(
 			Gui.text(Gui.bar(refinery.crude / (double) cap, 10), ChatFormatting.GRAY),
 			Gui.text("Click: pour in the crude you carry.", ChatFormatting.YELLOW),
-			Gui.text("It also drinks from Oil Tanks within " + c.pipeReach + " blocks.", ChatFormatting.DARK_GRAY))), shift -> {
+			Gui.text("It also drinks from Tanks within " + c.pipeReach + " blocks, or on its pipeline.", ChatFormatting.DARK_GRAY))), shift -> {
 			int room = cap - refinery.crude;
 			int n = Interactions.pourBuckets(viewer, Fluid.CRUDE, room);
 			if (n == 0) {
@@ -63,7 +63,7 @@ final class RefineryMenu extends MachineMenu {
 		button(3, Gui.icon(Items.LAVA_BUCKET, Gui.text("Diesel: " + refinery.diesel + " / " + cap, ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
 			Gui.text(Gui.bar(refinery.diesel / (double) cap, 10), ChatFormatting.GRAY),
 			Gui.text("Click: fill the empty buckets you carry.", ChatFormatting.YELLOW),
-			Gui.text("It also fills Oil Tanks within " + c.pipeReach + " blocks.", ChatFormatting.DARK_GRAY))), shift -> {
+			Gui.text("It also fills Tanks within " + c.pipeReach + " blocks, or on its pipeline.", ChatFormatting.DARK_GRAY))), shift -> {
 			int n = Interactions.fillBuckets(viewer, Fluid.DIESEL, refinery.diesel);
 			if (n == 0) {
 				nope(refinery.diesel == 0 ? "There's no diesel yet." : "You have no empty buckets.");
@@ -81,6 +81,9 @@ final class RefineryMenu extends MachineMenu {
 		fuel.add(Gui.text("In the fire: " + String.format(java.util.Locale.ROOT, "%.1f", refinery.energy) + " blocks' worth", ChatFormatting.GRAY));
 		for (Fuel f : Fuel.values()) {
 			fuel.add(Gui.text(" " + Fuel.ladderLine(f), f.color));
+		}
+		if (c.fuelFromTanks) {
+			fuel.add(Gui.text("Firebox empty? It burns diesel, crude or lava from the tanks it reaches.", ChatFormatting.DARK_GRAY));
 		}
 		button(5, Gui.icon(Items.COAL, Gui.text("Fuel", ChatFormatting.GOLD, ChatFormatting.BOLD), fuel), null);
 		for (int i = 6; i < 9; i++) {

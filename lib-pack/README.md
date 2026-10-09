@@ -5,7 +5,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | Mod | What it adds |
 |---|---|
 | [Market](../README.md) | Sell anything for Marks (₥), buy items back, flex with pallets of cash |
-| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks: farms, fisheries, tobacco farms, a harbor with a Loading Dock, a train station, medieval walls and towers. Storehouses are real warehouses |
+| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks: farms, ranches, apiaries, fisheries, tobacco farms, a harbor with a Loading Dock, a train station, medieval walls and towers, and a town street with a trading post (master traders), a bank with a shared walk-in vault, a museum for your relics, a chapel, a library and a fuel depot. Storehouses are real warehouses |
 | [Ahoy](../ahoy/README.md) | A sailing ship in a bottle: captain + 8 passengers, cargo holds, wind |
 | [Burlap Sack](../burlap-sack/README.md) | Bag villagers and wandering traders, let them out somewhere else |
 | [Cannon](../cannon/README.md) | An aimable cannon and iron + gunpowder cannonballs |
@@ -18,7 +18,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Hamlets & Horrors](../hamlets/README.md) | Random cottages, castles and dungeons: some lived in by villagers, some overrun by monsters |
 | [Overenchant](../overenchant/README.md) | Higher maximum enchantment levels: every enchantment goes to X (Sharpness X instead of V). Flintlock guns can be enchanted too |
 | [Fuck Illagers](../fuck-illagers/README.md) | Bounty hunting: illager fingers for Marks, and contracts on named illager bosses in wagons, towers, camps, fortresses, dungeons and castles |
-| [Fossil Fool](../fossil-fool/README.md) | Old-timey oil: dowse for pockets, sink a 5×5 shaft with a fuel-guzzling Drill Rig, strike crude, tank it and refine it into diesel |
+| [Fossil Fool](../fossil-fool/README.md) | Old-timey oil: dowse for pockets, sink a 5×5 shaft with a fuel-guzzling Drill Rig, strike crude, tank it (or water, or lava), pipe it across the map (or from an offshore rig), upgrade the rig in its workshop, refine it into diesel and burn it in an Industrial Oven that smelts ores double |
 | [Riches](../riches/README.md) | Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics |
 | [Blimey](../blimey/README.md) | A riveted iron airship that runs on Fossil Fool diesel: refits for speed, fuel economy and cargo, plus small, big and huge bombs that wreck buildings |
 

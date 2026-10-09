@@ -15,6 +15,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 /** Small helpers for chest-GUI icons and chat text. */
 final class Gui {
@@ -49,6 +51,19 @@ final class Gui {
 		}
 		Item item = ITEMS.get(id);
 		return item == null || item == Items.AIR ? fallback : item;
+	}
+
+	private static final Map<String, Block> BLOCKS = new HashMap<>();
+
+	/** A block by id, for the ones that aren't constants in Blocks. */
+	static Block block(String id, Block fallback) {
+		if (BLOCKS.isEmpty()) {
+			for (Block block : BuiltInRegistries.BLOCK) {
+				BLOCKS.put(BuiltInRegistries.BLOCK.getKey(block).toString(), block);
+			}
+		}
+		Block block = BLOCKS.get(id);
+		return block == null || block == Blocks.AIR ? fallback : block;
 	}
 
 	static ItemStack filler() {

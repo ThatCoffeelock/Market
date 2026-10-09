@@ -20,6 +20,8 @@ dependencies {
 	runtimeOnly fileTree(dir: '../warehouse/build/libs', include: 'warehouse-*.jar', exclude: '*-sources.jar')
 	runtimeOnly fileTree(dir: '../havana/build/libs', include: 'havana-*.jar', exclude: '*-sources.jar')
 	runtimeOnly fileTree(dir: '../burlap-sack/build/libs', include: 'burlap-sack-*.jar', exclude: '*-sources.jar')
+	runtimeOnly fileTree(dir: '../riches/build/libs', include: 'riches-*.jar', exclude: '*-sources.jar')
+	runtimeOnly fileTree(dir: '../fossil-fool/build/libs', include: 'fossil-fool-*.jar', exclude: '*-sources.jar')
 }
 
 loom {

@@ -45,6 +45,7 @@ public final class FossilFoolMod implements ModInitializer {
 	public void onInitialize() {
 		FossilConfig.load();
 		Hooks.publishPrices();
+		FossilFoolApi.publish();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Store.load(server);

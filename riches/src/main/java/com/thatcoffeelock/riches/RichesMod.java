@@ -33,6 +33,7 @@ public final class RichesMod implements ModInitializer {
 	public void onInitialize() {
 		RichesConfig.load();
 		publishPrices();
+		RichesApi.publish();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Store.load(server);

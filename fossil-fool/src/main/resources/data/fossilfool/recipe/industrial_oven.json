@@ -1,0 +1,31 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"IFI",
+		"BSB",
+		"III"
+	],
+	"key": {
+		"I": "minecraft:iron_ingot",
+		"F": "minecraft:blast_furnace",
+		"B": "minecraft:bricks",
+		"S": "minecraft:smoker"
+	},
+	"result": {
+		"id": "minecraft:smoker",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"fossilfool": "industrial_oven"},
+			"minecraft:max_stack_size": 1,
+			"minecraft:item_name": {"text": "Industrial Oven", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Burns diesel. Smelts or cooks anything", "color": "gray", "italic": false},
+				{"text": "a furnace can, a stack in seconds.", "color": "gray", "italic": false},
+				{"text": "Ores and raw metal come out double.", "color": "yellow", "italic": false},
+				{"text": "Drinks diesel from Tanks nearby or on a pipeline.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

@@ -24,7 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.Nullable;
 
-/** Saves rigs, tanks, refineries and opened oil pockets to {@code <world>/fossilfool.json}. */
+/** Saves rigs, tanks, refineries, pipes and opened oil pockets to {@code <world>/fossilfool.json}. */
 final class Store {
 	private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 	private static @Nullable MinecraftServer server;
@@ -50,6 +50,7 @@ final class Store {
 		Rigs.reset();
 		Machines.reset();
 		Machines.start(srv);
+		Pipes.reset();
 		Pockets.reset();
 		Labels.reset();
 		dirty = false;
@@ -64,6 +65,7 @@ final class Store {
 			Rigs.reset();
 			Machines.reset();
 			Machines.start(srv);
+			Pipes.reset();
 			Pockets.reset();
 			try {
 				Files.copy(file, file.resolveSibling("fossilfool.json.broken"), StandardCopyOption.REPLACE_EXISTING);
@@ -75,7 +77,7 @@ final class Store {
 
 	/** Firebox and hold contents change through screens without telling us, so machines get saved every time. */
 	static void saveIfDirty() {
-		if (dirty || !Rigs.BY_ID.isEmpty() || !Machines.REFINERIES.isEmpty()) {
+		if (dirty || !Rigs.BY_ID.isEmpty() || !Machines.REFINERIES.isEmpty() || !Machines.OVENS.isEmpty()) {
 			save();
 		}
 	}
@@ -174,6 +176,15 @@ final class Store {
 			o.addProperty("dimension", rig.dimension);
 			pos(o, rig.center());
 			o.addProperty("layer", rig.layer);
+			JsonObject upgrades = new JsonObject();
+			for (Workshop.Track track : Workshop.TRACKS) {
+				upgrades.addProperty(track.key(), track.level(rig));
+			}
+			o.add("upgrades", upgrades);
+			if (rig.offshore()) {
+				o.addProperty("deck", rig.deck);
+				o.addProperty("drain_y", rig.drainY);
+			}
 			o.addProperty("cell", rig.cell);
 			o.addProperty("on", rig.on);
 			o.addProperty("keep_stone", rig.keepStone);
@@ -199,9 +210,26 @@ final class Store {
 			pos(o, t.pos);
 			o.addProperty("fluid", t.fluid.name());
 			o.addProperty("amount", t.amount);
+			if (t.set != Fluid.NONE) {
+				o.addProperty("set", t.set.name());
+			}
 			tanks.add(o);
 		}
 		root.add("tanks", tanks);
+
+		JsonArray pipes = new JsonArray();
+		for (Map.Entry<String, Set<Long>> e : Pipes.BY_DIM.entrySet()) {
+			if (e.getValue().isEmpty()) {
+				continue;
+			}
+			JsonObject o = new JsonObject();
+			o.addProperty("dimension", e.getKey());
+			JsonArray at = new JsonArray();
+			e.getValue().forEach(at::add);
+			o.add("at", at);
+			pipes.add(o);
+		}
+		root.add("pipes", pipes);
 
 		JsonArray refineries = new JsonArray();
 		for (Refinery r : Machines.REFINERIES.values()) {
@@ -219,6 +247,22 @@ final class Store {
 			refineries.add(o);
 		}
 		root.add("refineries", refineries);
+
+		JsonArray ovens = new JsonArray();
+		for (Oven ov : Machines.OVENS.values()) {
+			JsonObject o = new JsonObject();
+			o.addProperty("dimension", ov.dimension);
+			pos(o, ov.pos);
+			o.addProperty("owner", ov.owner);
+			o.addProperty("on", ov.on);
+			o.addProperty("diesel", ov.diesel);
+			o.addProperty("charge", ov.charge);
+			o.addProperty("smelted", ov.smelted);
+			o.add("input", items(ops, ov.input));
+			o.add("output", items(ops, ov.output));
+			ovens.add(o);
+		}
+		root.add("ovens", ovens);
 
 		JsonArray pockets = new JsonArray();
 		for (Map.Entry<Long, Pockets.Pocket> e : Pockets.OPENED.entrySet()) {
@@ -253,6 +297,15 @@ final class Store {
 				rig.owner = str(o, "owner", "");
 				rig.ownerName = str(o, "owner_name", "");
 				rig.layer = num(o, "layer", c.getY());
+				if (o.has("upgrades")) {
+					JsonObject upgrades = o.getAsJsonObject("upgrades");
+					for (Workshop.Track track : Workshop.TRACKS) {
+						track.set().accept(rig, Math.max(0, Math.min(track.max(), num(upgrades, track.key(), 0))));
+					}
+					rig.resizeHolds();
+				}
+				rig.deck = num(o, "deck", c.getY());
+				rig.drainY = num(o, "drain_y", c.getY());
 				rig.cell = num(o, "cell", 0);
 				rig.on = bool(o, "on", true);
 				rig.keepStone = bool(o, "keep_stone", true);
@@ -274,11 +327,22 @@ final class Store {
 				Tank t = new Tank(o.get("dimension").getAsString(), pos(o));
 				t.fluid = Fluid.byName(str(o, "fluid", ""));
 				t.amount = num(o, "amount", 0);
+				t.set = Fluid.byName(str(o, "set", ""));
 				if (t.amount <= 0) {
 					t.fluid = Fluid.NONE;
 				}
 				Machines.TANKS.put(Machines.key(t.dimension, t.pos), t);
 			}
+		}
+		if (root.has("pipes")) {
+			for (JsonElement e : root.getAsJsonArray("pipes")) {
+				JsonObject o = e.getAsJsonObject();
+				Set<Long> set = Pipes.BY_DIM.computeIfAbsent(o.get("dimension").getAsString(), d -> new java.util.HashSet<>());
+				for (JsonElement l : o.getAsJsonArray("at")) {
+					set.add(l.getAsLong());
+				}
+			}
+			Pipes.changed();
 		}
 		if (root.has("refineries")) {
 			for (JsonElement e : root.getAsJsonArray("refineries")) {
@@ -293,6 +357,20 @@ final class Store {
 				r.progress = dbl(o, "progress");
 				readItems(ops, o.get("firebox"), r.firebox);
 				Machines.REFINERIES.put(Machines.key(r.dimension, r.pos), r);
+			}
+		}
+		if (root.has("ovens")) {
+			for (JsonElement e : root.getAsJsonArray("ovens")) {
+				JsonObject o = e.getAsJsonObject();
+				Oven ov = new Oven(o.get("dimension").getAsString(), pos(o));
+				ov.owner = str(o, "owner", "");
+				ov.on = bool(o, "on", true);
+				ov.diesel = num(o, "diesel", 0);
+				ov.charge = num(o, "charge", 0);
+				ov.smelted = o.has("smelted") ? o.get("smelted").getAsLong() : 0;
+				readItems(ops, o.get("input"), ov.input);
+				readItems(ops, o.get("output"), ov.output);
+				Machines.OVENS.put(Machines.key(ov.dimension, ov.pos), ov);
 			}
 		}
 		if (root.has("pockets")) {

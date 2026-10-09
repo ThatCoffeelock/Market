@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +42,10 @@ public final class Interactions {
 		return state.is(Blocks.BLAST_FURNACE);
 	}
 
+	static boolean isOvenBlock(BlockState state) {
+		return state.is(Blocks.SMOKER);
+	}
+
 	static void forget(UUID player) {
 		LAST_DOWSE.remove(player);
 	}
@@ -56,13 +61,26 @@ public final class Interactions {
 		CompoundTag data = OilItems.data(stack);
 		if (OilItems.isTank(stack)) {
 			Tank tank = Machines.addTank(level, pos);
+			tank.set = Fluid.byName(data.getStringOr(OilItems.SET, ""));
 			Fluid fluid = Fluid.byName(data.getStringOr(OilItems.FLUID, ""));
 			int amount = data.getIntOr(OilItems.AMOUNT, 0);
 			if (fluid != Fluid.NONE && amount > 0) {
 				tank.fill(fluid, amount);
 			}
-			tell(sp, "Oil Tank set up. It holds " + Gui.n(Tank.capacity()) + " buckets of crude or diesel. Drill Rigs and Refineries within "
-				+ FossilConfig.get().pipeReach + " blocks pipe into it.", ChatFormatting.AQUA);
+			tell(sp, tank.name() + " set up. It holds " + Gui.n(Tank.capacity()) + " buckets of "
+				+ (tank.set == Fluid.NONE ? "crude, diesel, water or lava (one at a time)" : tank.set.title.toLowerCase(java.util.Locale.ROOT))
+				+ ". Sneak + right-click it with an empty hand to pick its fluid. Rigs and Refineries within "
+				+ FossilConfig.get().pipeReach + " blocks, or on a pipeline, connect to it.", ChatFormatting.AQUA);
+		} else if (OilItems.isPipe(stack)) {
+			Pipes.add(level, pos);
+		} else if (OilItems.isOven(stack)) {
+			Oven o = Machines.addOven(level, pos);
+			o.diesel = Math.max(0, data.getIntOr(OilItems.DIESEL_IN, 0));
+			if (sp != null) {
+				o.owner = sp.getUUID().toString();
+			}
+			tell(sp, "Industrial Oven set up. Right-click it, pour in diesel, and fill the top row with anything a furnace takes. "
+				+ "Ores come out double. Hoppers work too: in at the top, out at the bottom.", ChatFormatting.GOLD);
 		} else if (OilItems.isRefinery(stack)) {
 			Refinery r = Machines.addRefinery(level, pos);
 			r.crude = Math.max(0, data.getIntOr(OilItems.CRUDE_IN, 0));
@@ -136,8 +154,9 @@ public final class Interactions {
 	}
 
 	private static void give(ServerPlayer player, Fluid fluid, int count) {
+		int stack = Math.min(OilItems.BUCKET_STACK, OilItems.bucketOf(fluid, 1).getMaxStackSize());
 		while (count > 0) {
-			int n = Math.min(OilItems.BUCKET_STACK, count);
+			int n = Math.min(stack, count);
 			OilItems.give(player, OilItems.bucketOf(fluid, n));
 			count -= n;
 		}
@@ -160,10 +179,24 @@ public final class Interactions {
 		if (kit != InteractionResult.PASS) {
 			return kit;
 		}
+		if (OilItems.isPipe(held)) {
+			// pipes go against tanks and refineries without opening anything
+			return InteractionResult.PASS;
+		}
 		BlockPos pos = hit.getBlockPos();
 		BlockState state = level.getBlockState(pos);
 		Tank tank = isTankBlock(state) ? Machines.tankAt(level, pos) : null;
 		Refinery refinery = tank == null && isRefineryBlock(state) ? Machines.refineryAt(level, pos) : null;
+		Oven oven = isOvenBlock(state) ? Machines.ovenAt(level, pos) : null;
+		if (oven != null) {
+			if (player.isShiftKeyDown() && !held.isEmpty()) {
+				return InteractionResult.PASS;
+			}
+			if (hand == InteractionHand.MAIN_HAND) {
+				OvenMenu.open(player, oven);
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (tank == null && refinery == null) {
 			if (isEmptyBucket(held) && Pockets.isOil(level, pos)) {
 				if (hand == InteractionHand.MAIN_HAND) {
@@ -184,17 +217,40 @@ public final class Interactions {
 			RefineryMenu.open(player, refinery);
 			return InteractionResult.SUCCESS;
 		}
+		if (player.isShiftKeyDown() && held.isEmpty()) {
+			pickFluid(player, tank);
+			return InteractionResult.SUCCESS;
+		}
 		useTank(player, tank, held);
 		return InteractionResult.SUCCESS;
 	}
 
-	/** Buckets of oil in: pour them all. Empty buckets in: fill them all. Anything else: how full is it? */
+	/** Sneak + right-click with an empty hand: the next fluid the tank can be set to (any, crude, diesel, water, lava). */
+	private static void pickFluid(ServerPlayer player, Tank tank) {
+		Fluid set = tank.cycle();
+		Cmd.sound((ServerLevel) player.level(), "minecraft:block.iron_trapdoor.close", tank.pos.getX() + 0.5, tank.pos.getY() + 1, tank.pos.getZ() + 0.5, 0.6f, 1.2f);
+		if (set == Fluid.NONE) {
+			actionBar(player, Component.literal("Tank: takes any fluid (whatever comes first).").withStyle(ChatFormatting.GRAY));
+		} else {
+			actionBar(player, Component.literal(set.tankName + ": takes " + set.title.toLowerCase(java.util.Locale.ROOT) + " only, from buckets and pipes alike.")
+				.withStyle(set.color));
+		}
+	}
+
+	/** Buckets of something in: pour them all. Empty buckets in: fill them all. Anything else: how full is it? */
 	private static void useTank(ServerPlayer player, Tank tank, ItemStack held) {
 		Fluid fluid = OilItems.fluidOf(held);
 		if (fluid != Fluid.NONE) {
 			if (!tank.takes(fluid)) {
-				tell(player, tank.space() == 0 ? "The tank is full." : "This tank holds " + tank.fluid.title.toLowerCase(java.util.Locale.ROOT)
-					+ ". Don't mix your oils.", ChatFormatting.RED);
+				String why;
+				if (tank.space() == 0) {
+					why = "The tank is full.";
+				} else if (tank.set != Fluid.NONE && tank.set != fluid) {
+					why = "This is a " + tank.set.tankName + ". It only takes " + tank.set.title.toLowerCase(java.util.Locale.ROOT) + ".";
+				} else {
+					why = "This tank holds " + tank.fluid.title.toLowerCase(java.util.Locale.ROOT) + ". Don't mix your fluids.";
+				}
+				tell(player, why, ChatFormatting.RED);
 				return;
 			}
 			int n = pourBuckets(player, fluid, tank.space());
@@ -218,8 +274,28 @@ public final class Interactions {
 			actionBar(player, Component.literal("Filled " + n + " × " + kind.title + " (" + tank.amount + " left).").withStyle(ChatFormatting.GREEN));
 			return;
 		}
-		actionBar(player, Component.literal("Oil Tank: " + (tank.amount == 0 ? "empty" : Gui.n(tank.amount) + " buckets of " + tank.fluid.title)
-			+ " / " + Gui.n(Tank.capacity()) + ". Use buckets on it.").withStyle(ChatFormatting.AQUA));
+		actionBar(player, Component.literal(tank.name() + ": " + (tank.amount == 0 ? "empty" : Gui.n(tank.amount) + " buckets of " + tank.fluid.title)
+			+ " / " + Gui.n(Tank.capacity()) + ". Use buckets on it; sneak + empty hand picks its fluid.").withStyle(ChatFormatting.AQUA));
+	}
+
+	/** A tank looks like what it holds: a water tank is a full water cauldron, a lava tank a lava cauldron. */
+	static void showFluid(ServerLevel level, Tank tank) {
+		BlockState now = level.getBlockState(tank.pos);
+		if (!isTankBlock(now)) {
+			return;
+		}
+		Block want = switch (tank.fluid) {
+			case WATER -> Gui.block("minecraft:water_cauldron", Blocks.CAULDRON);
+			case LAVA -> Gui.block("minecraft:lava_cauldron", Blocks.CAULDRON);
+			default -> Blocks.CAULDRON;
+		};
+		BlockState look = want.defaultBlockState();
+		if (look.hasProperty(BlockStateProperties.LEVEL_CAULDRON)) {
+			look = look.setValue(BlockStateProperties.LEVEL_CAULDRON, 3);
+		}
+		if (now != look) {
+			level.setBlock(tank.pos, look, 3);
+		}
 	}
 
 	/** Empty bucket on a crude block in the ground: one bucket of crude, and the block is gone. */
@@ -243,7 +319,7 @@ public final class Interactions {
 		}
 		LAST_DOWSE.put(player.getUUID(), now);
 		if (!Pockets.hasOil(level)) {
-			actionBar(player, Component.literal("The rod hangs limp. There's no oil in this dimension.").withStyle(ChatFormatting.GRAY));
+			player.sendSystemMessage(Component.literal("The rod hangs limp. There's no oil in this dimension.").withStyle(ChatFormatting.GRAY));
 			return;
 		}
 		int range = FossilConfig.get().dowsingRange + (int) Hooks.bonus(player.getUUID(), "dowse");
@@ -251,7 +327,7 @@ public final class Interactions {
 		Pockets.Reading r = Pockets.dowse(level, at, range);
 		Cmd.sound(level, "minecraft:block.amethyst_block.chime", player.getX(), player.getY() + 1, player.getZ(), 0.8f, r == null ? 0.5f : 1.4f);
 		if (r == null) {
-			actionBar(player, Component.literal("The rod doesn't move. No oil within " + range + " blocks.").withStyle(ChatFormatting.GRAY));
+			player.sendSystemMessage(Component.literal("The rod doesn't move. No oil within " + range + " blocks.").withStyle(ChatFormatting.GRAY));
 			return;
 		}
 		int depth = Math.max(1, r.depth());
@@ -264,7 +340,8 @@ public final class Interactions {
 			line = Component.literal("The rod " + strength + " to the " + Pockets.direction(at, r.pocket().x(), r.pocket().z()) + ". About "
 				+ (Math.round(r.distance() / 4.0) * 4) + " blocks away, " + down + ".").withStyle(ChatFormatting.YELLOW);
 		}
-		actionBar(player, line);
+		// in chat, only for the one holding the rod
+		player.sendSystemMessage(line);
 		Hooks.xp(player.getUUID(), 0.5);
 	}
 
@@ -278,10 +355,47 @@ public final class Interactions {
 				Machines.removeTank(tank);
 				level.removeBlock(pos, false);
 				if (!player.isCreative() || tank.amount > 0) {
-					Block.popResource(level, pos, OilItems.tank(tank.fluid, tank.amount));
+					Block.popResource(level, pos, OilItems.tank(tank.set, tank.fluid, tank.amount));
 				}
 				return false;
 			}
+		}
+		if (isOvenBlock(state)) {
+			Oven o = Machines.ovenAt(level, pos);
+			if (o != null) {
+				Machines.removeOven(o);
+				for (net.minecraft.world.Container box : java.util.List.of(o.input, o.output)) {
+					for (int i = 0; i < box.getContainerSize(); i++) {
+						ItemStack stack = box.getItem(i);
+						if (!stack.isEmpty()) {
+							Block.popResource(level, pos, stack.copy());
+							box.setItem(i, ItemStack.EMPTY);
+						}
+					}
+				}
+				// whatever hoppers left in the smoker's own slots drops the vanilla way
+				if (level.getBlockEntity(pos) instanceof net.minecraft.world.Container own) {
+					for (int i = 0; i < own.getContainerSize(); i++) {
+						if (!own.getItem(i).isEmpty()) {
+							Block.popResource(level, pos, own.getItem(i).copy());
+							own.setItem(i, ItemStack.EMPTY);
+						}
+					}
+				}
+				level.removeBlock(pos, false);
+				if (!player.isCreative() || o.diesel > 0) {
+					Block.popResource(level, pos, OilItems.oven(o.diesel));
+				}
+				return false;
+			}
+		}
+		if (Pipes.isPipeBlock(state) && Pipes.has(level, pos)) {
+			Pipes.remove(Machines.dim(level), pos);
+			level.removeBlock(pos, false);
+			if (!player.isCreative()) {
+				Block.popResource(level, pos, OilItems.pipe(1));
+			}
+			return false;
 		}
 		if (isRefineryBlock(state)) {
 			Refinery r = Machines.refineryAt(level, pos);

@@ -20,6 +20,7 @@ import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -165,25 +166,55 @@ final class Rigs {
 
 	// ---------------------------------------------------------------- placing and packing up
 
-	/** Sets up a rig over the 5×5 square centred on this ground block. Null (and a message) if it can't go there. */
+	/**
+	 * Sets up a rig over the 5×5 square centred on this ground block. Null (and a message) if it can't go there. Under
+	 * water, it goes offshore: a deck at the surface and a cofferdam down to this block (the seabed).
+	 */
 	static @Nullable Rig place(ServerLevel level, @Nullable ServerPlayer player, BlockPos ground) {
+		return place(level, player, ground, new net.minecraft.nbt.CompoundTag());
+	}
+
+	/** The same, for a rig that comes with Workshop upgrades (a packed-up one). */
+	static @Nullable Rig place(ServerLevel level, @Nullable ServerPlayer player, BlockPos ground, net.minecraft.nbt.CompoundTag upgrades) {
 		String dim = Machines.dim(level);
-		Rig other = near(dim, ground, 7);
-		if (other != null) {
-			tell(player, "Too close to another Drill Rig. Shafts need at least 8 blocks between their middles.");
-			return null;
+		Rig probe = new Rig("", dim, ground.getX(), ground.getY(), ground.getZ());
+		Workshop.read(probe, upgrades);
+		for (Rig other : BY_ID.values()) {
+			int gap = Math.max(7, probe.half() + other.half() + 1);
+			if (other.dimension.equals(dim) && Math.abs(other.cx - ground.getX()) <= gap && Math.abs(other.cz - ground.getZ()) <= gap) {
+				tell(player, "Too close to another Drill Rig. Shafts need at least " + (gap + 1) + " blocks between their middles.");
+				return null;
+			}
 		}
 		if (ground.getY() - 1 < level.getMinY() || ground.getY() >= level.getMaxY() - 8) {
 			tell(player, "A Drill Rig can't stand here.");
 			return null;
 		}
+		int deck = ground.getY();
+		while (deck + 1 < level.getMaxY() && Rig.isWater(level.getBlockState(ground.atY(deck + 1)))) {
+			deck++;
+		}
+		if (deck - ground.getY() > FossilConfig.get().offshoreDepth) {
+			tell(player, "Too deep: " + (deck - ground.getY()) + " blocks of water. Offshore rigs stand in up to " + FossilConfig.get().offshoreDepth + ".");
+			return null;
+		}
+		if (deck >= level.getMaxY() - 8) {
+			tell(player, "A Drill Rig can't stand here.");
+			return null;
+		}
 		for (int dy = 1; dy <= 2; dy++) {
-			if (!level.getBlockState(ground.above(dy)).canBeReplaced()) {
+			if (!level.getBlockState(ground.atY(deck + dy)).canBeReplaced()) {
 				tell(player, "Clear the space above the middle of the shaft first.");
 				return null;
 			}
 		}
 		Rig rig = new Rig(UUID.randomUUID().toString().substring(0, 8), dim, ground.getX(), ground.getY(), ground.getZ());
+		Workshop.read(rig, upgrades);
+		rig.deck = deck;
+		rig.drainY = deck;
+		if (rig.offshore()) {
+			rig.buildCofferdam(level);
+		}
 		if (player != null) {
 			rig.owner = player.getUUID().toString();
 			rig.ownerName = player.getName().getString();
@@ -208,7 +239,7 @@ final class Rigs {
 		}
 		Cmd.run(level, "kill @e[tag=" + rig.tag() + "]");
 		List<ItemStack> things = new ArrayList<>();
-		things.add(OilItems.rig());
+		things.add(OilItems.rig(rig));
 		for (Container box : List.of(rig.firebox, rig.ores, rig.stone)) {
 			for (int i = 0; i < box.getContainerSize(); i++) {
 				ItemStack stack = box.getItem(i);
@@ -246,8 +277,16 @@ final class Rigs {
 			return InteractionResult.PASS;
 		}
 		BlockPos clicked = hit.getBlockPos();
-		BlockPos ground = level.getBlockState(clicked).canBeReplaced() ? clicked.below() : clicked;
-		Rig rig = place(level, player, ground);
+		// down through grass, water, kelp and the like to solid ground (or the seabed)
+		BlockPos ground = clicked;
+		for (int i = 0; i < 64 && ground.getY() > level.getMinY(); i++) {
+			BlockState s = level.getBlockState(ground);
+			if (!s.canBeReplaced() && !Rig.isWater(s)) {
+				break;
+			}
+			ground = ground.below();
+		}
+		Rig rig = place(level, player, ground, OilItems.data(held));
 		if (rig == null) {
 			return InteractionResult.SUCCESS;
 		}
@@ -257,6 +296,10 @@ final class Rigs {
 		Cmd.sound(level, "minecraft:block.anvil.place", rig.modelX(), rig.modelY(), rig.modelZ(), 0.7f, 0.6f);
 		player.sendSystemMessage(Component.literal("The Drill Rig is up. ").withStyle(ChatFormatting.GOLD)
 			.append(Component.literal("Right-click it and put fuel in its firebox: coal, lava, crude or diesel.").withStyle(ChatFormatting.YELLOW)));
+		if (rig.offshore()) {
+			player.sendSystemMessage(Component.literal("Offshore! It stands on a deck over " + (rig.deck - rig.top) + " blocks of water, with a cofferdam "
+				+ "around the shaft. It pumps the cofferdam dry first, then drills the seabed. Lay Pipes from the deck to shore.").withStyle(ChatFormatting.AQUA));
+		}
 		return InteractionResult.SUCCESS;
 	}
 

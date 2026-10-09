@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.15.0"
+VERSION = "1.17.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -27,6 +27,7 @@ I = {
  "quartzpillar": ("QzP", "#ece6dc", "Quartz Pillar", True),
  "membrane": ("Phm", "#b9c7a8", "Phantom Membrane", True), "netherite": ("Nthr", "#4a3f3f", "Netherite Ingot", False),
  "tnt": ("TNT", "#c8322a", "TNT", False), "endcrystal": ("Crys", "#c49ad8", "End Crystal", True),
+ "smoker": ("Smk", "#5b4a3a", "Smoker", False),
 }
 
 def shaped(name, rows, key, out, count=None): return dict(name=name, rows=rows, key=key, out=out, count=count)
@@ -51,7 +52,8 @@ MODS = [
          "Right-click the Town Hall's <b>lectern</b> to shop for blueprints: Residence (beds), Farm, Fishery, Lumber Camp, Mine, Workshop, Storehouse, Harbor Office, Train Station.",
          "Right-click inside your colony with a blueprint to see the outline, then click the same spot again to build it.",
          "Every morning you pay wages (₥3 a worker) and the workers deliver to your Storehouses. Can't pay? Everyone strikes.",
-         "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems."],
+         "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems.",
+         "Build a <b>town street</b>: a Trading Post with master traders (emeralds), a Bank with a shared vault, a Museum for your relics, a Chapel, a Library with a maxed enchanting table, a Ranch, an Apiary and a Fuel Depot. The shop, bank and museum earn marks every day."],
   tips=["Every worker needs a bed, so build Residences first.",
         "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically. A staffed <b>Harbor Office</b> adds 5% per tier.",
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
@@ -216,17 +218,20 @@ MODS = [
  dict(name="Fossil Fool", colour="#3a3a3a", tag="Old-timey oil: dowse for it, sink a 5×5 shaft with a Drill Rig, strike crude, tank it, refine it into diesel and burn it.",
   recipes=[shaped("Drill Rig", ["BDB","PFP","LLL"], dict(B="ironblock",D="diamondblock",P="piston",F="blastfurnace",L="log"), "Rig"),
            shaped("Oil Tank", ["I I","IUI","III"], dict(I="iron",U="cauldron"), "Tank"),
+           shaped("Pipe", ["CIC"], dict(C="copper",I="iron"), "Pipe", 4),
            shaped("Refinery", ["CUC","CFC","SSS"], dict(C="copper",U="cauldron",F="blastfurnace",S="bricks"), "Ref"),
-           shaped("Dowsing Rod", ["S S"," S "," G "], dict(S="stick",G="gold"), "Rod")],
+           shaped("Dowsing Rod", ["S S"," S "," G "], dict(S="stick",G="gold"), "Rod"),
+           shaped("Industrial Oven", ["IFI","BSB","III"], dict(I="iron",F="blastfurnace",B="bricks",S="smoker"), "Oven")],
   steps=["Right-click with the <b>Dowsing Rod</b>. It twitches towards the nearest oil pocket: which way, how far, how deep. Walk until it points straight down.",
-         "Right-click the ground with the <b>Drill Rig</b>. It sinks a <b>5×5 shaft</b> centred on that block, one block at a time, all the way to bedrock.",
+         "Right-click the ground with the <b>Drill Rig</b>: a <b>5×5 shaft</b> to bedrock. Click the <b>seabed</b> through water and it goes <b>offshore</b> on a deck with a cofferdam.",
          "Right-click the derrick (anyone can) and put fuel in the <b>firebox</b> (row 2). Ores land in rows 3–4, stone in rows 5–6.",
          "When it hits a pocket: <b>STRUCK OIL!</b> It pumps the pocket dry into its tank and into any <b>Oil Tank</b> within 9 blocks, then keeps drilling.",
-         "Put a <b>Refinery</b> next to the tank. With fuel in its firebox, it turns 2 crude into 1 diesel and pipes the diesel back into an empty tank."],
-  tips=["Fuel ladder, each better than the last: <b>coal</b> 2 blocks (0.5× speed) → <b>lava</b> 40 (0.75×) → <b>crude</b> 60 (1×) → <b>diesel</b> 200 (1.5×). A full shaft is about 16 buckets of diesel.",
-        "<b>Hoppers</b> around the shaft (on the ground or one up) get the holds: ores first, then stone. Lead them into a Cargo Train <b>Pickup Station</b>.",
-        "Broke into oil by hand? Right-click the black crude with an empty bucket. Mine it and it oozes away.",
-        "Sell crude (₥25) and diesel (₥45) at the Market. Only the owner can pack a rig up. About one pocket in ten is a gusher."],
+         "Put a <b>Refinery</b> next to the tank. With fuel in its firebox it turns 2 crude into 1 diesel, back into an empty tank.",
+         "Too far? Lay <b>Pipes</b> from the ring around the shaft: tanks, refineries, ovens and chests on the line are linked."],
+  tips=["Fuel ladder: <b>coal</b> 2 blocks (0.5×) → <b>lava</b> 40 (0.75×) → <b>crude</b> 60 (1×) → <b>diesel</b> 200 (1.5×).",
+        "Tanks hold <b>crude, diesel, water or lava</b>; sneak + right-click with an empty hand picks one. Empty fireboxes burn fuel from the tanks.",
+        "<b>Rig Workshop</b> (the anvil in the rig's screen): pay materials for a <b>7×7 or 9×9 shaft</b>, a faster engine, better fuel use and bigger holds.",
+        "The <b>Industrial Oven</b> burns diesel and smelts a stack in seconds; <b>ores come out double</b>. Sell crude (₥40) and diesel (₥100) at the Market."],
   cmds="/fossilfool"),
  dict(name="Riches", colour="#b8860b", tag="Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics.",
   recipes=[shaped("Vault Ledger", ["GIG","ILI","GIG"], dict(G="goldblock",I="ironblock",L="lodestone"), "Ldgr"),
@@ -325,7 +330,7 @@ h1, h2, h3 {{ margin: 0; }}
 .mod h2 {{ font: bold 25pt/1.1 "DejaVu Sans Mono", monospace; }}
 .tag {{ font-size: 11.5pt; color: #3d3a35; margin: 0; }}
 h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: #6b675f; margin-top: 6px; }}
-.recipes {{ display: flex; flex-wrap: wrap; gap: 10px 22px; }}
+.recipes {{ display: flex; flex-wrap: wrap; gap: 10px 16px; }}
 .rc {{ display: flex; flex-direction: column; gap: 3px; }}
 .rn {{ font: bold 9.5pt "DejaVu Sans Mono", monospace; }}
 .any {{ font-weight: normal; color: #6b675f; font-size: 8.5pt; }}

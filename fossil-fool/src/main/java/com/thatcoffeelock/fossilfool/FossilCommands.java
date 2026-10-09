@@ -28,8 +28,17 @@ final class FossilCommands {
 			})
 			.then(literal("give").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 				.then(literal("rig").executes(ctx -> give(ctx.getSource(), OilItems.rig(), "A Drill Rig. Mind the hole.")))
-				.then(literal("tank").executes(ctx -> give(ctx.getSource(), OilItems.tank(), "An Oil Tank.")))
+				.then(literal("tank").executes(ctx -> give(ctx.getSource(), OilItems.tank(), "An Oil Tank. Takes any fluid."))
+					.then(literal("crude").executes(ctx -> give(ctx.getSource(), OilItems.tank(Fluid.CRUDE), "An Oil Tank, crude only.")))
+					.then(literal("diesel").executes(ctx -> give(ctx.getSource(), OilItems.tank(Fluid.DIESEL), "A Diesel Tank.")))
+					.then(literal("water").executes(ctx -> give(ctx.getSource(), OilItems.tank(Fluid.WATER), "A Water Tank.")))
+					.then(literal("lava").executes(ctx -> give(ctx.getSource(), OilItems.tank(Fluid.LAVA), "A Lava Tank. Don't sit in it."))))
+				.then(literal("pipe")
+					.executes(ctx -> give(ctx.getSource(), OilItems.pipe(64), "64 Pipes. Mind the lightning."))
+					.then(argument("count", IntegerArgumentType.integer(1, 64))
+						.executes(ctx -> give(ctx.getSource(), OilItems.pipe(IntegerArgumentType.getInteger(ctx, "count")), "Pipes."))))
 				.then(literal("refinery").executes(ctx -> give(ctx.getSource(), OilItems.refinery(), "A Refinery.")))
+				.then(literal("oven").executes(ctx -> give(ctx.getSource(), OilItems.oven(), "An Industrial Oven. Mind your eyebrows.")))
 				.then(literal("rod").executes(ctx -> give(ctx.getSource(), OilItems.rod(), "A Dowsing Rod. Science!")))
 				.then(literal("crude")
 					.executes(ctx -> give(ctx.getSource(), OilItems.crude(16), "16 buckets of crude."))
@@ -79,8 +88,11 @@ final class FossilCommands {
 			"§7  Right-click it for its screen: §ffirebox§7, §fore hold§7, §fstone hold§7, crude tank.",
 			"§7  It strikes oil when it hits a pocket, pumps it dry, then keeps drilling to bedrock.",
 			"§eFuel§7, each better than the last: §8coal§7 → §clava§7 → §7crude → §6diesel",
-			"§eOil Tank§7: right-click with buckets. Rigs and Refineries nearby pipe into it.",
+			"§eOil Tank§7: right-click with buckets: crude, diesel, water or lava. Sneak + empty hand picks its fluid.",
+			"§ePipe§7: a line of them links rigs, tanks, refineries and chests, however far apart.",
+			"§7  Rigs and refineries burn diesel, crude or lava from the tanks they reach when their firebox is empty.",
 			"§eRefinery§7: 2 crude → 1 diesel, with fuel in its firebox.",
+			"§eIndustrial Oven§7: burns diesel, smelts a stack in seconds. Ores come out §fdouble§7.",
 			"§7Found oil by hand? Right-click it with an §fempty bucket§7.",
 			"§7Sell crude and diesel at the §fMarket§7. Level §fWildcatting§7 in /skills."
 		};

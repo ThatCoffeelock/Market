@@ -18,21 +18,24 @@ import net.minecraft.world.item.Items;
 final class RigMenu extends MachineMenu {
 	private final Rig rig;
 	private final ServerLevel level;
+	/** Which page of the holds is showing (upgraded holds have more than one). */
+	private final int[] page;
 
-	private RigMenu(int syncId, ServerPlayer viewer, Rig rig, ServerLevel level) {
+	private RigMenu(int syncId, ServerPlayer viewer, Rig rig, ServerLevel level, int[] page) {
 		super(syncId, viewer, 6, new View(6, List.of(
 			new Section(rig.firebox, 9, true),
-			new Section(rig.ores, 18, false),
-			new Section(rig.stone, 36, false)),
+			new Section(new Window(() -> rig.ores, () -> page[0] * Rig.HOLD_PAGE, Rig.HOLD_PAGE), 18, false),
+			new Section(new Window(() -> rig.stone, () -> page[0] * Rig.HOLD_PAGE, Rig.HOLD_PAGE), 36, false)),
 			() -> !Rigs.isRemoved(rig) && viewer.distanceToSqr(rig.modelX(), rig.modelY(), rig.modelZ()) < 16 * 16));
 		this.rig = rig;
 		this.level = level;
+		this.page = page;
 		render();
 	}
 
 	static void open(ServerPlayer player, Rig rig, ServerLevel level) {
 		String title = rig.ownerName.isEmpty() ? "Drill Rig" : rig.ownerName + "'s Drill Rig";
-		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new RigMenu(id, player, rig, level),
+		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new RigMenu(id, player, rig, level, new int[1]),
 			Component.literal(title).withStyle(ChatFormatting.DARK_GRAY)));
 	}
 
@@ -49,7 +52,14 @@ final class RigMenu extends MachineMenu {
 		List<Component> status = new ArrayList<>();
 		status.add(Gui.text(rig.state.text + ".", rig.state.color));
 		status.add(Gui.text("Depth: " + rig.depth() + " blocks (y " + rig.layer + ")", ChatFormatting.GRAY));
-		status.add(Gui.text("This layer: " + Gui.bar(rig.cell / 25.0, 10) + " " + rig.cell + "/25", ChatFormatting.GRAY));
+		status.add(Gui.text("This layer: " + Gui.bar(rig.cell / (double) rig.cells(), 10) + " " + rig.cell + "/" + rig.cells()
+			+ " (" + rig.width() + "×" + rig.width() + " shaft)", ChatFormatting.GRAY));
+		if (rig.offshore()) {
+			status.add(Gui.text("Offshore, in " + (rig.deck - rig.top) + " blocks of water.", ChatFormatting.AQUA));
+			if (!rig.drained()) {
+				status.add(Gui.text("Cofferdam: " + (rig.drainY - rig.top) + " layers of water left to pump out.", ChatFormatting.AQUA));
+			}
+		}
 		if (rig.blockedAt != null && rig.state == Rig.State.BLOCKED) {
 			status.add(Gui.text("Can't drill the block at " + rig.blockedAt.getX() + " " + rig.blockedAt.getY() + " " + rig.blockedAt.getZ()
 				+ " (it has contents).", ChatFormatting.YELLOW));
@@ -73,6 +83,10 @@ final class RigMenu extends MachineMenu {
 			fuel.add(Gui.text(" " + Fuel.ladderLine(f), f.color));
 		}
 		fuel.add(Gui.text(" (a coal block is 9 coal)", ChatFormatting.DARK_GRAY));
+		if (c.fuelFromTanks) {
+			fuel.add(Gui.text("Firebox empty? It burns diesel, crude or lava", ChatFormatting.DARK_GRAY));
+			fuel.add(Gui.text("from the tanks it reaches.", ChatFormatting.DARK_GRAY));
+		}
 		ItemStack fuelIcon = new ItemStack(rig.burning == Fuel.LAVA ? Items.LAVA_BUCKET : rig.burning == Fuel.CRUDE || rig.burning == Fuel.DIESEL
 			? Items.BUCKET : Items.COAL);
 		button(2, Gui.icon(fuelIcon.getItem(), Gui.text("Fuel", ChatFormatting.GOLD, ChatFormatting.BOLD), fuel), null);
@@ -80,7 +94,8 @@ final class RigMenu extends MachineMenu {
 		button(3, Gui.icon(Items.CAULDRON, Gui.text("Crude tank: " + rig.crude + " / " + c.rigTank + " buckets", ChatFormatting.DARK_GRAY, ChatFormatting.BOLD),
 			List.of(Gui.text(Gui.bar(rig.crude / (double) c.rigTank, 10), ChatFormatting.GRAY),
 				Gui.text("Click: fill the empty buckets you carry.", ChatFormatting.YELLOW),
-				Gui.text("Oil Tanks within " + (c.pipeReach + 3) + " blocks fill by themselves.", ChatFormatting.DARK_GRAY))), shift -> {
+				Gui.text("Tanks within " + (c.pipeReach + 3) + " blocks, or on its pipeline,", ChatFormatting.DARK_GRAY),
+				Gui.text("fill by themselves.", ChatFormatting.DARK_GRAY))), shift -> {
 			int n = Interactions.fillBuckets(viewer, Fluid.CRUDE, rig.crude);
 			if (n == 0) {
 				nope(rig.crude == 0 ? "The rig's tank is empty." : "You have no empty buckets.");
@@ -91,11 +106,23 @@ final class RigMenu extends MachineMenu {
 			click();
 		});
 
-		button(4, Gui.glow(Gui.icon(Items.PISTON, Gui.text("Drill Rig", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
+		int pages = 1 + rig.holdLevel;
+		page[0] = Math.min(page[0], pages - 1);
+		List<Component> info = new ArrayList<>(List.of(
 			Gui.text("Owner: " + (rig.ownerName.isEmpty() ? "nobody" : rig.ownerName), ChatFormatting.GRAY),
 			Gui.text("Row 2: firebox. Rows 3-4: ores. Rows 5-6: stone.", ChatFormatting.DARK_GRAY),
 			Gui.text("Hoppers around the shaft (on the ground or one up)", ChatFormatting.DARK_GRAY),
-			Gui.text("get the holds' contents: ores first, then stone.", ChatFormatting.DARK_GRAY)))), null);
+			Gui.text("get the holds' contents: ores first, then stone.", ChatFormatting.DARK_GRAY),
+			Gui.text("So do chests on a pipeline from that ring.", ChatFormatting.DARK_GRAY)));
+		if (pages > 1) {
+			info.add(Component.empty());
+			info.add(Gui.text("Holds: page " + (page[0] + 1) + " of " + pages + ". Click for the next page.", ChatFormatting.YELLOW));
+		}
+		button(4, Gui.glow(Gui.icon(Items.PISTON, Gui.text("Drill Rig" + (pages > 1 ? " · page " + (page[0] + 1) + "/" + pages : ""),
+			ChatFormatting.GOLD, ChatFormatting.BOLD), info)), pages > 1 ? shift -> {
+				click();
+				page[0] = (page[0] + 1) % pages;
+			} : null);
 
 		button(5, Gui.icon(Items.COBBLESTONE, Gui.text("Keep stone: " + (rig.keepStone ? "ON" : "OFF"), rig.keepStone ? ChatFormatting.GREEN : ChatFormatting.RED,
 			ChatFormatting.BOLD), List.of(Gui.text(rig.keepStone ? "Stone, dirt and gravel go to the stone hold." : "Stone, dirt and gravel are thrown away.",
@@ -107,7 +134,8 @@ final class RigMenu extends MachineMenu {
 
 		if (FossilFoolApi.hasUnloaders()) {
 			button(6, Gui.icon(Items.BARREL, Gui.text("Unload to a Warehouse", ChatFormatting.AQUA, ChatFormatting.BOLD), List.of(
-				Gui.text("Sends both holds to the warehouses within " + c.warehouseReach + " blocks.", ChatFormatting.GRAY),
+				Gui.text("Sends both holds to the warehouses within " + c.warehouseReach + " blocks,", ChatFormatting.GRAY),
+				Gui.text("or of the far end of its pipeline.", ChatFormatting.GRAY),
 				Gui.text("Ores go to an ores-only warehouse first.", ChatFormatting.GRAY),
 				Gui.text("It also happens by itself every few seconds.", ChatFormatting.DARK_GRAY))), shift -> {
 				long moved = rig.unload(level);
@@ -143,7 +171,16 @@ final class RigMenu extends MachineMenu {
 			viewer.closeContainer();
 			Rigs.packUp(rig, viewer);
 		});
-		view.icons[7] = ItemStack.EMPTY;
+		List<Component> shop = new ArrayList<>();
+		for (Workshop.Track track : Workshop.TRACKS) {
+			int lv = track.level(rig);
+			shop.add(Gui.text(track.title() + ": " + track.levels().get(lv).name() + (lv > 0 ? " (" + Workshop.roman(lv) + ")" : ""), ChatFormatting.GRAY));
+		}
+		shop.add(Gui.text("Click: upgrade size, speed, efficiency and holds.", ChatFormatting.YELLOW));
+		button(7, Gui.icon(Items.ANVIL, Gui.text("Rig Workshop", ChatFormatting.GOLD, ChatFormatting.BOLD), shop), shift -> {
+			click();
+			WorkshopMenu.open(viewer, rig, level);
+		});
 		fillRow();
 	}
 }

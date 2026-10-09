@@ -54,14 +54,22 @@ public final class FossilConfig {
 	public int rigTank = 64;
 	/** Running rigs keep their chunk loaded, so they drill while nobody's around. */
 	public boolean keepChunksLoaded = true;
-	/** How far a rig, or a Refinery, reaches to fill or drain Oil Tanks ("the pipes"). */
+	/** How far a rig, or a Refinery, reaches to fill or drain Tanks without any pipe ("the assumed pipes"). */
 	public int pipeReach = 6;
+	/** The most Pipe blocks one pipeline follows. */
+	public int pipeLength = 512;
+	/** Rigs and Refineries with an empty firebox burn diesel, crude or lava from the tanks they reach. */
+	public boolean fuelFromTanks = true;
+	/** The deepest water a rig can be set up in (offshore), in blocks. */
+	public int offshoreDepth = 40;
+	/** Fuel (in drilled-block units) it costs to pump one block of water out of an offshore rig's cofferdam. */
+	public double drainCost = 0.05;
 	/** How far a rig looks for a Warehouse to unload into (needs the Warehouse mod). */
 	public int warehouseReach = 16;
 
 	// ---------------------------------------------------------------- tanks and refining
 
-	/** Buckets an Oil Tank holds. */
+	/** Buckets a Tank holds. */
 	public int tankCapacity = 1000;
 	/** Buckets of crude and of diesel a Refinery holds. */
 	public int refineryCapacity = 64;
@@ -72,10 +80,19 @@ public final class FossilConfig {
 	/** Fuel (in drilled-block units) it costs to refine one bucket of diesel. */
 	public double refineHeat = 20;
 
+	// ---------------------------------------------------------------- the Industrial Oven
+
+	/** Buckets of diesel an Industrial Oven holds. */
+	public int ovenTank = 16;
+	/** Items one bucket of diesel smelts. */
+	public int ovenItemsPerDiesel = 64;
+	/** Ticks per item smelted. 1 = 20 items a second, a stack in about three seconds. */
+	public double ovenTicksPerItem = 1;
+
 	// ---------------------------------------------------------------- Market sell prices (needs the Market mod)
 
-	public double crudeSellPrice = 25;
-	public double dieselSellPrice = 45;
+	public double crudeSellPrice = 40;
+	public double dieselSellPrice = 100;
 
 	public static FossilConfig get() {
 		return current;
@@ -100,6 +117,17 @@ public final class FossilConfig {
 		cfg.crudePerDiesel = Math.max(1, cfg.crudePerDiesel);
 		cfg.rigTank = Math.max(1, cfg.rigTank);
 		cfg.tankCapacity = Math.max(1, cfg.tankCapacity);
+		cfg.pipeLength = Math.max(1, cfg.pipeLength);
+		cfg.ovenTank = Math.max(1, cfg.ovenTank);
+		cfg.ovenItemsPerDiesel = Math.max(1, cfg.ovenItemsPerDiesel);
+		cfg.ovenTicksPerItem = Math.max(1, cfg.ovenTicksPerItem);
+		// 1.0 wrote the old prices into every config file; raise them unless someone picked their own
+		if (cfg.crudeSellPrice == 25) {
+			cfg.crudeSellPrice = 40;
+		}
+		if (cfg.dieselSellPrice == 45) {
+			cfg.dieselSellPrice = 100;
+		}
 		cfg.refineryCapacity = Math.max(cfg.crudePerDiesel, cfg.refineryCapacity);
 		if (cfg.pocketMaxY < cfg.pocketMinY) {
 			cfg.pocketMaxY = cfg.pocketMinY;
