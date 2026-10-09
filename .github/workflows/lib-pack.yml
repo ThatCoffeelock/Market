@@ -127,7 +127,7 @@ jobs:
           prerelease: true
           make_latest: false
           body: |
-            Latest green build of the LIB Pack: all seventeen mods (Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets & Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey) in one jar, for Minecraft 26.3 (Fabric, server-side).
+            Latest green build of the LIB Pack: all eighteen mods (Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets & Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords) in one jar, for Minecraft 26.3 (Fabric, server-side).
             Download the .jar below and put it in your server's mods/ folder together with Fabric API. Remove the separate mod jars if you had them.
             Built from ${{ github.sha }}.
           files: lib-pack/build/libs/lib-pack-*.jar

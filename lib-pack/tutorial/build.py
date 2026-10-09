@@ -58,7 +58,7 @@ MODS = [
   tips=["Every worker needs a bed, so build Residences first.",
         "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically. A staffed <b>Harbor Office</b> adds 5% per tier.",
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
-        "Got a villager in a <b>Burlap Sack</b>? Give them an empty job for free. With Havana, buy a <b>Tobacco Farm</b>.",
+        "Got a villager in a <b>Burlap Sack</b>? Give them an empty job for free. With Havana, buy a <b>Tobacco Farm</b>. With Sellswords, a <b>Guildhouse</b> hires mercenaries 20–50% cheaper.",
         "<b>Law and order:</b> buy Shackles (₥50), beat an illager under 40% health and shackle it. Jail it in a <b>Cellblock</b>, then ransom it or execute it on the <b>Scaffold</b> for 2–3× the bounty.",
         "Needs the Market mod (it's in the pack)."],
   cmds="/colonycraft · /colonycraft charter"),
@@ -72,7 +72,7 @@ MODS = [
          "Menu → <b>Gun deck</b>: slot Cannons into the four gun ports, then man one from the same menu.",
          "Menu → <b>Bunks</b>: slot a bed into one of the two berths on the foredeck, then lie down at night. Sleep while anchored; Shift gets you up.",
          "Done sailing? Open the menu and choose <b>Bottle it up</b>. Name, cargo and cannons stay inside."],
-  tips=["Sailing with the wind is full speed, against it half speed.",
+  tips=["Sailing with the wind is full speed, against it half speed. Following <b>Sellswords</b> mercenaries take passenger seats.",
         "Nobody aboard can be hurt, and drowned, guardians and phantoms get zapped.",
         "Passengers can fish, shoot, throw, eat and use blocks and mobs in reach: right-click does what it does ashore.",
         "Menu: right-click with an empty hand while aboard (or <code>/ahoy menu</code>), or sneak + right-click from outside. It has the cargo holds and the lock.",
@@ -213,7 +213,7 @@ MODS = [
   tips=["One contract at a time. Abandon it at the station if it's too much (no reward).",
         "Bosses are tougher than normal: 40 health on Easy, 80 on Medium, 140 on Hard. Hard bosses are evokers. Bring a shield for the vexes.",
         "The dungeon is 16 blocks down a ladder. The castle's boss waits upstairs in the keep, past a ravager.",
-        "Raid farms count as illagers too. Your fingers, your call.",
+        "Raid farms count as illagers too. Your fingers, your call. Kills by your <b>Sellswords</b> mercenaries drop fingers too.",
         "Ops: <code>/bounty build castle</code> builds a hideout where you stand (for testing, no skull)."],
   cmds="/bounty"),
  dict(name="Fossil Fool", colour="#3a3a3a", tag="Old-timey oil: dowse for it, sink a 5×5 shaft with a Drill Rig, strike crude, tank it, refine it into diesel and burn it.",
@@ -368,7 +368,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Seventeen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Eighteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>
