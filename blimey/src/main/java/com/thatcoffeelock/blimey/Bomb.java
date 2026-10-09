@@ -41,10 +41,12 @@ final class Bomb {
 	/** Ticks left on a lit fuse; 0 means it goes off on impact instead. */
 	int fuse;
 	private final boolean impact;
+	/** Who let it go (for Piloteering XP and the Payload perk), or null. */
+	private final @Nullable UUID dropper;
 	private int age;
 	private boolean done;
 
-	private Bomb(ServerLevel level, Entity display, BlimeyItems.BombKind kind, Vec3 pos, Vec3 vel, int fuse) {
+	private Bomb(ServerLevel level, Entity display, BlimeyItems.BombKind kind, Vec3 pos, Vec3 vel, int fuse, @Nullable UUID dropper) {
 		this.level = level;
 		this.display = display;
 		this.kind = kind;
@@ -52,10 +54,11 @@ final class Bomb {
 		this.vel = vel;
 		this.fuse = fuse;
 		this.impact = fuse <= 0;
+		this.dropper = dropper;
 	}
 
-	/** Lets a bomb go here. {@code fuse} in ticks; 0 = goes off on impact. */
-	static @Nullable Bomb launch(ServerLevel level, BlimeyItems.BombKind kind, Vec3 pos, Vec3 vel, int fuse) {
+	/** Lets a bomb go here. {@code fuse} in ticks; 0 = goes off on impact. {@code dropper} gets the Piloteering XP. */
+	static @Nullable Bomb launch(ServerLevel level, BlimeyItems.BombKind kind, Vec3 pos, Vec3 vel, int fuse, @Nullable UUID dropper) {
 		UUID id = UUID.randomUUID();
 		float s = kind.scale;
 		Cmd.run(level, "summon minecraft:item_display " + Cmd.pos(pos.x, pos.y, pos.z) + " {" + Cmd.uuidNbt(id) + ",Tags:[\"" + TAG
@@ -67,7 +70,7 @@ final class Bomb {
 			return null;
 		}
 		display.setAttached(BlimeyMod.BOMB, true);
-		Bomb bomb = new Bomb(level, display, kind, pos, vel, fuse);
+		Bomb bomb = new Bomb(level, display, kind, pos, vel, fuse, dropper);
 		LIVE.add(bomb);
 		Cmd.sound(level, "minecraft:entity.tnt.primed", pos.x, pos.y, pos.z, 1.0f, impact(fuse) ? 0.6f : 1.0f);
 		return bomb;
@@ -238,7 +241,17 @@ final class Bomb {
 		remove();
 		BlimeyConfig cfg = BlimeyConfig.get();
 		Level.ExplosionInteraction interaction = cfg.bombsBreakBlocks ? Level.ExplosionInteraction.TNT : Level.ExplosionInteraction.NONE;
-		level.explode(null, at.x, at.y, at.z, kind.power(), interaction);
+		float power = (float) (kind.power() * (1 + SkillsLink.bonus(dropper, "piloteering/payload")));
+		if (dropper != null) {
+			int caught = level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class, new AABB(at, at).inflate(power + 1)).size();
+			double base = switch (kind) {
+				case SMALL -> 5;
+				case BIG -> 10;
+				case HUGE -> 20;
+			};
+			SkillsLink.xp(dropper, "piloteering", base + 6.0 * caught);
+		}
+		level.explode(null, at.x, at.y, at.z, power, interaction);
 		if (kind != BlimeyItems.BombKind.SMALL) {
 			Cmd.particles(level, "minecraft:explosion_emitter", at.x, at.y + 1, at.z, kind.power() / 3.0, 0.0, kind == BlimeyItems.BombKind.HUGE ? 6 : 2);
 			Cmd.sound(level, "minecraft:entity.generic.explode", at.x, at.y, at.z, 4.0f, kind == BlimeyItems.BombKind.HUGE ? 0.5f : 0.7f);

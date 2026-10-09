@@ -6,7 +6,7 @@ import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The nineteen skills. Every level gives a small passive bonus ({@link #perLevel} percent per level, so level 100 is
+ * The twenty skills. Every level gives a small passive bonus ({@link #perLevel} percent per level, so level 100 is
  * 100x that), and every 10 levels gives one perk point to spend in this skill's own perks. A maxed skill (passive +
  * all the perks you can afford) makes you roughly twice as good at that thing as an unskilled player.
  */
@@ -67,7 +67,10 @@ public enum Skill {
 		"-%s colony wages"),
 	CONNOISSEUR("Connoisseur", "brown_dye", ChatFormatting.DARK_GREEN, 0.5,
 		"Growing tobacco, rolling cigars and smoking them.",
-		"+%s cigar effect duration");
+		"+%s cigar effect duration"),
+	PILOTEERING("Piloteering", "elytra", ChatFormatting.AQUA, 0.3,
+		"Flying a Blimey airship as its captain, and dropping bombs from one.",
+		"-%s diesel burned flying an airship");
 
 	public static final int MAX_LEVEL = 100;
 	/** One perk point per this many levels: 10 points at level 100. */

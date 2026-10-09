@@ -5,9 +5,10 @@ A Fabric mod for Minecraft **26.3** that adds a riveted iron airship that runs o
 - **A metal airship:** an iron cigar of an envelope with copper ribs and tail fins, a glazed gondola slung underneath, two diesel engines on outriggers, and its name painted down both flanks.
 - **Captain, bombardier + 4 passengers.** The owner takes the controls; friends take the bomb hatch and the benches.
 - **Flies anywhere.** Climb to just under the build limit, cruise, hover, land on any flat-ish ground. Bail out mid-air and you get a parachute (it's a bedsheet).
-- **Runs on diesel**, from a [Fossil Fool](../fossil-fool/README.md) Refinery. A bucket keeps it cruising for about two minutes. Run dry and it sinks gently to the ground.
+- **Runs on diesel**, from a [Fossil Fool](../fossil-fool/README.md) Refinery. A bucket keeps it cruising for about five minutes. Run dry and it sinks gently to the ground.
 - **Expensive.** A netherite ingot and two blocks of diamond to build, a diesel habit to fly, and refits that cost blaze rods, ghast tears and more netherite.
-- **Refits** at the Engineer: faster engines, better fuel economy, up to four 54-slot cargo holds.
+- **Refits** at the Engineer: faster engines, better fuel economy, and from two up to five 54-slot cargo holds.
+- **Piloteering**, a new [Skills](../skills/README.md) skill: fly and bomb to level it, burn less diesel, fly faster, drop bombs for free.
 - **Bombs:** small, big and huge. Unlike a [Cannon](../cannon/README.md)'s cannonballs, they wreck buildings.
 - **Light on the server.** Built like an Ahoy ship: display entities only, no blocks are ever placed.
 
@@ -47,10 +48,10 @@ The captain's action bar shows speed, height, and the diesel left (buckets in th
 | Doing | Burn (at Fuel economy –) |
 |---|---|
 | Parked, nobody touching anything | Nothing |
-| Hovering | 35% of cruising: a bucket lasts about 6 minutes |
-| Cruising at top speed | A bucket every 2 minutes |
+| Hovering | 35% of cruising: a bucket lasts about 14 minutes |
+| Cruising at top speed | A bucket every 5 minutes |
 | Climbing | +30% on top |
-| Flat out with Racing engines | 1.5× cruising: a bucket every ~80 seconds |
+| Flat out with Racing engines | 1.5× cruising: a bucket every ~3¼ minutes |
 
 With the tank dry the engines die, you can't steer, and it sinks at a dignified 2.4 blocks a second until it lands.
 
@@ -62,9 +63,21 @@ Menu → **Engineer**. Paid in materials from the captain's inventory (free in c
 |---|---|---|---|
 | **Engines** (top speed) | Bigger propellers, +25%: 6 Block of Iron, 8 Piston, 32 Copper Ingot | Turbochargers, +50%: 2 Block of Diamond, 16 Blaze Rod, 8 Piston | Racing engines, +80%: 2 Netherite Ingot, 16 Phantom Membrane, 16 Blaze Rod |
 | **Fuel economy** (all burn) | Tuned carburettors, –20%: 6 Block of Redstone, 4 Comparator, 16 Gold Ingot | Riveted gas cells, –35%: 12 Block of Iron, 12 Phantom Membrane, 4 Block of Gold | Helium envelope, –50%: 8 Ghast Tear, 24 Phantom Membrane, 2 Block of Diamond |
-| **Cargo holds** | Cargo B (108 slots): 8 Chest, 4 Block of Iron | Cargo C (162): 16 Barrel, 8 Block of Iron | Cargo D (216): 8 Shulker Shell, 8 Block of Iron |
+| **Cargo holds** (A and B to start: 108 slots) | Cargo C (162 slots): 8 Chest, 4 Block of Iron | Cargo D (216): 16 Barrel, 8 Block of Iron | Cargo E (270): 8 Shulker Shell, 8 Block of Iron |
 
 Faster engines burn more at full throttle; the economy refits cut everything, hovering included.
+
+## Piloteering (with the Skills mod)
+
+| | |
+|---|---|
+| XP | 0.4 per block flown under power as captain; a bomb you dropped going off: 5 / 10 / 20 (small / big / huge), +6 per mob caught |
+| Passive | Up to 30% less diesel burned at level 100 (on top of the Fuel economy refits) |
+| **Ace** | +4% airship top speed per rank |
+| **Bombardier** | 6% chance per rank that a dropped bomb isn't used up |
+| **Payload** | +5% bomb blast per rank |
+
+The captain's skill counts for flying; whoever drops the bomb gets the bombing XP and perks. Bombs lit on foot give no XP.
 
 ## Bombs
 
@@ -92,7 +105,7 @@ Faster engines burn more at full throttle; the economy refits cut everything, ho
 
 | Key | Default | Meaning |
 |---|---|---|
-| `ticksPerBucket` | `2400` | How long a bucket of diesel lasts at cruising speed (20 ticks = 1 second) |
+| `ticksPerBucket` | `6000` | How long a bucket of diesel lasts at cruising speed (20 ticks = 1 second) |
 | `hoverBurn` | `0.35` | Share of the cruising burn that hovering costs |
 | `climbBurn` | `0.3` | Extra burn while climbing |
 | `topSpeed` | `0.5` | Blocks per tick before refits (0.5 = 36 km/h) |

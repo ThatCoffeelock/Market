@@ -62,6 +62,11 @@ final class Airship {
 	boolean burning;
 	private boolean grounded;
 	private boolean warnedDry;
+	/** The captain's Piloteering, refreshed every couple of seconds: less diesel, and the Ace perk's speed. */
+	private double pilotThrift;
+	private double pilotAce;
+	/** Blocks flown under power since the captain last got Piloteering XP. */
+	private double flown;
 	private int age;
 	private int lastBomb = -100;
 	private float sentYaw = Float.NaN;
@@ -187,6 +192,11 @@ final class Airship {
 		ServerPlayer captain = rider(AirshipModel.CAPTAIN);
 		Controls controls = testControls != null ? testControls
 			: captain != null ? Controls.of(captain.getLastClientInput()) : Controls.NONE;
+		if (age % 40 == 1) {
+			UUID pilot = captain == null ? null : captain.getUUID();
+			pilotThrift = Math.min(0.9, SkillsLink.bonus(pilot, "piloteering/passive"));
+			pilotAce = SkillsLink.bonus(pilot, "piloteering/ace");
+		}
 		boolean idle = grounded && !controls.any() && speed == 0 && climb == 0;
 		if (!idle || age % 20 == 0) {
 			fly(controls);
@@ -214,7 +224,7 @@ final class Airship {
 		boolean wantsPower = c.any() || !grounded || speed != 0;
 		boolean powered = wantsPower && hasFuel();
 		burning = powered;
-		double max = cfg.topSpeed * Engineer.speedFactor(data.speedLevel);
+		double max = cfg.topSpeed * Engineer.speedFactor(data.speedLevel) * (1 + pilotAce);
 		int rudder = (c.right() ? 1 : 0) - (c.left() ? 1 : 0);
 
 		if (powered) {
@@ -273,6 +283,9 @@ final class Airship {
 		if (ny >= ceiling() && climb > 0) {
 			climb = 0;
 		}
+		double fromX = x;
+		double fromY = y;
+		double fromZ = z;
 		boolean landing = false;
 		if (speed != 0 || ny != y) {
 			if (fits(level, nx, ny, nz, yaw)) {
@@ -307,7 +320,8 @@ final class Airship {
 
 		if (powered) {
 			double burn = cfg.hoverBurn + (1 - cfg.hoverBurn) * Math.abs(speed) / cfg.topSpeed + (climb > 0.01 ? cfg.climbBurn : 0);
-			data.fuel = Math.max(0, data.fuel - burn * Engineer.burnFactor(data.efficiencyLevel));
+			data.fuel = Math.max(0, data.fuel - burn * Engineer.burnFactor(data.efficiencyLevel) * (1 - pilotThrift));
+			pilotXp(Math.sqrt((x - fromX) * (x - fromX) + (y - fromY) * (y - fromY) + (z - fromZ) * (z - fromZ)));
 			if (age % 3 == 0) {
 				for (double[] e : AirshipModel.EXHAUSTS) {
 					double[] w = toWorld(x, z, yaw, e[0], e[2]);
@@ -328,6 +342,20 @@ final class Airship {
 			for (Entity part : root.getPassengers()) {
 				part.setYRot(yaw);
 			}
+		}
+	}
+
+	/** Piloteering XP for the captain: 0.4 per block flown under power, paid out every 10 blocks. */
+	private void pilotXp(double moved) {
+		ServerPlayer captain = rider(AirshipModel.CAPTAIN);
+		if (captain == null) {
+			flown = 0;
+			return;
+		}
+		flown += moved;
+		if (flown >= 10) {
+			SkillsLink.xp(captain.getUUID(), "piloteering", 0.4 * flown);
+			flown = 0;
 		}
 	}
 
@@ -434,16 +462,17 @@ final class Airship {
 		double[] hatch = toWorld(root.getX(), root.getZ(), root.getYRot(), 0, AirshipModel.HATCH_Z);
 		double rad = Math.toRadians(root.getYRot());
 		Vec3 vel = new Vec3(-Math.sin(rad) * speed, climb, Math.cos(rad) * speed);
-		Bomb bomb = Bomb.launch(level, kind, new Vec3(hatch[0], y + AirshipModel.HATCH_Y, hatch[1]), vel, 0);
+		Bomb bomb = Bomb.launch(level, kind, new Vec3(hatch[0], y + AirshipModel.HATCH_Y, hatch[1]), vel, 0, player.getUUID());
 		if (bomb == null) {
 			return "The bomb jammed in the hatch. Check the server log.";
 		}
 		lastBomb = age;
-		if (!player.isCreative()) {
+		boolean free = SkillsLink.roll(player.getUUID(), "piloteering/bombardier");
+		if (!player.isCreative() && !free) {
 			held.shrink(1);
 		}
 		Cmd.sound(level, "minecraft:block.iron_trapdoor.open", hatch[0], y, hatch[1], 1.0f, 0.8f);
-		player.connection.send(new ClientboundSetActionBarTextPacket(Component.literal("💣 " + kind.title + " away!").withStyle(kind.color)));
+		player.connection.send(new ClientboundSetActionBarTextPacket(Component.literal("💣 " + kind.title + " away!" + (free ? " (Bombardier: that one was on the house)" : "")).withStyle(kind.color)));
 		return null;
 	}
 

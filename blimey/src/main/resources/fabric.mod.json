@@ -19,6 +19,7 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"fossilfool": "*"
+		"fossilfool": "*",
+		"skills": ">=1.3.0"
 	}
 }

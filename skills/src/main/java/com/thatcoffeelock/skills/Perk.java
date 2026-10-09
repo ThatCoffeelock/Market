@@ -105,7 +105,12 @@ public enum Perk {
 	// Connoisseur
 	GREEN_LEAF(Skill.CONNOISSEUR, "Green Leaf", "fern", 0.06, "%s chance of double tobacco leaves"),
 	MASTER_ROLLER(Skill.CONNOISSEUR, "Master Roller", "map", 0.06, "%s chance of a bonus cigar when rolling"),
-	IRON_LUNGS(Skill.CONNOISSEUR, "Iron Lungs", "campfire", 0.20, "-%s chance to cough");
+	IRON_LUNGS(Skill.CONNOISSEUR, "Iron Lungs", "campfire", 0.20, "-%s chance to cough"),
+
+	// Piloteering
+	ACE(Skill.PILOTEERING, "Ace", "feather", 0.04, "+%s airship top speed"),
+	BOMBARDIER(Skill.PILOTEERING, "Bombardier", "tnt", 0.06, "%s chance a dropped bomb isn't used up"),
+	PAYLOAD(Skill.PILOTEERING, "Payload", "fire_charge", 0.05, "+%s bomb blast");
 
 	public static final int MAX_RANK = 5;
 

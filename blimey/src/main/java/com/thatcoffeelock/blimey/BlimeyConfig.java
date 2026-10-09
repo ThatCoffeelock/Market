@@ -22,8 +22,8 @@ public final class BlimeyConfig {
 
 	// ---------------------------------------------------------------- flying
 
-	/** Ticks one bucket of diesel lasts at cruising speed (2400 = two minutes). */
-	public double ticksPerBucket = 2400;
+	/** Ticks one bucket of diesel lasts at cruising speed (6000 = five minutes). */
+	public double ticksPerBucket = 6000;
 	/** Share of the cruising burn that just hovering in the air costs. */
 	public double hoverBurn = 0.35;
 	/** Extra burn while climbing, on top of everything else. */

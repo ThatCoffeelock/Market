@@ -64,9 +64,10 @@ final class BlimeyCommands {
 			"§7Right-click the ground with it (about 9 × 26 blocks, 14 up). Rename it in an anvil first to name your airship.",
 			"§7Right-click it to board (owners take the controls). Sneak + right-click it for the menu, or §f/blimey menu§7 aboard.",
 			"§7Flying: §fW/S§7 throttle, §fA/D§7 turn, §fSpace§7 climb, §fCtrl§7 descend, §fShift§7 bail out (you get a parachute).",
-			"§6Diesel§7: from a Fossil Fool Refinery. Put buckets in the §fFuel tank§7 (menu, or §f/blimey tank§7). One bucket is about 2 minutes cruising.",
+			"§6Diesel§7: from a Fossil Fool Refinery. Put buckets in the §fFuel tank§7 (menu, or §f/blimey tank§7). One bucket is about 5 minutes cruising.",
 			"§7Hovering burns less, climbing and racing burn more. Dry tanks: you sink gently to the ground.",
-			"§7Refits: menu, §fEngineer§7. Engines (up to +80% speed), Fuel economy (up to -50% diesel), Cargo holds (up to 4 × 54 slots).",
+			"§7Refits: menu, §fEngineer§7. Engines (up to +80% speed), Fuel economy (up to -50% diesel), Cargo holds (2 to start, up to 5 × 54 slots).",
+			"§bPiloteering§7 (Skills mod): fly as captain and drop bombs to level it. Less diesel, perks for speed, free bombs and bigger blasts.",
 			"§cBombs§7: Small (TNT + 4 iron + string), Big (4 TNT + 4 iron + block of iron), Huge (4 TNT + 4 blocks of iron + end crystal).",
 			"§7Aboard, hold a bomb and right-click to drop it. It keeps the airship's speed: lead your target. On foot, right-click a block to light a fuse.",
 			"§7Unlike cannonballs, bombs wreck buildings. Crew don't take blast, fall or fire damage aboard."

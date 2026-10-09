@@ -37,7 +37,8 @@ public final class AirshipData {
 		Slot.CODEC.listOf().optionalFieldOf("cargo_a", List.of()).forGetter(d -> slots(d.cargoA)),
 		Slot.CODEC.listOf().optionalFieldOf("cargo_b", List.of()).forGetter(d -> slots(d.cargoB)),
 		Slot.CODEC.listOf().optionalFieldOf("cargo_c", List.of()).forGetter(d -> slots(d.cargoC)),
-		Slot.CODEC.listOf().optionalFieldOf("cargo_d", List.of()).forGetter(d -> slots(d.cargoD))
+		Slot.CODEC.listOf().optionalFieldOf("cargo_d", List.of()).forGetter(d -> slots(d.cargoD)),
+		Slot.CODEC.listOf().optionalFieldOf("cargo_e", List.of()).forGetter(d -> slots(d.cargoE))
 	).apply(i, AirshipData::new));
 
 	private static final String[] NAMES = {
@@ -53,13 +54,14 @@ public final class AirshipData {
 	/** Refits bought from the Engineer (see {@link Engineer}). */
 	public int speedLevel;
 	public int efficiencyLevel;
-	/** 0 = one hold; each level adds one, up to four. */
+	/** 0 = two holds; each level adds one, up to five. */
 	public int cargoLevel;
 	public final SimpleContainer tank = new SimpleContainer(TANK);
 	public final SimpleContainer cargoA = new SimpleContainer(BAY);
 	public final SimpleContainer cargoB = new SimpleContainer(BAY);
 	public final SimpleContainer cargoC = new SimpleContainer(BAY);
 	public final SimpleContainer cargoD = new SimpleContainer(BAY);
+	public final SimpleContainer cargoE = new SimpleContainer(BAY);
 
 	public AirshipData() {
 		this.name = NAMES[(int) (Math.random() * NAMES.length)];
@@ -68,7 +70,7 @@ public final class AirshipData {
 	}
 
 	private AirshipData(String name, String owner, String ownerName, boolean locked, double fuel, int speedLevel, int efficiencyLevel,
-		int cargoLevel, List<Slot> tank, List<Slot> a, List<Slot> b, List<Slot> c, List<Slot> d) {
+		int cargoLevel, List<Slot> tank, List<Slot> a, List<Slot> b, List<Slot> c, List<Slot> d, List<Slot> e) {
 		this.name = name.isEmpty() ? NAMES[0] : name;
 		this.owner = owner;
 		this.ownerName = ownerName;
@@ -82,6 +84,7 @@ public final class AirshipData {
 		fill(cargoB, b);
 		fill(cargoC, c);
 		fill(cargoD, d);
+		fill(cargoE, e);
 	}
 
 	private static void fill(SimpleContainer container, List<Slot> slots) {
@@ -103,10 +106,13 @@ public final class AirshipData {
 		return slots;
 	}
 
-	/** The holds this airship has: A always, then B, C and D as they're built. */
+	/** The holds this airship has: A and B always, then C, D and E as they're built. */
 	public List<SimpleContainer> holds() {
-		List<SimpleContainer> all = List.of(cargoA, cargoB, cargoC, cargoD);
-		return new ArrayList<>(all.subList(0, 1 + Math.max(0, Math.min(3, cargoLevel))));
+		return new ArrayList<>(allHolds().subList(0, 2 + Math.max(0, Math.min(3, cargoLevel))));
+	}
+
+	private List<SimpleContainer> allHolds() {
+		return List.of(cargoA, cargoB, cargoC, cargoD, cargoE);
 	}
 
 	public int capacity() {
@@ -115,7 +121,7 @@ public final class AirshipData {
 
 	public int usedSlots() {
 		int n = 0;
-		for (SimpleContainer hold : List.of(cargoA, cargoB, cargoC, cargoD)) {
+		for (SimpleContainer hold : allHolds()) {
 			n += slots(hold).size();
 		}
 		return n;
@@ -139,5 +145,6 @@ public final class AirshipData {
 		cargoB.clearContent();
 		cargoC.clearContent();
 		cargoD.clearContent();
+		cargoE.clearContent();
 	}
 }

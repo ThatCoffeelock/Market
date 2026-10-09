@@ -284,7 +284,7 @@ public final class Airships {
 			return InteractionResult.FAIL;
 		}
 		int fuse = (int) Math.round(BlimeyConfig.get().fuseSeconds * 20);
-		if (Bomb.launch(level, kind, new Vec3(spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5), Vec3.ZERO, fuse) == null) {
+		if (Bomb.launch(level, kind, new Vec3(spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5), Vec3.ZERO, fuse, null) == null) {
 			return InteractionResult.FAIL;
 		}
 		if (!player.isCreative()) {

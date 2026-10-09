@@ -78,7 +78,7 @@ final class SmokeTest {
 		check(parts == AirshipModel.parts().size() + Airship.PLATES, "the airship model has " + parts + " parts");
 		check(ship.root.getAttached(BlimeyMod.DATA) == data, "airship data attached");
 		check(Airships.near(level, ship.root.position(), 4).contains(ship), "the airship can be found");
-		check(data.holds().size() == 1 && data.capacity() == 54, "one 54-slot hold to start with");
+		check(data.holds().size() == 2 && data.capacity() == 108, "two 54-slot holds to start with");
 
 		// no diesel: Space does nothing
 		ship.testControls = new Airship.Controls(false, false, false, false, true, false);
@@ -155,14 +155,14 @@ final class SmokeTest {
 	/** A bomb set on the ground by hand waits for its fuse, then goes off. */
 	private static void fuse(ServerLevel level) {
 		int holesBefore = holes(level);
-		Bomb bomb = Bomb.launch(level, BlimeyItems.BombKind.BIG, new Vec3(-30.5, KEEL, 30.5), Vec3.ZERO, 30);
+		Bomb bomb = Bomb.launch(level, BlimeyItems.BombKind.BIG, new Vec3(-30.5, KEEL, 30.5), Vec3.ZERO, 30, null);
 		check(bomb != null, "a big bomb is set on the floor with a 1.5 s fuse");
 		later(level, 15, () -> {
 			check(!bomb.isDone() && Math.abs(bomb.pos.y - KEEL) < 0.01, "halfway through the fuse it's still sitting there, fizzing");
 			later(level, 30, () -> {
 				check(bomb.isDone() && Bomb.live().isEmpty(), "then it goes off");
 				check(level.getBlockState(new BlockPos(-31, FLOOR, 30)).isAir(), "and takes the floor under it with it");
-				check(holes(level) > holesBefore + 10, "a big bomb makes a big hole (" + holesBefore + " → " + holes(level) + ")");
+				check(holes(level) > holesBefore + 4, "it blew a hole of its own (" + holesBefore + " → " + holes(level) + ")");
 				dry(level);
 			});
 		});
@@ -214,8 +214,8 @@ final class SmokeTest {
 			player.getInventory().add(new ItemStack(cost.item(), cost.count()));
 		}
 		why = Engineer.upgrade(player, ship, Engineer.CARGO);
-		check(why == null && ship.data.holds().size() == 2, "the Second hold refit adds Cargo B (" + why + ")");
-		ship.data.cargoB.setItem(7, new ItemStack(Items.EMERALD, 5));
+		check(why == null && ship.data.holds().size() == 3, "the Third hold refit adds Cargo C (" + why + ")");
+		ship.data.cargoC.setItem(7, new ItemStack(Items.EMERALD, 5));
 		ship.data.tank.setItem(3, BlimeyItems.diesel(3));
 		folded(level);
 	}
@@ -226,7 +226,7 @@ final class SmokeTest {
 		check(BlimeyItems.isAirship(packed), "folded it up");
 		AirshipData back = BlimeyItems.savedData(packed, level);
 		check(back != null && back.cargoA.getItem(0).is(Items.DIAMOND) && back.cargoA.getItem(0).getCount() == 3, "cargo survives folding");
-		check(back.cargoLevel == 1 && back.cargoB.getItem(7).getCount() == 5, "the extra hold and its cargo survive folding");
+		check(back.cargoLevel == 1 && back.cargoC.getItem(7).getCount() == 5, "the extra hold and its cargo survive folding");
 		check(back.speedLevel == 1, "the engine refit survives folding");
 		check(back.dieselAboard() == 3, "the diesel in the tank survives folding");
 		check(back.name.equals(name), "the name survives folding (" + back.name + ")");

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Refits, bought by the captain with materials from their own pockets (creative players get them free). Three tracks
  * of three levels: engines (top speed, and a thirstier burn at full throttle), fuel economy (less diesel for
- * everything) and cargo holds (one more 54-slot hold per level). None of it is cheap. The levels are part of the
+ * everything) and cargo holds (one more 54-slot hold per level, from two up to five). None of it is cheap. The levels are part of the
  * airship's data, so they stay when it's folded up.
  */
 final class Engineer {
@@ -68,12 +68,12 @@ final class Engineer {
 		d -> d.efficiencyLevel, (d, v) -> d.efficiencyLevel = v);
 
 	static final Track CARGO = new Track("Cargo holds", "minecraft:chest", List.of(
-		new Upgrade("One hold", "Cargo A: 54 slots.", List.of()),
-		new Upgrade("Second hold", "Adds Cargo B: 108 slots.",
-			List.of(c("chest", 8, "Chest"), c("iron_block", 4, "Block of Iron"))),
+		new Upgrade("Two holds", "Cargo A and B: 108 slots.", List.of()),
 		new Upgrade("Third hold", "Adds Cargo C: 162 slots.",
+			List.of(c("chest", 8, "Chest"), c("iron_block", 4, "Block of Iron"))),
+		new Upgrade("Fourth hold", "Adds Cargo D: 216 slots.",
 			List.of(c("barrel", 16, "Barrel"), c("iron_block", 8, "Block of Iron"))),
-		new Upgrade("Fourth hold", "Adds Cargo D: 216 slots. Shulker-lined, so it weighs nothing.",
+		new Upgrade("Fifth hold", "Adds Cargo E: 270 slots. Shulker-lined, so it weighs nothing.",
 			List.of(c("shulker_shell", 8, "Shulker Shell"), c("iron_block", 8, "Block of Iron")))),
 		d -> d.cargoLevel, (d, v) -> d.cargoLevel = v);
 

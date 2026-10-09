@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /** The captain's menu: a 3-row chest screen built on the server so vanilla clients can use it. */
 final class AirshipMenu extends ChestMenu {
 	private static final int SIZE = 27;
-	static final String[] HOLD_NAMES = {"Cargo A", "Cargo B", "Cargo C", "Cargo D"};
+	static final String[] HOLD_NAMES = {"Cargo A", "Cargo B", "Cargo C", "Cargo D", "Cargo E"};
 
 	@FunctionalInterface
 	private interface Action {
@@ -125,14 +125,14 @@ final class AirshipMenu extends ChestMenu {
 		int holds = data.holds().size();
 		for (int bay = 0; bay < holds; bay++) {
 			final int b = bay;
-			button(11 + bay, icon(bay == 0 ? Items.CHEST : Items.BARREL, t(HOLD_NAMES[bay], ChatFormatting.AQUA, ChatFormatting.BOLD),
+			button(11 + bay, icon(bay < 2 ? Items.CHEST : Items.BARREL, t(HOLD_NAMES[bay], ChatFormatting.AQUA, ChatFormatting.BOLD),
 				t("54 slots.", ChatFormatting.GRAY)), () -> cargo(b));
 		}
-		button(15, icon(Engineer.item("minecraft:lava_bucket"), t("Fuel tank", ChatFormatting.GOLD, ChatFormatting.BOLD),
+		button(16, icon(Engineer.item("minecraft:lava_bucket"), t("Fuel tank", ChatFormatting.GOLD, ChatFormatting.BOLD),
 			t("Put Buckets of Diesel in here (from a Fossil Fool Refinery).", ChatFormatting.GRAY),
 			t("The engines take one at a time; empty buckets come back out.", ChatFormatting.GRAY),
 			t("In the tank: " + data.dieselAboard() + " buckets", ChatFormatting.YELLOW)), this::tank);
-		button(16, icon(Engineer.item("minecraft:tnt"), t("Bombing 101", ChatFormatting.RED, ChatFormatting.BOLD),
+		button(17, icon(Engineer.item("minecraft:tnt"), t("Bombing 101", ChatFormatting.RED, ChatFormatting.BOLD),
 			t("Hold a bomb and right-click while aboard: it drops out of the hatch.", ChatFormatting.GRAY),
 			t("It keeps the airship's speed, so it lands ahead of you. Lead the target.", ChatFormatting.GRAY),
 			t("Crew don't take blast or fall damage aboard. Everyone else does.", ChatFormatting.DARK_GRAY)), null);
