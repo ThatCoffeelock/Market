@@ -259,7 +259,7 @@ MODS = [
          "Right-click it to board. <b>W/S</b> throttle, <b>A/D</b> turn, <b>Space</b> climb, <b>Ctrl</b> descend. Let go and it holds its height. <b>Shift</b> gets you off (a parachute, if you're up high).",
          "Hold a bomb and right-click while aboard: it drops out of the hatch and goes off on whatever it hits. It keeps the airship's speed, so let go early."],
   tips=["One bucket of diesel is about <b>5 minutes cruising</b>, 14 hovering. Climbing and racing burn more. Run dry and it sinks gently to the ground.",
-        "Menu → <b>Engineer</b>: Engines (up to +80% speed), Fuel economy (up to −50% diesel), Cargo holds (two 54-slot holds to start, up to five). With Skills, <b>Piloteering</b> levels as you fly and bomb. Paid in netherite, diamonds, blaze rods and ghast tears.",
+        "Menu → <b>Engineer</b>: Engines (up to +80% speed), Fuel economy (up to −50% diesel), Cargo holds (two 54-slot holds to start, up to five). With Skills, <b>Piloteering</b> levels as you fly and bomb, and steering a happy ghast counts too. Paid in netherite, diamonds, blaze rods and ghast tears.",
         "Bombs: small 4 (TNT), big 7, huge 12. On foot, right-click a block to set one with a 4-second fuse. Unlike cannonballs, they break blocks.",
         "Crew aboard take no blast, fall or fire damage. Menu → <b>Lower the rope</b>: passengers climb down to put boots on the ground while you fly; people below right-click its end to be hauled up. Land, then menu → <b>Fold it up</b> to carry it."],
   cmds="/blimey · /blimey menu · /blimey tank"),

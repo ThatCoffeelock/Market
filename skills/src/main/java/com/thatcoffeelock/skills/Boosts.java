@@ -66,6 +66,9 @@ final class Boosts {
 	private static void mount(ServerPlayer player) {
 		Entity vehicle = player.getVehicle();
 		LivingEntity mount = vehicle instanceof LivingEntity living && !(vehicle instanceof ServerPlayer) ? living : null;
+		if (mount != null && Tracker.isHappyGhast(mount) && mount.getControllingPassenger() != player) {
+			mount = null; // a passenger on someone else's ghast: the boost is the steerer's business
+		}
 		UUID previous = MOUNTS.get(player.getUUID());
 		if (previous != null && (mount == null || !mount.getUUID().equals(previous))) {
 			Entity old = ((ServerLevel) player.level()).getEntity(previous);
@@ -74,7 +77,13 @@ final class Boosts {
 			}
 			MOUNTS.remove(player.getUUID());
 		}
-		if (mount != null) {
+		if (mount != null && Tracker.isHappyGhast(mount)) {
+			// a happy ghast flies on Piloteering (passive + Ace), and only for whoever's steering
+			double fly = Skills.passive(player, Skill.PILOTEERING) + Skills.perk(player, Perk.ACE);
+			set(mount, Attributes.FLYING_SPEED, MOUNT_SPEED, fly, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+			set(mount, Attributes.MOVEMENT_SPEED, MOUNT_SPEED, fly, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+			MOUNTS.put(player.getUUID(), mount.getUUID());
+		} else if (mount != null) {
 			set(mount, Attributes.MOVEMENT_SPEED, MOUNT_SPEED, Skills.passive(player, Skill.HORSERIDING), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 			set(mount, Attributes.JUMP_STRENGTH, MOUNT_JUMP, Skills.perk(player, Perk.JUMPER), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 			MOUNTS.put(player.getUUID(), mount.getUUID());
@@ -83,6 +92,7 @@ final class Boosts {
 
 	private static void clearMount(LivingEntity mount) {
 		set(mount, Attributes.MOVEMENT_SPEED, MOUNT_SPEED, 0, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+		set(mount, Attributes.FLYING_SPEED, MOUNT_SPEED, 0, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 		set(mount, Attributes.JUMP_STRENGTH, MOUNT_JUMP, 0, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 	}
 

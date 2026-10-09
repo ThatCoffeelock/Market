@@ -192,6 +192,9 @@ final class SmokeTest {
 		profile.perks.put(Perk.ACE.id(), 5);
 		check(Math.abs(api.apply(oilman, "piloteering/passive") - 0.30) < 1e-9, "Piloteering 100 burns 30% less diesel");
 		check(Math.abs(api.apply(oilman, "piloteering/ace") - 0.20) < 1e-9, "Ace 5 = +20% airship speed");
+		check(Skill.PILOTEERING.passiveText(100).equals("-30% airship diesel, +30% happy ghast speed"), "Piloteering's passive covers ghasts ("
+			+ Skill.PILOTEERING.passiveText(100) + ")");
+		check(!Tracker.isHappyGhast(null), "nothing isn't a happy ghast");
 		for (Skill skill : Skill.values()) {
 			check(Perk.of(skill).size() == 3, skill.id() + " has 3 perks");
 		}

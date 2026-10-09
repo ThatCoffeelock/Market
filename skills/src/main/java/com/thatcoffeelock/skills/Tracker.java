@@ -50,7 +50,7 @@ final class Tracker {
 		int totalXp, xpLevel;
 		double carry;
 		final Map<Holder<MobEffect>, Integer> effects = new HashMap<>();
-		double rideCarry, sailCarry;
+		double rideCarry, sailCarry, flyCarry;
 	}
 
 	private static final Map<UUID, Watch> WATCHES = new HashMap<>();
@@ -323,7 +323,17 @@ final class Tracker {
 		if (moved < 0.5 || moved > 40) {
 			return; // standing still, or a teleport
 		}
-		if (vehicle instanceof LivingEntity) {
+		if (isHappyGhast(vehicle)) {
+			// a happy ghast is flying, not riding: Piloteering, for whoever's steering it
+			if (vehicle.getControllingPassenger() == player) {
+				w.flyCarry += moved / 5.0;
+				int xp = (int) w.flyCarry;
+				if (xp > 0) {
+					w.flyCarry -= xp;
+					Skills.award(player, Skill.PILOTEERING, xp);
+				}
+			}
+		} else if (vehicle instanceof LivingEntity) {
 			w.rideCarry += moved / 8.0;
 			int xp = (int) w.rideCarry;
 			if (xp > 0) {
@@ -338,6 +348,11 @@ final class Tracker {
 				Skills.award(player, Skill.SAILING, xp);
 			}
 		}
+	}
+
+	/** A happy ghast (by id: entity classes move between Minecraft versions). */
+	static boolean isHappyGhast(@org.jetbrains.annotations.Nullable Entity entity) {
+		return entity != null && BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).getPath().equals("happy_ghast");
 	}
 
 	/** Boats, rafts and ship seats: whatever you sit in, if there's water right under it. */

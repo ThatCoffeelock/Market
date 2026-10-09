@@ -76,6 +76,7 @@ Faster engines burn more at full throttle; the economy refits cut everything, ho
 | XP | 0.4 per block flown under power as captain; a bomb you dropped going off: 5 / 10 / 20 (small / big / huge), +6 per mob caught |
 | Passive | Up to 30% less diesel burned at level 100 (on top of the Fuel economy refits) |
 | **Ace** | +4% airship top speed per rank |
+| Happy ghasts | Steering one counts too: 0.2 XP per block, and the passive and Ace make it fly faster (up to +50%) |
 | **Bombardier** | 6% chance per rank that a dropped bomb isn't used up |
 | **Payload** | +5% bomb blast per rank |
 

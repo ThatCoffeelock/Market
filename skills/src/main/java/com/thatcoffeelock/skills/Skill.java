@@ -69,8 +69,8 @@ public enum Skill {
 		"Growing tobacco, rolling cigars and smoking them.",
 		"+%s cigar effect duration"),
 	PILOTEERING("Piloteering", "elytra", ChatFormatting.AQUA, 0.3,
-		"Flying a Blimey airship as its captain, and dropping bombs from one.",
-		"-%s diesel burned flying an airship");
+		"Flying a Blimey airship as its captain, dropping bombs from one, and steering a happy ghast.",
+		"-%1$s airship diesel, +%1$s happy ghast speed");
 
 	public static final int MAX_LEVEL = 100;
 	/** One perk point per this many levels: 10 points at level 100. */

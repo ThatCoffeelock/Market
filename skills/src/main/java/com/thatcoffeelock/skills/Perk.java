@@ -108,7 +108,7 @@ public enum Perk {
 	IRON_LUNGS(Skill.CONNOISSEUR, "Iron Lungs", "campfire", 0.20, "-%s chance to cough"),
 
 	// Piloteering
-	ACE(Skill.PILOTEERING, "Ace", "feather", 0.04, "+%s airship top speed"),
+	ACE(Skill.PILOTEERING, "Ace", "feather", 0.04, "+%s airship and happy ghast speed"),
 	BOMBARDIER(Skill.PILOTEERING, "Bombardier", "tnt", 0.06, "%s chance a dropped bomb isn't used up"),
 	PAYLOAD(Skill.PILOTEERING, "Payload", "fire_charge", 0.05, "+%s bomb blast");
 
