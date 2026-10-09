@@ -171,6 +171,10 @@ final class SmokeTest {
 		Cmd.run(level, "damage " + villager.getUUID() + " 5 minecraft:mob_attack by " + brain.getUUID());
 		check(villager.getHealth() == before, "mercenaries can't hurt villagers, not even on purpose");
 		check(Combat.friendly(villager) && Combat.friendly(player) && Combat.friendly(brain) && !Combat.hostile(villager), "who's a friend");
+		check(!Combat.allowDamage(player, level.damageSources().mobAttack(brain), 5), "no friendly fire: a mercenary can't hurt a player");
+		check(!Combat.allowDamage(brain, level.damageSources().playerAttack(player), 5), "and a player can't hurt a mercenary");
+		check(!Combat.allowDamage(body, level.damageSources().mobAttack(brain), 5) && !Combat.allowDamage(brain, level.damageSources().mobAttack(brain), 5),
+			"nor can mercenaries hurt each other");
 		villager.discard();
 		brain.heal(100);
 
