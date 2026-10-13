@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.20.0"
+VERSION = "1.21.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -126,7 +126,7 @@ MODS = [
   tips=["Musket: 18 damage, about 100 blocks. Pistol: 9. Blunderbuss: up to 20 point-blank, and it knocks you back.",
         "A gun stays loaded until fired: load four pistols before a fight, like a proper pirate.",
         "Guns wear out (one point per shot). Repair in an anvil with iron (copper for the blunderbuss). Mending works.",
-        "Shields block shots.",
+        "Shields block shots. With Skills, guns level Marksmanship: it speeds up reloads, and Recovery can make one free.",
         "Enchant guns at a table or anvil: Power (+15% damage a level), Punch, Flame, Quick Charge, Piercing, Multishot, Infinity."],
   cmds="/flintlock"),
  dict(name="Havana", colour="#7a4a24", tag="Grow tobacco, cure it in a barrel, roll cigars and smoke them.",
@@ -139,6 +139,7 @@ MODS = [
   tips=["Cigars give Regeneration; the Gran Reserva (aged) adds Resistance and Hero of the Village.",
         "Flavours: honey → Absorption, cocoa → Haste, berries → Speed, glow → Night Vision, blaze → Fire Resistance.",
         "Puff three times fast and you cough. Lit cigars go out underwater.",
+        "The Market pays more at every step: leaf ₥1.50, cured ₥3, aged ₥7, a cigar ₥12, a Gran Reserva ₥30, +₥3 for a flavour.",
         "Any barrel or chest named \"Curing\" or \"Humidor\" works too, and it keeps curing while you're away."],
   cmds="/havana"),
  dict(name="Warehouse", colour="#c07a2c", tag="Big, sorted storage: tens of thousands of items, fed by hand, hoppers, trains and ships.",

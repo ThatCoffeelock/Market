@@ -83,6 +83,27 @@ final class SmokeTest {
 
 	// ---------------------------------------------------------------- items
 
+	/** The Market price hook: every step up is worth more than what went into it, and lit cigars don't sell. */
+	private static void prices(ItemStack cigar) {
+		check(Prices.price(new ItemStack(Items.PAPER)) == null && Prices.price(new ItemStack(Items.STICK)) == null, "plain paper and sticks aren't ours to price");
+		long leaf = Prices.price(HavanaItems.leaf(1));
+		long cured = Prices.price(HavanaItems.cured(1));
+		long aged = Prices.price(HavanaItems.aged(1));
+		long plain = Prices.price(cigar);
+		long reserva = Prices.price(HavanaItems.cigar(HavanaItems.Grade.AGED, HavanaItems.Flavor.NONE, 1));
+		long honey = Prices.price(HavanaItems.cigar(HavanaItems.Grade.CURED, HavanaItems.Flavor.HONEY, 1));
+		check(leaf > 15 && cured > leaf && aged > cured, "tobacco sells for more than paper, and more once cured and aged (" + leaf + " / " + cured + " / " + aged + " cents)");
+		check(plain > 3 * cured && reserva > 3 * aged, "a cigar is worth more than the 3 tobacco rolled into it (" + plain + ", Gran Reserva " + reserva + ")");
+		check(honey > plain, "a flavored cigar is worth more (" + honey + ")");
+		ItemStack lit = HavanaItems.lit(cigar);
+		check(Prices.price(lit) == -1L, "the Market won't buy a lit cigar");
+		ItemStack half = HavanaItems.lit(cigar);
+		half.setDamageValue(HavanaItems.PUFFS / 2);
+		half = HavanaItems.extinguished(half);
+		long halfPrice = Prices.price(half);
+		check(halfPrice > 0 && halfPrice < plain / 2, "a half-smoked cigar sells for less than half (" + halfPrice + ")");
+	}
+
 	private static void items() {
 		check(HavanaItems.isSeeds(HavanaItems.seeds(1)), "tobacco seeds are recognised");
 		check(net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get(HavanaMod.ITEM_HOOK) instanceof java.util.function.BiFunction<?, ?, ?>,
@@ -98,6 +119,7 @@ final class SmokeTest {
 		check(HavanaItems.isCigar(cigar) && !HavanaItems.isLit(cigar), "a fresh cigar is a cigar and isn't lit");
 		check(!HavanaItems.isCigar(new ItemStack(Items.STICK)), "a plain stick isn't a cigar");
 		check(cigar.getMaxStackSize() == HavanaItems.CIGAR_STACK, "unlit cigars stack to " + HavanaItems.CIGAR_STACK);
+		prices(cigar);
 		check(HavanaItems.cigarName(HavanaItems.Grade.AGED, HavanaItems.Flavor.HONEY).equals("Gran Reserva Honey Cigar"), "cigar names");
 		check(HavanaItems.Flavor.of(new ItemStack(Items.COCOA_BEANS)) == HavanaItems.Flavor.CHOCOLATE, "cocoa beans are the chocolate flavor");
 		check(HavanaItems.Flavor.of(new ItemStack(Items.DIRT)) == null, "dirt isn't a flavor (sorry)");

@@ -16,7 +16,7 @@ public enum Skill {
 		"+%s melee damage"),
 	MARKSMANSHIP("Marksmanship", "bow", ChatFormatting.GOLD, 0.25,
 		"Bow, crossbow, trident and Flintlock gun damage. Long shots count extra.",
-		"+%s ranged damage"),
+		"+%1$s ranged damage, %1$s faster Flintlock reloads"),
 	MINING("Mining", "iron_pickaxe", ChatFormatting.GRAY, 0.3,
 		"Breaking natural stone and ores. Rarer ore, more XP.",
 		"+%s pickaxe speed"),

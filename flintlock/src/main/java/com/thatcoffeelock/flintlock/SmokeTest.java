@@ -136,6 +136,10 @@ final class SmokeTest {
 		check(quick.reloadTicks(Gun.MUSKET) < Gun.MUSKET.reloadTicks && quick.reloadTicks(Gun.MUSKET) > Gun.MUSKET.reloadTicks / 2,
 			"Quick Charge III shortens the musket's reload (" + quick.reloadTicks(Gun.MUSKET) + " of " + Gun.MUSKET.reloadTicks + " ticks)");
 		check(new GunEnchants(0, 0, 0, 20, 0, 0, 0).reloadTicks(Gun.MUSKET) == Gun.MUSKET.reloadTicks / 4, "reloading never gets faster than a quarter of the time");
+		check(GunEnchants.NONE.reloadTicks(Gun.MUSKET, 0.25) == Math.round(Gun.MUSKET.reloadTicks * 0.75)
+			&& quick.reloadTicks(Gun.MUSKET, 0.25) < quick.reloadTicks(Gun.MUSKET), "Marksmanship shortens reloads, on top of Quick Charge");
+		check(new GunEnchants(0, 0, 0, 20, 0, 0, 0).reloadTicks(Gun.MUSKET, 0.25) == Gun.MUSKET.reloadTicks / 4, "and it doesn't break the quarter-time floor");
+		check(SkillsLink.bonus(null, "marksmanship/passive") == 0 && !SkillsLink.roll(null, "marksmanship/recovery"), "no player, no skill bonus");
 		check(Gun.MUSKET.reloadTicks > Gun.BLUNDERBUSS.reloadTicks && Gun.BLUNDERBUSS.reloadTicks > Gun.PISTOL.reloadTicks, "reload times: pistol < blunderbuss < musket");
 
 		// three lanes: musket at 15 blocks, pistol at 8, blunderbuss at 2

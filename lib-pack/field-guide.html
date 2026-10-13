@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.20.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.21.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -329,7 +329,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.20.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords</span>
+    <span>LIB Pack 1.21.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -436,14 +436,16 @@ const MODS = [
           "Musket: 18 damage. Pistol: 9. Blunderbuss: 8 pellets, short range, huge knockback",
           "Shields block shots. Load a few pistols before a fight",
           "Wears out: 200 / 150 / 120 shots. Repair in an anvil with iron (blunderbuss: copper)",
-          "Enchant them: Power, Punch, Flame, Quick Charge, Piercing, Multishot, Infinity (see below)"],
+          "Enchant them: Power, Punch, Flame, Quick Charge, Piercing, Multishot, Infinity (see below)",
+          "With Skills: Marksmanship speeds up reloads, and Recovery can make one free"],
     cmds: ["/flintlock", ["/flintlock give", true]] },
   { name: "Havana", id: "havana", colour: "#7a4a24", tag: "Grow tobacco, cure it in a barrel, roll cigars and smoke them.",
     recipes: [{ name: "Curing Barrel", shapeless: ["barrel", "hay_block"], out: ["Cure", "#8d6236"] }],
     how: ["Or rename any barrel or chest with “Curing” or “Humidor” in it",
           "Barrels keep curing while you're away",
           "Roll at a crafting table while holding tobacco",
-          "See the tobacco road below"],
+          "See the tobacco road below",
+          "Sells at the Market: leaf ₥1.50, cured ₥3, aged ₥7, cigar ₥12, Gran Reserva ₥30 (+₥3 flavoured)"],
     cmds: ["/havana", ["/havana give", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [

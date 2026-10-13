@@ -34,8 +34,11 @@ public final class HavanaMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		HavanaConfig.load();
 		// Colonycraft's tobacco farms grow the real thing (no compile-time link either way)
 		FabricLoader.getInstance().getObjectShare().put(ITEM_HOOK, (BiFunction<String, Integer, ItemStack>) HavanaMod::tobacco);
+		// and the Market pays a fair price for it
+		Prices.publish();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			HavanaStore.load(server);
 			if (Boolean.getBoolean("havana.smokeTest")) {

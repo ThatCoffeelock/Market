@@ -20,7 +20,7 @@ public enum Perk {
 	// Marksmanship
 	EAGLE_EYE(Skill.MARKSMANSHIP, "Eagle Eye", "spyglass", 0.05, "+%s ranged damage"),
 	LONG_SHOT(Skill.MARKSMANSHIP, "Long Shot", "target", 0.06, "+%s ranged damage on hits from 20+ blocks away"),
-	RECOVERY(Skill.MARKSMANSHIP, "Recovery", "arrow", 0.10, "%s chance to get your arrow back when it hits"),
+	RECOVERY(Skill.MARKSMANSHIP, "Recovery", "arrow", 0.10, "%s chance to get your arrow back when it hits, or to reload a Flintlock gun for free"),
 
 	// Mining
 	PROSPECTOR(Skill.MINING, "Prospector", "raw_gold", 0.05, "%s chance of double drops from ores"),

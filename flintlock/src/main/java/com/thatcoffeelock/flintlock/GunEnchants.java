@@ -14,7 +14,8 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
  * <li><b>Power</b>: +15% damage per level.</li>
  * <li><b>Punch</b>: +50% knockback per level (a shot still never shoves harder than {@link Gun#MAX_KNOCKBACK}).</li>
  * <li><b>Flame</b>: whatever a ball hits burns for 5 seconds.</li>
- * <li><b>Quick Charge</b>: reloading takes 15% less time per level, down to a quarter of the time.</li>
+ * <li><b>Quick Charge</b>: reloading takes 15% less time per level, down to a quarter of the time (Marksmanship
+ * shortens it too, under the same floor).</li>
  * <li><b>Piercing</b>: a ball carries on through this many extra targets.</li>
  * <li><b>Multishot</b>: one shot fires three, in a fan.</li>
  * <li><b>Infinity</b>: reloading doesn't use up ammo (you still need one in your inventory).</li>
@@ -74,7 +75,12 @@ record GunEnchants(int power, int punch, int flame, int quickCharge, int piercin
 
 	/** How long reloading takes for this gun, in ticks. */
 	int reloadTicks(Gun gun) {
-		double factor = Math.max(MIN_RELOAD, 1.0 - QUICK_CHARGE_PER_LEVEL * quickCharge);
+		return reloadTicks(gun, 0);
+	}
+
+	/** Same, with a skill bonus (a fraction off) stacked on Quick Charge. The floor stays a quarter of the time. */
+	int reloadTicks(Gun gun, double skill) {
+		double factor = Math.max(MIN_RELOAD, (1.0 - QUICK_CHARGE_PER_LEVEL * quickCharge) * (1.0 - Math.max(0, skill)));
 		return Math.max(4, (int) Math.round(gun.reloadTicks * factor));
 	}
 

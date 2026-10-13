@@ -37,7 +37,7 @@ final class Guns {
 		final ItemStack stack;
 		final Gun gun;
 		final GunEnchants enchants;
-		/** Quick Charge shortens it. */
+		/** Quick Charge and the Marksmanship passive (Skills mod) shorten it. */
 		final int needed;
 		int ticks;
 
@@ -47,7 +47,7 @@ final class Guns {
 			this.stack = stack;
 			this.gun = gun;
 			this.enchants = GunEnchants.of(stack);
-			this.needed = enchants.reloadTicks(gun);
+			this.needed = enchants.reloadTicks(gun, SkillsLink.bonus(player.getUUID(), "marksmanship/passive"));
 		}
 	}
 
@@ -164,20 +164,30 @@ final class Guns {
 			return;
 		}
 		RELOADING.remove(player.getUUID());
-		if (!player.isCreative() && !takeAmmo(player, reload)) {
-			actionBar(player, Component.literal("Your " + reload.gun.ammo.title + " went missing halfway through. Impressive.").withStyle(ChatFormatting.RED));
-			return;
+		boolean free = false;
+		if (!player.isCreative()) {
+			free = reload.enchants.infinity() == 0 && SkillsLink.roll(player.getUUID(), "marksmanship/recovery");
+			if (!takeAmmo(player, reload, free)) {
+				actionBar(player, Component.literal("Your " + reload.gun.ammo.title + " went missing halfway through. Impressive.").withStyle(ChatFormatting.RED));
+				return;
+			}
 		}
 		GunItems.setLoaded(reload.stack, reload.gun, true);
 		Cmd.sound(level, "minecraft:item.crossbow.loading_end", player.getX(), player.getEyeY(), player.getZ(), 0.9f, 0.8f);
 		Cmd.sound(level, "minecraft:block.iron_trapdoor.close", player.getX(), player.getEyeY(), player.getZ(), 0.4f, 1.8f);
-		actionBar(player, Component.literal(reload.gun.title + " loaded. ").withStyle(ChatFormatting.GREEN)
-			.append(Component.literal(ammoLeft(player, reload.gun.ammo)).withStyle(ChatFormatting.GRAY)));
+		MutableComponent line = Component.literal(reload.gun.title + " loaded. ").withStyle(ChatFormatting.GREEN);
+		if (free) {
+			line.append(Component.literal("Recovery: that round was free. ").withStyle(ChatFormatting.GOLD));
+		}
+		actionBar(player, line.append(Component.literal(ammoLeft(player, reload.gun.ammo)).withStyle(ChatFormatting.GRAY)));
 	}
 
-	/** Infinity: reloading is free, but you still need a round in your inventory. */
-	private static boolean takeAmmo(ServerPlayer player, Reload reload) {
-		if (reload.enchants.infinity() > 0) {
+	/**
+	 * Infinity: reloading is free, but you still need a round in your inventory. Same for a Recovery roll (the
+	 * Marksmanship perk from the Skills mod), which is the gun's version of getting your arrow back.
+	 */
+	private static boolean takeAmmo(ServerPlayer player, Reload reload, boolean free) {
+		if (free || reload.enchants.infinity() > 0) {
 			return GunItems.countAmmo(player, reload.gun.ammo) > 0;
 		}
 		return GunItems.takeAmmo(player, reload.gun.ammo);

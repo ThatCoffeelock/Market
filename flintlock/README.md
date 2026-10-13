@@ -74,6 +74,18 @@ The usual rules apply: Infinity and Mending don't mix, nor do Piercing and Multi
 
 Because a gun is a carrot on a stick, the enchantments are added to vanilla's bow and crossbow item tags. A plain carrot on a stick can take them too, and they do nothing for it.
 
+## Skills
+
+With [Skills](../skills/README.md) installed, guns level **Marksmanship** like a bow does (more XP for long shots), and its bonuses work on them:
+
+| | What it does to a gun |
+|---|---|
+| **Marksmanship** passive | More damage, and reloads up to **25% faster** at level 100. It stacks with Quick Charge, under the same floor of a quarter of the reload time |
+| **Eagle Eye**, **Long Shot** | More damage, as for a bow |
+| **Recovery** | A chance (up to 50%) that a reload doesn't use up a round. "Recovery: that round was free" shows in the action bar. Not with Infinity, which is free anyway |
+
+Without Skills, nothing changes.
+
 ## Commands
 
 - `/flintlock`: help and recipes

@@ -36,7 +36,7 @@ Admin commands (op level 2): `/skills admin setlevel <player> <skill> <level>`, 
 | Skill | XP from | Passive at level 100 | Perks (per rank, 5 ranks each) |
 |---|---|---|---|
 | **Combat** | Melee damage dealt | +25% melee damage | **Brute** +5% melee damage · **Executioner** +6% vs targets under 30% health · **Thick Skin** -3% damage from mobs |
-| **Marksmanship** | Bow, crossbow, trident and Flintlock gun damage; long shots count extra | +25% ranged damage | **Eagle Eye** +5% ranged damage · **Long Shot** +6% from 20+ blocks · **Recovery** 10% chance to get your arrow back (not with Infinity) |
+| **Marksmanship** | Bow, crossbow, trident and Flintlock gun damage; long shots count extra | +25% ranged damage, and Flintlock guns reload up to 25% faster | **Eagle Eye** +5% ranged damage · **Long Shot** +6% from 20+ blocks · **Recovery** 10% chance to get your arrow back, or to reload a Flintlock gun without using up a round (not with Infinity) |
 | **Mining** | Natural stone (0.5) and ores (5 to 60) | +30% pickaxe speed | **Prospector** 5% double ore drops · **Vein Miner** +2 connected ores (sneak) · **Deep Delver** +6% pickaxe speed below Y=0 |
 | **Woodcutting** | Natural logs (4) | +30% axe speed | **Lumberjack** 5% double logs · **Timber** +8 logs above (sneak) · **Forester** 20% chance to replant a sapling |
 | **Excavation** | Natural dirt, sand, gravel, clay, soul sand, snow | +30% shovel speed | **Treasure Hunter** 0.4% chance per block of a find (flint up to diamonds) · **Bulk Dig** 5% double drops · **Mole** +6% shovel speed |
@@ -79,7 +79,7 @@ Skill progress is saved in `<world>/skills.json`. Player-placed blocks are remem
 ## Works with
 
 - **Market**: Mercantile raises your sell prices and lowers your buy prices, and selling and buying gives Mercantile XP. Neither mod needs the other.
-- **Flintlock**: gun damage levels Marksmanship and gets its bonuses.
+- **Flintlock**: gun damage levels Marksmanship and gets its bonuses. The Marksmanship passive also shortens reloads (stacking with Quick Charge), and Recovery can make a reload free.
 - **Ahoy**: sailing the ship levels Sailing.
 - **Cannon**: Artillery. **Fuck Illagers**: Bounty Hunting. **Colonycraft**: Governance (it works for offline colony owners too). **Havana**: Connoisseur. **Blimey**: Piloteering. **Sellswords**: Leadership. **Riches**: Treasure Hunting's relic perks. Treasure Hunting's chest bonus works without any other mod.
 - **For mod makers**: other mods read bonuses through the ObjectShare function `skills:bonus` ("artillery/passive", "artillery/powder_monkey") and give XP through `skills:xp`. Nobody needs anybody else to compile.
