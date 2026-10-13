@@ -130,6 +130,10 @@ With [Proost](../proost/README.md) installed, the Town Hall sells two more build
 
 Put a farm and a distillery next to a tavern and the grain goes out as genever money. Without Proost there are no distilleries or taverns for sale.
 
+### De Compagnie: the Company House
+
+With [De Compagnie](../compagnie/README.md) installed, the Town Hall sells a **Company House** (₥2,200, bottom row next to the tavern; 1 / 1 / 2 clerks at ₥4 a day): a tall, narrow brick canal house with a hoist beam over the door and an office lined with bookshelves. The **cartography table at the back is a Company Desk**: right-click it to run your company. While you own one, your company runs **one more job at once**, keeps **one more agent per tier** and pays **10% less wages per tier**. Tier 2 adds a map room on the mezzanine, tier 3 a gilded trophy. Without De Compagnie there are no Company Houses for sale.
+
 ### Burlap Sack: bring your own workers
 
 Bag a villager, carry them to your colony and open the building page of a building with an empty job. **Hire *name* from your Burlap Sack** puts them to work for free, and you get the empty sack back. Iron golems don't come in sacks, so it's every building but the barracks.

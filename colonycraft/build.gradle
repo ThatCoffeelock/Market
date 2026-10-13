@@ -25,6 +25,7 @@ dependencies {
 	runtimeOnly fileTree(dir: '../sellswords/build/libs', include: 'sellswords-*.jar', exclude: '*-sources.jar')
 	runtimeOnly fileTree(dir: '../fuck-illagers/build/libs', include: 'fuck-illagers-*.jar', exclude: '*-sources.jar')
 	runtimeOnly fileTree(dir: '../proost/build/libs', include: 'proost-*.jar', exclude: '*-sources.jar')
+	runtimeOnly fileTree(dir: '../compagnie/build/libs', include: 'compagnie-*.jar', exclude: '*-sources.jar')
 }
 
 loom {

@@ -22,7 +22,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Blimey](../blimey/README.md) | A riveted iron airship that runs on Fossil Fool diesel: refits for speed, fuel economy and cargo, plus small, big and huge bombs that wreck buildings |
 | [Sellswords](../sellswords/README.md) | Hire Dutch mercenaries with crossbows and swords: they follow you, hold a spot, hunt with you, guard your walls and villagers, board your ships and airships, and climb the ranks for gold to Musketeer or Foestopper Bulwark |
 | [Proost](../proost/README.md) | Ferment wheat, sugar cane and apples into mash, distill genever, whisky, rum and brandy in a cauldron over a fire, age them in oak casks, and drink until the world spins (Dutch Courage included) |
-| [De Compagnie](../compagnie/README.md) | Run a shady VOC trading company from a Company Desk: hire agents, bankroll 32 trade, raid, explore and smuggling jobs three ways, answer telegrams from the road, lend money to dubious borrowers and send collectors after them, grow from a Charter to the VOC |
+| [De Compagnie](../compagnie/README.md) | Run a shady VOC trading company from a Company Desk: hire agents, bankroll 36 trade, raid, explore and smuggling jobs three ways, answer telegrams from the road, lend money to dubious borrowers and send collectors after them, grow from a Charter to the VOC |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 

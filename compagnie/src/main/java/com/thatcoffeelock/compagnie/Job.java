@@ -1,5 +1,7 @@
 package com.thatcoffeelock.compagnie;
 
+import com.google.gson.JsonElement;
+
 /**
  * A job: an offer on the board (type and the day it's withdrawn), or one that's under way (who's on it, which way,
  * how much is staked, when it's back), with whatever telegram came in on the road and what was decided about it.
@@ -34,6 +36,11 @@ final class Job {
 	double payoutMod;
 	/** "Dump the cargo": at best a partial success, but never a disaster. */
 	boolean safe;
+
+	/** Luxury Export: what the cargo was worth at the Market, in cents. */
+	long cargo;
+	/** Charter Your Ship: the ship (ItemStack codec JSON), handed back when it's home. */
+	JsonElement cargoItem;
 
 	JobType type() {
 		return JobType.byId(type);

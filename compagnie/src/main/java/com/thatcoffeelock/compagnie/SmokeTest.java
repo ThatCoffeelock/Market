@@ -243,6 +243,61 @@ final class SmokeTest {
 		Hiring.payday(c, today + 5);
 		check(coward.state() == Agent.State.WOUNDED || !c.agents.contains(coward) || coward.state() == Agent.State.READY, "the wounded heal in time");
 
+		// cargo: luxury goods and ships
+		ItemStack bottle = new ItemStack(Items.PAPER);
+		net.minecraft.nbt.CompoundTag spirit = new net.minecraft.nbt.CompoundTag();
+		spirit.putString("proost", "spirit");
+		bottle.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(spirit));
+		ItemStack airship = new ItemStack(Items.PAPER);
+		net.minecraft.nbt.CompoundTag ship = new net.minecraft.nbt.CompoundTag();
+		ship.putString("blimey", "airship");
+		airship.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(ship));
+		check(Cargo.isLuxury(bottle) && !Cargo.isLuxury(new ItemStack(Items.PAPER)) && Cargo.isShip(airship) && !Cargo.isShip(bottle),
+			"a sealed bottle is luxury cargo, an airship is a ship, plain paper is neither");
+		check(!JobType.LUXURY_EXPORT.available() && !JobType.OIL_SURVEY.available(), "jobs that need Proost or Fossil Fool stay off the board without them");
+		for (Job j : c.board) {
+			check(j.type() != null && j.type().available(), "nothing on the board needs a missing mod", false);
+		}
+		Agent trader = Hiring.roll(c, new Random(11));
+		trader.traits.clear();
+		c.agents.add(trader);
+		Bank.credit(OWNER, "SmokeTest", Bank.cents(10_000));
+		Job export = new Job();
+		export.id = c.newId("j");
+		export.type = JobType.LUXURY_EXPORT.id();
+		export.cargo = Bank.cents(1000);
+		c.board.add(export);
+		check(Jobs.start(c, JobType.LUXURY_EXPORT, export, Approach.COIN, trader, 1, today, "") == null, "shipping ₥1,000 of luxury goods abroad");
+		before = Bank.balance(OWNER);
+		Jobs.resolve(c, export, export.end, new Fixed(0.0), level);
+		check(Bank.balance(OWNER) - before == Bank.cents(3200), "a triumph sells them for 320% (" + Bank.format(Bank.balance(OWNER) - before) + ")");
+		Job charter = new Job();
+		charter.id = c.newId("j");
+		charter.type = JobType.CHARTER_SHIP.id();
+		charter.cargoItem = Cargo.encode(level, airship);
+		c.board.add(charter);
+		check(charter.cargoItem != null && Jobs.start(c, JobType.CHARTER_SHIP, charter, Approach.COIN, trader, 1, today, "") == null, "chartering out an airship");
+		c.strongbox.clear();
+		before = Bank.balance(OWNER);
+		Jobs.resolve(c, charter, charter.end, new Fixed(0.0), level);
+		check(Bank.balance(OWNER) - before == Bank.cents(3000) && c.strongbox.size() == 1 && Cargo.isShip(c.strongbox.get(0)),
+			"the charter pays and the airship comes home to the strongbox");
+		c.strongbox.clear();
+
+		// a Company House (from Colonycraft)
+		int slots = c.slots();
+		int cap = c.maxAgents();
+		long wages = c.dailyWages();
+		Object house = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get(CompagnieApi.HOUSE);
+		check(house instanceof java.util.function.BiConsumer<?, ?>, "the Company House hook is published");
+		@SuppressWarnings("unchecked")
+		java.util.function.BiConsumer<UUID, Integer> setHouse = (java.util.function.BiConsumer<UUID, Integer>) house;
+		setHouse.accept(OWNER, 2);
+		check(c.house == 2 && c.slots() == slots + 1 && c.maxAgents() == cap + 2 && (wages == 0 || c.dailyWages() < wages),
+			"a tier 2 Company House: a job slot, two more agents, cheaper wages");
+		setHouse.accept(OWNER, 0);
+		check(c.house == 0 && c.slots() == slots, "and without it, back to normal");
+
 		// saving and loading
 		c.strongbox.add(new ItemStack(Items.EMERALD, 7));
 		int agents = c.agents.size();

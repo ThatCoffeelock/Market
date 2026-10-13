@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@code station} (level, pos): the fletching table at pos is a Bounty Station from now on.</li>
  * <li>{@code remove} (level, pos): it isn't any more (the block is the caller's business).</li>
  * <li>{@code is_station} (level, pos): is it one?</li>
+ * <li>{@code fingers} (count): that many Illager Fingers (De Compagnie's raids bring them home).</li>
  * </ul>
  */
 public final class FuckIllagersApi {
@@ -28,6 +29,9 @@ public final class FuckIllagersApi {
 	}
 
 	static @Nullable Object call(String op, Map<String, Object> args) {
+		if (op.equals("fingers")) {
+			return Trophies.finger(args.get("count") instanceof Integer n ? Math.max(1, Math.min(64, n)) : 1);
+		}
 		if (!(args.get("level") instanceof ServerLevel level) || !(args.get("pos") instanceof BlockPos pos)) {
 			return null;
 		}

@@ -253,6 +253,10 @@ final class Street {
 				}
 			}
 			case TRADING_POST -> restock(level, b);
+			case COMPANY_HOUSE -> {
+				CompagnieLink.addDesk(level, b.world(BuildingType.COMPANY_DESK));
+				CompagnieLink.house(c.owner, Math.max(b.tier, bestHouse(c.owner, null)));
+			}
 			case GUILDHOUSE -> {
 				GuildLink.mercenaryStation(level, b.world(BuildingType.GUILD_MERCENARIES), BuildingType.guildDiscount(b.tier), c.name + " Guildhouse");
 				GuildLink.bountyStation(level, b.world(BuildingType.GUILD_BOUNTIES));
@@ -284,6 +288,10 @@ final class Street {
 				}
 			}
 			case RANCH -> Cmd.run(level, "kill @e[tag=" + animalTag(b) + "]");
+			case COMPANY_HOUSE -> {
+				CompagnieLink.removeDesk(level, b.world(BuildingType.COMPANY_DESK));
+				CompagnieLink.house(b.colony.owner, bestHouse(b.colony.owner, b));
+			}
 			case GUILDHOUSE -> {
 				GuildLink.removeMercenaryStation(level, b.world(BuildingType.GUILD_MERCENARIES));
 				GuildLink.removeBountyStation(level, b.world(BuildingType.GUILD_BOUNTIES));
@@ -291,6 +299,22 @@ final class Street {
 			default -> {
 			}
 		}
+	}
+
+	/** The owner's best Company House tier, across all their colonies (leaving out {@code except}), or 0. */
+	static int bestHouse(java.util.UUID owner, @Nullable Colony.Building except) {
+		int best = 0;
+		for (Colony c : Colonies.all()) {
+			if (!c.owner.equals(owner)) {
+				continue;
+			}
+			for (Colony.Building b : c.buildings) {
+				if (b.type == BuildingType.COMPANY_HOUSE && b != except) {
+					best = Math.max(best, b.tier);
+				}
+			}
+		}
+		return best;
 	}
 
 	/** Why it can't be demolished yet, or null. */

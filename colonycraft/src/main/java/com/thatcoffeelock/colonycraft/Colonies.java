@@ -580,6 +580,7 @@ public final class Colonies {
 			case GUILDHOUSE -> "Guildmaster";
 			case DISTILLERY -> "Distiller";
 			case TAVERN -> "Barkeep";
+			case COMPANY_HOUSE -> "Clerk";
 		};
 	}
 

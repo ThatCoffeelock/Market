@@ -68,8 +68,8 @@ final class Hiring {
 		if (!c.candidates.contains(candidate)) {
 			return "They've moved on.";
 		}
-		if (c.agents.size() >= c.rank().agents) {
-			return "The books are full: a " + c.rank().title + " keeps " + c.rank().agents + " agents.";
+		if (c.agents.size() >= c.maxAgents()) {
+			return "The books are full: your company keeps " + c.maxAgents() + " agents.";
 		}
 		if (!Bank.charge(c.uuid(), candidate.hireCost)) {
 			return "You can't afford " + Bank.format(candidate.hireCost) + " to sign them.";

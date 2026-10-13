@@ -161,7 +161,7 @@ final class Companies {
 		c.board.removeIf(j -> j.expires < day);
 		List<JobType> pool = new ArrayList<>();
 		for (JobType t : JobType.values()) {
-			if (!t.onBoard() || t.minRank > c.rank().ordinal()) {
+			if (!t.onBoard() || !t.available() || t.minRank > c.rank().ordinal()) {
 				continue;
 			}
 			boolean listed = false;

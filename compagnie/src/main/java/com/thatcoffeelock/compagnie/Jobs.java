@@ -117,8 +117,8 @@ final class Jobs {
 		if (agent.state() != Agent.State.READY) {
 			return agent.name + " isn't available.";
 		}
-		if (c.active.size() >= c.rank().slots) {
-			return "All " + c.rank().slots + " job slots are taken. A bigger company runs more at once.";
+		if (c.active.size() >= c.slots()) {
+			return "All " + c.slots() + " job slots are taken. A bigger company runs more at once.";
 		}
 		long cents = stakeCents(type, stake);
 		if (!Bank.charge(c.uuid(), cents)) {
@@ -307,8 +307,24 @@ final class Jobs {
 					items.add(stack);
 				}
 			}
+			// Fuck Illagers: proof of the dead; Riches: an expedition may find a relic
+			if (type == JobType.ILLAGER_CAMP) {
+				ItemStack fingers = Links.fingers(tier == Tier.PARTIAL ? 1 + random.nextInt(2) : 2 + random.nextInt(5));
+				if (!fingers.isEmpty()) {
+					items.add(fingers);
+				}
+			}
+			if (type == JobType.RELIC_EXPEDITION && (tier == Tier.TRIUMPH || (tier == Tier.SUCCESS && random.nextDouble() < 0.35))) {
+				ItemStack relic = Links.relic(c);
+				if (!relic.isEmpty()) {
+					items.add(relic);
+					c.news("★ A relic! The expedition brought home " + relic.getHoverName().getString() + ".");
+				}
+			}
 		}
 		StringBuilder extra = new StringBuilder();
+		long cargoMarks = cargo(c, job, type, tier, bonus, level, items, extra);
+		marks += cargoMarks;
 		special(c, job, type, tier, today, random, level, items, extra);
 		for (ItemStack stack : items) {
 			Strongbox.add(c, stack);
@@ -355,6 +371,47 @@ final class Jobs {
 		c.news(line.toString());
 		Companies.changed();
 		return new Result(tier, marks, items, line.toString());
+	}
+
+	/** Luxury Export pays for the cargo; a chartered ship earns its fee and comes home (unless it sank). Returns Marks paid. */
+	private static long cargo(Company c, Job job, JobType type, Tier tier, double bonus, @Nullable ServerLevel level, List<ItemStack> items,
+		StringBuilder extra) {
+		long paid = 0;
+		if (type.special == JobType.Special.EXPORT) {
+			double factor = switch (tier) {
+				case TRIUMPH -> 3.2;
+				case SUCCESS -> 2.5;
+				case PARTIAL -> 1.0;
+				case FAILURE -> 0.3;
+				case DISASTER -> 0;
+			};
+			paid = Math.round(job.cargo * factor * (1 + bonus));
+			extra.append(" The cargo (worth ").append(Bank.format(job.cargo)).append(" in Amsterdam) ").append(paid > 0 ? "fetched " + Bank.format(paid) + " abroad." : "is lost.");
+		} else if (type.special == JobType.Special.CHARTER) {
+			long fee = Bank.cents(switch (tier) {
+				case TRIUMPH -> 3000;
+				case SUCCESS -> 2000;
+				case PARTIAL -> 800;
+				case FAILURE -> 200;
+				case DISASTER -> 0;
+			});
+			paid = Math.round(fee * (1 + bonus));
+			ItemStack ship = level == null ? ItemStack.EMPTY : Cargo.decode(level, job.cargoItem);
+			if (tier == Tier.DISASTER) {
+				extra.append(" The ship went down with all hands. It's gone.");
+			} else {
+				extra.append(" The charter paid ").append(Bank.format(paid)).append(", and the ship's back in the strongbox.");
+				if (!ship.isEmpty()) {
+					items.add(ship);
+				}
+			}
+			job.cargoItem = null;
+		}
+		if (paid > 0) {
+			Bank.credit(c.uuid(), c.ownerName, paid);
+			c.profit += paid;
+		}
+		return paid;
 	}
 
 	/** Jobs that do something besides paying out. */
@@ -417,6 +474,35 @@ final class Jobs {
 					}
 					extra.append(" ").append(n).append(" pressganged sailor").append(n == 1 ? " is" : "s are").append(" at the hiring board, free.");
 				}
+			}
+			case OIL -> {
+				if (good || tier == Tier.PARTIAL) {
+					java.util.Map<?, ?> pocket = level == null ? null : Links.pocket(level, home(c));
+					if (pocket != null && pocket.get("x") instanceof Integer x && pocket.get("y") instanceof Integer y && pocket.get("z") instanceof Integer z) {
+						boolean gusher = Boolean.TRUE.equals(pocket.get("gusher"));
+						ItemStack survey = Charts.item(gusher ? "fossilfool:gusher" : "fossilfool:oil_pocket", new BlockPos(x, y, z));
+						items.add(survey);
+						extra.append(" ").append(Charts.describe(survey)).append(" Drill down to Y ").append(y).append(".");
+					} else {
+						extra.append(" The rod didn't so much as twitch for miles around.");
+					}
+				}
+			}
+			case SACKS -> {
+				int n = tier == Tier.TRIUMPH ? 3 : tier == Tier.SUCCESS ? 2 : tier == Tier.PARTIAL ? 1 : 0;
+				int brought = 0;
+				for (int i = 0; i < n; i++) {
+					ItemStack sack = Links.villagerSack(Names.agent(random).replaceAll(" '.*' ", " "));
+					if (!sack.isEmpty()) {
+						items.add(sack);
+						brought++;
+					}
+				}
+				if (brought > 0) {
+					extra.append(" ").append(brought).append(" settler").append(brought == 1 ? "" : "s").append(" came home in sacks, ready for a colony.");
+				}
+			}
+			case EXPORT, CHARTER -> {
 			}
 			case COLLECT -> extra.append(Ledger.collected(c, job, tier));
 			case RESCUE -> extra.append(rescued(c, job, tier, today));

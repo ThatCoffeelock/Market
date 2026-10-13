@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@code relics} (level, positions): how many relics are on show in the cases at these positions.</li>
  * <li>{@code occupied} (level, positions): how many of those cases have anything in them.</li>
  * <li>{@code info} (level, pos): what's at pos, as a map ("kind": vault/door/case/pedestal, "owner"), or null.</li>
+ * <li>{@code relic} (owner, owner_name): a relic that's still out there, recorded as found by the owner (De Compagnie's
+ * expeditions bring them home), or null if every relic has been found.</li>
  * </ul>
  * Places that already exist are left as they are (with their exhibits), so registering again is harmless.
  */
@@ -64,6 +66,22 @@ public final class RichesApi {
 				return true;
 			}
 			return false;
+		}
+		if (op.equals("relic")) {
+			String who = args.get("owner") instanceof String s ? s : "";
+			String whoName = args.get("owner_name") instanceof String s ? s : "an expedition";
+			java.util.List<Relic> left = new java.util.ArrayList<>();
+			for (Relic r : Relic.values()) {
+				if (Relics.available(r)) {
+					left.add(r);
+				}
+			}
+			if (left.isEmpty()) {
+				return null;
+			}
+			Relic relic = left.get(new java.util.Random().nextInt(left.size()));
+			Relics.record(relic, who, whoName);
+			return RichesItems.relic(relic);
 		}
 		if (!(args.get("level") instanceof ServerLevel level)) {
 			return null;

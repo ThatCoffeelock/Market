@@ -55,7 +55,9 @@ public enum BuildingType {
 	FUEL_DEPOT("fuel_depot", "Fuel Depot", Items.BLAST_FURNACE, 2000, 6, 5, 10, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 3, false, BuildingType::fuelDepot),
 	GUILDHOUSE("guildhouse", "Guildhouse", Items.TARGET, 2000, 6, 6, 13, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 4, false, BuildingType::guildhouse),
 	DISTILLERY("distillery", "Distillery", Items.CAULDRON, 1500, 6, 6, 13, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::distillery),
-	TAVERN("tavern", "Tavern", Items.HONEY_BOTTLE, 1800, 6, 7, 15, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 4, false, BuildingType::tavern);
+	TAVERN("tavern", "Tavern", Items.HONEY_BOTTLE, 1800, 6, 7, 15, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 4, false, BuildingType::tavern),
+	COMPANY_HOUSE("company_house", "Company House", Items.CARTOGRAPHY_TABLE, 2200, 4, 6, 17, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 4, false,
+		BuildingType::companyHouse);
 
 	public static final int MAX_TIER = 3;
 
@@ -106,7 +108,7 @@ public enum BuildingType {
 	 */
 	public boolean rebuildsOnUpgrade() {
 		return fortification || this == CELLBLOCK || this == STOREHOUSE || this == RESIDENCE || this == TRAIN_STATION
-			|| this == MUSEUM || this == FUEL_DEPOT || this == GUILDHOUSE || this == DISTILLERY || this == TAVERN;
+			|| this == MUSEUM || this == FUEL_DEPOT || this == GUILDHOUSE || this == DISTILLERY || this == TAVERN || this == COMPANY_HOUSE;
 	}
 
 	/** The highest tier this building goes to. The library is as good as it gets from the start. */
@@ -154,6 +156,7 @@ public enum BuildingType {
 			case FUEL_DEPOT -> FossilLink.present();
 			case GUILDHOUSE -> GuildLink.sellswords();
 			case DISTILLERY, TAVERN -> ProostLink.present();
+			case COMPANY_HOUSE -> CompagnieLink.present();
 			default -> true;
 		};
 	}
@@ -165,6 +168,7 @@ public enum BuildingType {
 			case FUEL_DEPOT -> "Fossil Fool";
 			case GUILDHOUSE -> "Sellswords";
 			case DISTILLERY, TAVERN -> "Proost";
+			case COMPANY_HOUSE -> "De Compagnie";
 			default -> "Havana";
 		};
 	}
@@ -189,6 +193,7 @@ public enum BuildingType {
 			case GUILDHOUSE -> "guildmaster";
 			case DISTILLERY -> "distiller";
 			case TAVERN -> "barkeep";
+			case COMPANY_HOUSE -> "clerk";
 			default -> "worker";
 		};
 		return n == 1 ? noun : noun + "s";
@@ -246,6 +251,7 @@ public enum BuildingType {
 			case GUILDHOUSE -> new BlockPos(0, 1, -2);
 			case DISTILLERY -> new BlockPos(0, 1, -1);
 			case TAVERN -> TAVERN_BAR[0];
+			case COMPANY_HOUSE -> new BlockPos(-1, 1, 0);
 			default -> new BlockPos(0, 1, 0);
 		};
 	}
@@ -2513,6 +2519,71 @@ public enum BuildingType {
 			p.set(-4, 6, 5, "minecraft:air");
 			p.set(-4, 6, 4, "minecraft:lantern[hanging=false]");
 			p.fill(-3, 6, -2, 1, 6, 1, "minecraft:red_carpet");
+		}
+	}
+
+	/** The Company House's Company Desk (a cartography table at the back of the office). */
+	public static final BlockPos COMPANY_DESK = new BlockPos(0, 1, 3);
+
+	/**
+	 * A Company House: a tall, narrow Amsterdam canal house in brick, three rows of tall windows, a hoist beam over the
+	 * door and a steep gable. Inside, a double-height office lined with bookshelves, with the Company Desk (a built-in
+	 * De Compagnie desk) at the back. Tier 2 adds a map room's worth of charts and a lectern, tier 3 a gilded trophy
+	 * and a rug fit for the VOC.
+	 */
+	private static void companyHouse(Plan p) {
+		p.fillMix(-4, 0, -6, 4, 0, -6, PAVING, "minecraft:cobblestone");
+		p.fill(-3, 0, -5, 3, 0, 5, PLINTH);
+		p.fillMix(-2, 0, -4, 2, 0, 4, "minecraft:dark_oak_planks", "minecraft:spruce_planks");
+		for (int y = 1; y <= 12; y++) {
+			p.rect(-3, -5, 3, 5, y, y == 1 ? PLINTH : y == 12 ? TRIM : BRICK);
+		}
+		for (int[] c : new int[][] {{-3, -5}, {3, -5}, {-3, 5}, {3, 5}}) {
+			p.corner(c[0], c[1], 2, 11);
+		}
+		// the front: steps up to the door, tall windows above, the hoist beam at the top
+		for (int x = -1; x <= 1; x++) {
+			p.stairs(x, 1, -6, TRIM_STAIRS, "south", false);
+		}
+		p.door(-5, "dark_oak");
+		p.set(0, 3, -5, "minecraft:glass_pane");
+		p.set(0, 4, -5, ACCENT);
+		p.windowX(-5, -2, -1, 2, 4);
+		p.windowX(-5, 1, 2, 2, 4);
+		p.windowX(-5, -2, 2, 6, 8);
+		p.windowX(-5, -1, 1, 10, 11);
+		for (int x : new int[] {-3, 3}) {
+			p.windowZ(x, -2, -1, 3, 5);
+			p.windowZ(x, 1, 2, 3, 5);
+		}
+		p.roofAlongZ(-3, -5, 3, 5, 13, SLATE, SLATE_SLAB, BRICK);
+		p.set(0, 14, -6, "minecraft:dark_oak_fence");
+		p.set(0, 13, -6, "minecraft:lantern[hanging=true]");
+		for (int x : new int[] {-2, 2}) {
+			p.set(x, 1, -6, "minecraft:dark_oak_fence");
+			p.set(x, 2, -6, "minecraft:lantern[hanging=false]");
+		}
+		// the office: bookshelves along the sides, a mezzanine floor at the back, the desk under it
+		p.fill(-2, 1, -3, -2, 3, 2, "minecraft:bookshelf");
+		p.fill(2, 1, -3, 2, 3, 2, "minecraft:bookshelf");
+		p.fill(-2, 1, 0, -2, 1, 0, "minecraft:air");
+		p.fill(-2, 6, 2, 2, 6, 4, "minecraft:dark_oak_slab[type=top]");
+		p.set(COMPANY_DESK.getX(), COMPANY_DESK.getY(), COMPANY_DESK.getZ(), "minecraft:cartography_table");
+		p.set(-1, 1, 4, "minecraft:barrel[facing=up]");
+		p.set(1, 1, 4, "minecraft:chest[facing=north]");
+		p.set(1, 2, 4, "minecraft:lantern[hanging=false]");
+		for (int z : new int[] {-3, 0}) {
+			p.set(0, 11, z, "minecraft:lantern[hanging=true]");
+		}
+		if (p.tier >= 2) {
+			p.set(-1, 7, 4, "minecraft:lectern[facing=north,has_book=false]");
+			p.set(1, 7, 4, "minecraft:cartography_table");
+			p.fill(-2, 4, -3, -2, 4, 2, "minecraft:bookshelf");
+			p.fill(2, 4, -3, 2, 4, 2, "minecraft:bookshelf");
+		}
+		if (p.tier >= 3) {
+			p.set(0, 7, 4, "minecraft:gold_block");
+			p.fill(-1, 1, -3, 1, 1, 1, "minecraft:orange_carpet");
 		}
 	}
 

@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.23.0"
+VERSION = "1.24.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -55,7 +55,7 @@ MODS = [
          "Right-click inside your colony with a blueprint to see the outline, then click the same spot again to build it.",
          "Every morning you pay wages (₥3 a worker) and the workers deliver to your Storehouses. Can't pay? Everyone strikes.",
          "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems.",
-         "Build a <b>town street</b>: a Trading Post with master traders (emeralds), a Bank with a shared vault, a Museum for your relics, a Chapel, a Library with a maxed enchanting table, a Ranch, an Apiary and a Fuel Depot. The shop, bank and museum earn marks every day. With Proost: a <b>Distillery</b> and a <b>Tavern</b>."],
+         "Build a <b>town street</b>: a Trading Post with master traders (emeralds), a Bank with a shared vault, a Museum for your relics, a Chapel, a Library with a maxed enchanting table, a Ranch, an Apiary and a Fuel Depot. The shop, bank and museum earn marks every day. With Proost: a <b>Distillery</b> and a <b>Tavern</b>. With De Compagnie: a <b>Company House</b>."],
   tips=["Every worker needs a bed, so build Residences first.",
         "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically. A staffed <b>Harbor Office</b> adds 5% per tier.",
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
@@ -159,7 +159,7 @@ MODS = [
  dict(name="De Compagnie", colour="#c27a1b", tag="Run a shady VOC trading company: agents, jobs, telegrams and moneylending, from a Company Desk.",
   recipes=[shapeless("Company Desk", ["carto","gold","book"], "Desk")],
   steps=["Place the <b>Company Desk</b> and right-click it. Hire an <b>agent</b> at the Hiring Board: Force, Coin and Guile, a trait or two, a daily wage.",
-         "Pick a job on the <b>Job Board</b>: trade, raid, explore or something shady. 32 of them, bigger ones as you grow.",
+         "Pick a job on the <b>Job Board</b>: trade, raid, explore or something shady. 36 of them, bigger ones as you grow.",
          "Choose an advisor: <b>De Kapitein</b> (force), <b>De Koopman</b> (coin) or <b>De Spion</b> (guile). Pick a stake (lean, standard, lavish) and an agent, and send them.",
          "Every dawn (a Minecraft day), jobs come home: <b>triumph, success, partial, failure or disaster</b>. Marks to your balance, spoils to the <b>Strongbox</b>.",
          "Answer <b>telegrams</b> from the road: pay up, press on, or gamble.",
@@ -167,7 +167,7 @@ MODS = [
   tips=["Exploring jobs bring back a <b>Company Chart</b> to a real structure nearby: a wreck, a buried treasure, a village, a Hamlets castle...",
         "Agents get wounded, captured (pay the ransom or plan a rescue) or killed. Cowards run; Drunkards are cheap.",
         "Grow from a Charter to the <b>VOC</b>: more job slots, more agents, bigger loans. With Skills, it levels <b>Enterprise</b>.",
-        "Telegrams can be answered from anywhere: <code>/compagnie telegrams</code>."],
+        "With the other mods: export your genever and cigars, charter out your ship, survey for oil, bring settlers home in sacks, find relics. A Colonycraft <b>Company House</b> adds a job slot and cuts wages."],
   cmds="/compagnie · /compagnie news · /compagnie telegrams"),
  dict(name="Warehouse", colour="#c07a2c", tag="Big, sorted storage: tens of thousands of items, fed by hand, hoppers, trains and ships.",
   recipes=[shaped("Warehouse Core", ["IBI","CTC","ICI"], dict(I="iron",B="book",C="chest",T="carto"), "Core"),

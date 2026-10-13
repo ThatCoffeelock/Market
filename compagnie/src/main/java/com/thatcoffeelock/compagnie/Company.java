@@ -20,6 +20,8 @@ final class Company {
 	int agentsLost;
 	int nextId = 1;
 	long candidatesDay = -1;
+	/** The best Colonycraft Company House the owner has (its tier), or 0. */
+	int house;
 	/** Where the owner last used a Company Desk: explorers search from here. */
 	int homeX;
 	int homeZ;
@@ -83,12 +85,23 @@ final class Company {
 		}
 	}
 
+	/** Wages for everyone on the books, in cents: a Company House takes 10% off per tier. */
 	long dailyWages() {
 		long n = 0;
 		for (Agent a : agents) {
 			n += a.wage;
 		}
-		return n;
+		return Math.round(n * (1 - 0.1 * Math.max(0, Math.min(3, house))));
+	}
+
+	/** Jobs at once: the rank's, plus one with a Company House. */
+	int slots() {
+		return rank().slots + (house > 0 ? 1 : 0);
+	}
+
+	/** Agents on the books: the rank's, plus one per Company House tier. */
+	int maxAgents() {
+		return rank().agents + Math.max(0, Math.min(3, house));
 	}
 
 	int pendingTelegrams() {

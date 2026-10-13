@@ -4,7 +4,7 @@ A Fabric mod for Minecraft **26.3** that lets you run a **shady 17th-century tra
 
 - **A Company Desk**: hire agents, bankroll jobs, lend money, collect the spoils.
 - **Agents** with three stats (**Force**, **Coin**, **Guile**), a trait or two, a daily wage, and a nasty habit of getting captured.
-- **32 jobs** in four kinds: **trade**, **raids**, **exploring** and **shady business**. Every job can be done three ways, by three advisors.
+- **36 jobs** in four kinds: **trade**, **raids**, **exploring** and **shady business**. Every job can be done three ways, by three advisors.
 - **Minecraft days**: jobs take one to six days and come home at dawn, while you're away too.
 - **Telegrams** from the road: pay up, press on or gamble.
 - **The Ledger**: lend Marks (or gold) to dubious borrowers. Send a collector after the ones who don't pay.
@@ -79,9 +79,9 @@ Marks go straight to your balance, the spoils to the **strongbox** (108 stacks; 
 
 | Kind | Jobs |
 |---|---|
-| **Trade** | Herring Fleet · Fur & Timber Contract · Tulip Speculation · Spice Run to the Indies · Coffee from Mocha · Underwrite a Voyage · Corner the Market · Porcelain from the East · Silk and Indigo · The Northern Passage |
+| **Trade** | Herring Fleet · Fur & Timber Contract · Tulip Speculation · Spice Run to the Indies · Coffee from Mocha · Underwrite a Voyage · Luxury Export · Charter Your Ship · Corner the Market · Porcelain from the East · Silk and Indigo · The Northern Passage |
 | **Raid** | Escort a Convoy · Pirate Hunt · Raid an Illager Camp · Ambush the Smugglers · Letter of Marque · Burn the English Warehouse · Hire Out to a Siege · Sack a Spanish Fort |
-| **Explore** | Chart the Coast · An Old Pirate's Map · The Haunted Castle · Find a Market Town · Rumours of the Trials · Relic Expedition · Expedition Beyond the Portal · The Deep Dark Ruins |
+| **Explore** | Chart the Coast · An Old Pirate's Map · The Haunted Castle · Find a Market Town · Rumours of the Trials · Oil Survey · The Lost Colony · Relic Expedition · Expedition Beyond the Portal · The Deep Dark Ruins |
 | **Shady** | Pressgang a Crew · Smuggle Past Customs · Bribe the Harbourmaster · Spread a Rumour on the Exchange · Forge a Charter · Blackmail a Burgomaster · Clip the Coin |
 
 Some do more than pay:
@@ -92,6 +92,23 @@ Some do more than pay:
 - **Bribe the Harbourmaster**: sea jobs +10% for five days.
 - **Forge a Charter**: a big jump in reputation.
 - **Pressgang a Crew**: a free agent at the hiring board (a sailor who woke up employed).
+
+### With the other mods
+
+| Job | Needs | What it does |
+|---|---|---|
+| **Luxury Export** | [Proost](../proost/README.md) or [Havana](../havana/README.md) | Takes the sealed bottles and unlit cigars you carry, and sells them abroad: **250%** of their Market value on a success, 320% on a triumph. A disaster loses the lot |
+| **Charter Your Ship** | [Ahoy](../ahoy/README.md) or [Blimey](../blimey/README.md) | Rents out the packed ship in a bottle or airship you carry: ₥2,000 (₥3,000 on a triumph), and it comes back to the strongbox. Unless it's a disaster: then it sinks |
+| **Oil Survey** | [Fossil Fool](../fossil-fool/README.md) | A chart to the nearest oil pocket (or gusher), with the depth to drill to |
+| **The Lost Colony** | [Burlap Sack](../burlap-sack/README.md) | Settlers in **Burlap Sacks**, up to three: let them out in a colony, or hire them straight into a Colonycraft job |
+| Raid an Illager Camp | [Fuck Illagers](../fuck-illagers/README.md) | Also brings back **Illager Fingers** for the Bounty Station |
+| Relic Expedition | [Riches](../riches/README.md) | A triumph (and now and then a success) brings back a **real Riches relic**, if there are any left to find |
+
+Jobs that need a mod only show up on the board when it's installed.
+
+## The Company House
+
+With [Colonycraft](../colonycraft/README.md), buy a **Company House** at the Town Hall: a canal house with a **Company Desk** built in. As long as you own one, your company runs **one more job at once**, keeps **one more agent per tier**, and pays **10% less wages per tier** (your best Company House counts).
 
 Bigger jobs show up as the company grows.
 

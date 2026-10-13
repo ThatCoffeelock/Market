@@ -545,6 +545,7 @@ final class SmokeTest {
 
 		street(level);
 		proost(level);
+		compagnie(level);
 
 		// demolish everything, Town Hall last
 		Colony.Building workshop = find(BuildingType.WORKSHOP);
@@ -816,6 +817,30 @@ final class SmokeTest {
 			Colonies.demolish(level, b);
 		}
 		ColonycraftMod.LOG.info("[smoke] ok: the distillery and the tavern");
+	}
+
+	/** De Compagnie (on the smoke test's server): a Company House whose cartography table is a built-in Company Desk. */
+	private static void compagnie(ServerLevel level) {
+		if (!CompagnieLink.present()) {
+			check(!BuildingType.COMPANY_HOUSE.available(), "without De Compagnie, no Company Houses for sale");
+			return;
+		}
+		check(BuildingType.COMPANY_HOUSE.available(), "with De Compagnie, Company Houses are for sale");
+		Colony.Building house = Colonies.construct(level, colony, BuildingType.COMPANY_HOUSE, new BlockPos(4, 99, -46), 0,
+			Bank.cents(BuildingType.COMPANY_HOUSE.price), true);
+		BlockPos desk = house.world(BuildingType.COMPANY_DESK);
+		check(level.getBlockState(desk).is(Blocks.CARTOGRAPHY_TABLE) && CompagnieLink.isDesk(level, desk),
+			"the Company House's cartography table is a Company Desk");
+		check(house.alive() == 1, "a clerk keeps the books");
+		Colonies.upgrade(level, house, 0);
+		Colonies.upgrade(level, house, 0);
+		Colonies.finishJobs();
+		check(house.tier == 3 && CompagnieLink.isDesk(level, desk) && level.getBlockState(house.world(new BlockPos(0, 7, 4))).is(Blocks.GOLD_BLOCK),
+			"a tier 3 Company House keeps its desk, and gets a trophy");
+		check(Colonies.whyNoDemolish(house) == null, "it can be demolished");
+		Colonies.demolish(level, house);
+		check(!CompagnieLink.isDesk(level, desk), "and De Compagnie forgets the desk");
+		ColonycraftMod.LOG.info("[smoke] ok: the Company House");
 	}
 
 	/** Sealed Proost bottles in all the colony's storehouses, slots and warehouse shelves. */

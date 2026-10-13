@@ -27,6 +27,10 @@ enum JobType {
 		new Spoil("cocoa_beans", 16, 32), new Spoil("brown_dye", 4, 12), new Spoil("emerald", 2, 5)),
 	UNDERWRITE("Underwrite a Voyage", Category.TRADE, "writable_book", 1, 3, new long[] {500, 1000, 2000}, 1.35, -1, 0.80, -1, true,
 		Special.NONE, "Insure somebody else's ship. Free money, until it sinks."),
+	LUXURY_EXPORT("Luxury Export", Category.TRADE, "honey_bottle", 0, 3, new long[] {100, 200, 400}, 0, 0.45, 0.70, 0.60, true,
+		Special.EXPORT, "Ship the sealed bottles and cigars you carry to buyers abroad, who pay two and a half times what Amsterdam does. Bring the cargo to the desk."),
+	CHARTER_SHIP("Charter Your Ship", Category.TRADE, "oak_boat", 1, 4, new long[] {50, 100, 200}, 0, 0.45, 0.75, 0.55, true, Special.CHARTER,
+		"A merchant wants a ship for a season. Rent out the ship (or airship) you carry, packed: big money, and it comes back. Unless it sinks."),
 	CORNER_THE_MARKET("Corner the Market", Category.TRADE, "gold_nugget", 1, 2, new long[] {800, 1600, 3200}, 1.3, -1, 0.70, 0.60, false,
 		Special.CORNER, "Buy up every last barrel in Amsterdam, then name your price. Your next trade jobs pay 20% more."),
 	PORCELAIN("Porcelain from the East", Category.TRADE, "decorated_pot", 2, 5, new long[] {2000, 4000, 8000}, 1.8, 0.35, 0.65, 0.55, true,
@@ -78,6 +82,10 @@ enum JobType {
 	TRIAL_RUMOURS("Rumours of the Trials", Category.EXPLORE, "trial_key", 2, 3, new long[] {1000, 2000, 4000}, 1.2, 0.55, 0.40, 0.65, false,
 		Special.CHART, "Copper halls under the hills, they say, and keys that open vaults. Mark them.",
 		List.of(), List.of("minecraft:trial_chambers")),
+	OIL_SURVEY("Oil Survey", Category.EXPLORE, "bucket", 1, 3, new long[] {300, 600, 1200}, 0, 0.40, 0.50, 0.70, false, Special.OIL,
+		"A surveyor with a dowsing rod and a mule. They come back with the spot to sink a Fossil Fool drill."),
+	LOST_COLONY("The Lost Colony", Category.EXPLORE, "bell", 1, 3, new long[] {400, 800, 1600}, 0, 0.50, 0.65, 0.55, false, Special.SACKS,
+		"Settlers who lost their way, and would work for anyone who feeds them. Bring them home: in sacks, for your colonies."),
 	RELIC_EXPEDITION("Relic Expedition", Category.EXPLORE, "nautilus_shell", 2, 5, new long[] {1500, 3000, 6000}, 1.3, 0.45, 0.45, 0.60, true,
 		Special.NONE, "Ruined temples, sunken cities, old gods' trinkets. The museum in Leiden pays well.",
 		new Spoil("nautilus_shell", 1, 3), new Spoil("diamond", 2, 6), new Spoil("music_disc_otherside", 1, 1, 0.2, true),
@@ -128,7 +136,7 @@ enum JobType {
 	}
 
 	enum Special {
-		NONE, CHART, CORNER, RIVAL, HARBOUR, REP, RECRUIT, COLLECT, RESCUE
+		NONE, CHART, CORNER, RIVAL, HARBOUR, REP, RECRUIT, COLLECT, RESCUE, EXPORT, CHARTER, OIL, SACKS
 	}
 
 	/** An item that comes back from a job: so many of it, with this chance, maybe only on a triumph. */
@@ -199,6 +207,22 @@ enum JobType {
 	/** Does it show up on the job board? (Collecting debts and rescues are started from elsewhere.) */
 	boolean onBoard() {
 		return category != Category.SPECIAL;
+	}
+
+	/** Jobs that need another mod only show up when it's there. */
+	boolean available() {
+		return switch (this) {
+			case LUXURY_EXPORT -> Links.loaded("proost") || Links.loaded("havana");
+			case CHARTER_SHIP -> Links.loaded("ahoy") || Links.loaded("blimey");
+			case OIL_SURVEY -> Links.loaded("fossilfool");
+			case LOST_COLONY -> Links.loaded("burlapsack");
+			default -> true;
+		};
+	}
+
+	/** Jobs that carry something from the player's inventory. */
+	boolean carries() {
+		return special == Special.EXPORT || special == Special.CHARTER;
 	}
 
 	static JobType byId(String id) {

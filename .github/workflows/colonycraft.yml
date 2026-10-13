@@ -13,6 +13,7 @@ on:
       - 'sellswords/**'
       - 'fuck-illagers/**'
       - 'proost/**'
+      - 'compagnie/**'
       - '.github/workflows/colonycraft.yml'
   pull_request:
     paths:
@@ -26,6 +27,7 @@ on:
       - 'sellswords/**'
       - 'fuck-illagers/**'
       - 'proost/**'
+      - 'compagnie/**'
       - '.github/workflows/colonycraft.yml'
   workflow_dispatch:
 
@@ -54,7 +56,7 @@ jobs:
         working-directory: .
         run: ./gradlew build
 
-      - name: Build Warehouse, Havana, Burlap Sack, Riches, Fossil Fool, Sellswords, Fuck Illagers and Proost (the smoke test runs Colonycraft with them too)
+      - name: Build Warehouse, Havana, Burlap Sack, Riches, Fossil Fool, Sellswords, Fuck Illagers, Proost and De Compagnie (the smoke test runs Colonycraft with them too)
         working-directory: .
         run: |
           (cd cannon && ./gradlew build -x test)
@@ -68,6 +70,7 @@ jobs:
           (cd sellswords && ./gradlew build -x test)
           (cd fuck-illagers && ./gradlew build -x test)
           (cd proost && ./gradlew build -x test)
+          (cd compagnie && ./gradlew build -x test)
 
       - name: Build
         run: |

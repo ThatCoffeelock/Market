@@ -23,6 +23,7 @@ public final class BurlapSackMod implements ModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("Burlap Sack");
 	/** ObjectShare key: a {@code Supplier<ItemStack>} of a fresh empty sack. */
 	public static final String EMPTY_SACK = "burlapsack:empty";
+	public static final String VILLAGER_SACK = "burlapsack:villager";
 
 	private static final List<Delayed> LATER = new ArrayList<>();
 	private static int ticks;
@@ -60,6 +61,9 @@ public final class BurlapSackMod implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(SackCommands::register);
 		// Colonycraft hires villagers out of full sacks and hands the empty sack back (no compile-time link either way)
 		FabricLoader.getInstance().getObjectShare().put(EMPTY_SACK, (Supplier<ItemStack>) SackItems::empty);
+		// De Compagnie's recruiters bring villagers home in sacks: name -> a sack with a (jobless) villager in it
+		FabricLoader.getInstance().getObjectShare().put(VILLAGER_SACK,
+			(java.util.function.Function<String, ItemStack>) name -> SackItems.full("minecraft:villager", name, new net.minecraft.nbt.CompoundTag()));
 		LOG.info("Burlap Sack loaded. Lock your doors, villagers.");
 	}
 

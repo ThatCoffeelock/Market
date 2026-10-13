@@ -189,6 +189,7 @@ final class TownHallMenu extends ChestMenu {
 		for (int i = 0; i < STREET.length; i++) {
 			shopButton(28 + i, STREET[i]);
 		}
+		shopButton(46, BuildingType.COMPANY_HOUSE);
 		shopButton(47, BuildingType.TAVERN);
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
@@ -336,6 +337,7 @@ final class TownHallMenu extends ChestMenu {
 			case DISTILLERY -> "Turns the storehouses' wheat, sugar cane and apples into genever, whisky, rum and brandy. Its stills work for you too.";
 			case TAVERN -> "Pours your bottles for the town (" + Street.pours(1) + " a day, for " + Math.round(Street.POUR_MARKUP * 100)
 				+ "% of the Market price), and the barkeep sells drinks to anyone.";
+			case COMPANY_HOUSE -> "A canal house with a Company Desk inside: your Compagnie runs one more job at once, keeps more agents and pays 10% less wages per tier.";
 		};
 	}
 
@@ -541,6 +543,10 @@ final class TownHallMenu extends ChestMenu {
 					t("Fill the storehouses from a distillery.", ChatFormatting.GRAY),
 					t("Right-click a barkeep to buy a bottle: guests pay double,", ChatFormatting.DARK_GRAY),
 					t("and a quarter of it is yours.", ChatFormatting.DARK_GRAY))), null);
+			case COMPANY_HOUSE -> button(32, icon(Items.CARTOGRAPHY_TABLE, t("The office", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("The cartography table at the back is a Company Desk:", ChatFormatting.GRAY),
+					t("right-click it to run your Compagnie.", ChatFormatting.GRAY),
+					t("+1 job slot, +" + b.tier + " agents, wages -" + 10 * b.tier + "%.", ChatFormatting.GOLD))), null);
 			case LIBRARY -> button(32, icon(Items.ENCHANTING_TABLE, t("Reading room", ChatFormatting.AQUA, ChatFormatting.BOLD),
 				List.of(t("The enchanting table has all its bookshelves:", ChatFormatting.GRAY), t("level 30 enchantments.", ChatFormatting.GRAY))), null);
 			default -> {
@@ -581,6 +587,8 @@ final class TownHallMenu extends ChestMenu {
 				+ (next == 3 ? ", and an aging cellar that ages one bottle in four." : ".");
 			case TAVERN -> b.type.workers(next) + " barkeeps: pours " + Street.pours(next) + " bottles a night"
 				+ (next == 3 ? ", and guest rooms upstairs." : ", and more tables.");
+			case COMPANY_HOUSE -> "Your Compagnie keeps " + next + " more agents and pays " + 10 * next + "% less wages"
+				+ (next == 3 ? ", and a trophy fit for the VOC." : ", and a map room.");
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}

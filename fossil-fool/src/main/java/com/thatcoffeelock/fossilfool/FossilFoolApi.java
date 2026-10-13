@@ -53,6 +53,8 @@ public final class FossilFoolApi {
 	 * <li>{@code remove}: forgets the tank, refinery or pipe at pos (whatever was in it is gone).</li>
 	 * <li>{@code buckets} (positions): buckets in the tanks at these positions, all together.</li>
 	 * <li>{@code info}: what's at pos, as a map ("kind": tank/refinery/pipe, and for a tank "set", "fluid", "amount"), or null.</li>
+	 * <li>{@code pocket} (radius in chunks, optional, 24 by default): the nearest oil pocket to pos, as a map ("x", "y",
+	 * "z": its middle, "gusher"), or null (none that near, or not the overworld). De Compagnie's surveyors use it.</li>
 	 * </ul>
 	 * Machines that already exist are kept as they are, with what's in them.
 	 */
@@ -63,6 +65,28 @@ public final class FossilFoolApi {
 
 	static @org.jetbrains.annotations.Nullable Object call(String op, java.util.Map<String, Object> args) {
 		if (!(args.get("level") instanceof ServerLevel level)) {
+			return null;
+		}
+		if (op.equals("pocket")) {
+			if (!(args.get("pos") instanceof BlockPos from) || !Pockets.hasOil(level)) {
+				return null;
+			}
+			int radius = args.get("radius") instanceof Integer r ? Math.max(1, Math.min(64, r)) : 24;
+			int cx0 = from.getX() >> 4;
+			int cz0 = from.getZ() >> 4;
+			for (int ring = 0; ring <= radius; ring++) {
+				for (int dx = -ring; dx <= ring; dx++) {
+					for (int dz = -ring; dz <= ring; dz++) {
+						if (Math.max(Math.abs(dx), Math.abs(dz)) != ring) {
+							continue;
+						}
+						Pockets.Pocket p = Pockets.inChunk(level, cx0 + dx, cz0 + dz);
+						if (p != null) {
+							return java.util.Map.of("x", p.x(), "y", p.y(), "z", p.z(), "gusher", p.gusher());
+						}
+					}
+				}
+			}
 			return null;
 		}
 		if (op.equals("buckets")) {

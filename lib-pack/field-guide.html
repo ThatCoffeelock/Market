@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.23.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.24.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -329,7 +329,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.23.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie</span>
+    <span>LIB Pack 1.24.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -383,6 +383,7 @@ const MODS = [
           "Bring a villager in a Burlap Sack to fill an empty job for free",
           "Town street: the Trading Post, Bank and Museum earn marks every day; the Bank's vault is shared by everyone",
           "With Proost: a Distillery bottles your grain every morning, a Tavern pours it for 150% and sells drinks",
+          "With De Compagnie: a Company House with a built-in Company Desk",
           "Needs Market (it's in the pack)"],
     cmds: ["/colonycraft", "/colonycraft charter", ["/colonycraft give", true], ["/colonycraft payday", true]] },
   { name: "Ahoy", id: "ahoy", colour: "#3e8fc7", tag: "A two-masted sailing ship in a bottle. Captain + 8 passengers, two 54-slot holds, wind.",
@@ -462,11 +463,13 @@ const MODS = [
   { name: "De Compagnie", id: "compagnie", colour: "#c27a1b", tag: "Run a shady VOC trading company from a Company Desk: agents, jobs, telegrams, moneylending.",
     recipes: [{ name: "Company Desk", shapeless: ["cartography_table", "gold_ingot", "book"], out: ["Desk", "#c27a1b"] }],
     how: ["Hire agents at the Hiring Board: Force, Coin, Guile, a trait or two, a daily wage",
-          "32 jobs: trade, raid, explore, shady. Pick De Kapitein, De Koopman or De Spion, a stake and an agent",
+          "36 jobs: trade, raid, explore, shady. Pick De Kapitein, De Koopman or De Spion, a stake and an agent",
           "Jobs come home at dawn: triumph, success, partial, failure or disaster. Spoils go to the Strongbox",
           "Exploring jobs bring back a Company Chart to a real wreck, treasure, village or castle",
           "Telegrams from the road: pay, press on or gamble. /compagnie telegrams",
           "The Ledger: lend Marks or gold; send a collector after defaulters",
+          "Export genever and cigars, charter your ship, survey oil, bring settlers home in sacks, find relics",
+          "Colonycraft Company House: a built-in desk, +1 job slot, cheaper wages",
           "Charter → Trading House → Compagnie → VOC. With Skills: Enterprise"],
     cmds: ["/compagnie", "/compagnie news", "/compagnie telegrams", ["/compagnie give desk", true], ["/compagnie dawn", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",

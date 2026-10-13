@@ -129,9 +129,9 @@ final class DeskMenu extends Ui {
 		Rank rank = company.rank();
 		button(0, tab("writable_book", "The Company", Page.HOME, List.of(t(rank.title, ChatFormatting.GRAY))), () -> go(Page.HOME));
 		button(1, tab("map", "Job Board", Page.BOARD, List.of(t(company.board.size() + " offers", ChatFormatting.GRAY))), () -> go(Page.BOARD));
-		button(2, tab("clock", "Under Way", Page.ACTIVE, List.of(t(company.active.size() + " / " + rank.slots + " slots", ChatFormatting.GRAY))),
+		button(2, tab("clock", "Under Way", Page.ACTIVE, List.of(t(company.active.size() + " / " + company.slots() + " slots", ChatFormatting.GRAY))),
 			() -> go(Page.ACTIVE));
-		button(3, tab("iron_helmet", "Agents", Page.AGENTS, List.of(t(company.agents.size() + " / " + rank.agents + " on the books", ChatFormatting.GRAY))),
+		button(3, tab("iron_helmet", "Agents", Page.AGENTS, List.of(t(company.agents.size() + " / " + company.maxAgents() + " on the books", ChatFormatting.GRAY))),
 			() -> go(Page.AGENTS));
 		button(4, tab("emerald", "Hiring Board", Page.HIRING, List.of(t(company.candidates.size() + " looking for work", ChatFormatting.GRAY))),
 			() -> go(Page.HIRING));
@@ -159,7 +159,10 @@ final class DeskMenu extends Ui {
 		info.add(t("Reputation: " + company.rep + (next == null ? "" : " / " + next.rep + " for " + next.title), ChatFormatting.YELLOW));
 		info.add(t("Profit, all time: " + Bank.format(company.profit), company.profit >= 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
 		info.add(t("Jobs done well: " + company.jobsDone + " · agents lost: " + company.agentsLost, ChatFormatting.GRAY));
-		info.add(t("Job slots " + rank.slots + " · agents " + rank.agents + " · board " + rank.board, ChatFormatting.GRAY));
+		info.add(t("Job slots " + company.slots() + " · agents " + company.maxAgents() + " · board " + rank.board, ChatFormatting.GRAY));
+		if (company.house > 0) {
+			info.add(t("Company House (tier " + company.house + "): +1 slot, +" + company.house + " agents, wages -" + 10 * company.house + "%", ChatFormatting.AQUA));
+		}
 		info.add(t("Wages: " + Bank.format(company.dailyWages()) + " a day", ChatFormatting.GRAY));
 		info.add(t("Balance: " + Bank.format(Bank.balance(company.uuid())), ChatFormatting.GOLD));
 		button(13, glow(icon(Items.NETHER_STAR, t(company.ownerName + "'s " + rank.title, ChatFormatting.GOLD, ChatFormatting.BOLD), info)), null);
@@ -218,6 +221,11 @@ final class DeskMenu extends Ui {
 				+ Bank.format(Jobs.stakeCents(type, 2)), ChatFormatting.GOLD));
 			if (type.mult > 0) {
 				lore.add(t("Pays back about " + Math.round(type.mult * 100) + "% of the stake on success", ChatFormatting.GOLD));
+			}
+			if (type.special == JobType.Special.EXPORT) {
+				lore.add(t("Cargo: the sealed bottles and cigars you carry. Pays 250% of their value", ChatFormatting.GOLD));
+			} else if (type.special == JobType.Special.CHARTER) {
+				lore.add(t("Cargo: the packed ship or airship you carry. Pays ₥2,000; it may sink", ChatFormatting.GOLD));
 			}
 			for (Approach a : Approach.values()) {
 				lore.add(type.allows(a) ? t(a.advisor + ": " + pct(type.odds[a.ordinal()]) + " base", ChatFormatting.WHITE)
@@ -352,6 +360,9 @@ final class DeskMenu extends Ui {
 			lore.add(t(agent.name + ", " + approach.advisor + "'s way", ChatFormatting.WHITE));
 			lore.add(t("Stake: " + Bank.format(Jobs.stakeCents(type, stake)), ChatFormatting.GOLD));
 			lore.add(t("Odds: " + pct(odds) + " · back in " + days(Jobs.days(type, agent)), ChatFormatting.GOLD));
+			if (type.carries()) {
+				lore.add(t(type.special == JobType.Special.EXPORT ? "Takes the bottles and cigars you carry." : "Takes the ship you carry.", ChatFormatting.RED));
+			}
 			lore.add(t("Click to send them.", ChatFormatting.YELLOW));
 			button(49, glow(icon(Items.EMERALD, t("Send " + agent.name, ChatFormatting.GREEN, ChatFormatting.BOLD), lore)), () -> send(job, type, agent));
 		} else {
@@ -365,6 +376,15 @@ final class DeskMenu extends Ui {
 			return;
 		}
 		boolean special = !type.onBoard();
+		List<ItemStack> taken = List.of();
+		if (type.carries()) {
+			taken = Cargo.peek(type, viewer);
+			String why = Cargo.load(job, type, viewer);
+			if (why != null) {
+				nope(why);
+				return;
+			}
+		}
 		if (type == JobType.COLLECT_DEBT) {
 			Loan loan = company.loan(job.target);
 			if (loan == null || loan.state() != Loan.State.DEFAULTED) {
@@ -374,6 +394,9 @@ final class DeskMenu extends Ui {
 		}
 		String why = Jobs.start(company, type, special ? null : job, a, agent, stake, today(), job.target);
 		if (why != null) {
+			if (type.carries()) {
+				Cargo.unload(job, type, viewer, taken);
+			}
 			nope(why);
 			return;
 		}
