@@ -1,0 +1,19 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:barrel",
+		"minecraft:water_bucket"
+	],
+	"result": {
+		"id": "minecraft:barrel",
+		"count": 1,
+		"components": {
+			"minecraft:custom_name": {"text": "Mash Tun", "color": "gold", "italic": false},
+			"minecraft:lore": [
+				{"text": "Wheat, sugar cane or apples ferment into mash in here.", "color": "gray", "italic": false},
+				{"text": "Takes about half a day. Keeps working while you're away.", "color": "dark_gray", "italic": false}
+			]
+		}
+	}
+}

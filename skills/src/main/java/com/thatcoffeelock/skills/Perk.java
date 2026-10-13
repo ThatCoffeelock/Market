@@ -103,9 +103,9 @@ public enum Perk {
 	IRON_FIST(Skill.GOVERNANCE, "Iron Fist", "iron_bars", 0.10, "+%s prisoner ransoms and bounties"),
 
 	// Connoisseur
-	GREEN_LEAF(Skill.CONNOISSEUR, "Green Leaf", "fern", 0.06, "%s chance of double tobacco leaves"),
-	MASTER_ROLLER(Skill.CONNOISSEUR, "Master Roller", "map", 0.06, "%s chance of a bonus cigar when rolling"),
-	IRON_LUNGS(Skill.CONNOISSEUR, "Iron Lungs", "campfire", 0.20, "-%s chance to cough"),
+	GREEN_LEAF(Skill.CONNOISSEUR, "Green Leaf", "fern", 0.06, "%s chance of double tobacco leaves, or a still run on half the mash"),
+	MASTER_ROLLER(Skill.CONNOISSEUR, "Master Roller", "map", 0.06, "%s chance of a bonus cigar when rolling, or a bonus bottle when distilling"),
+	IRON_LUNGS(Skill.CONNOISSEUR, "Iron Lungs & Liver", "campfire", 0.20, "-%s chance to cough, or to get drunker from a swig"),
 
 	// Piloteering
 	ACE(Skill.PILOTEERING, "Ace", "feather", 0.04, "+%s airship and happy ghast speed"),

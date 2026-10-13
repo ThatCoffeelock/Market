@@ -1,0 +1,20 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:barrel",
+		"minecraft:iron_ingot",
+		"minecraft:iron_ingot"
+	],
+	"result": {
+		"id": "minecraft:barrel",
+		"count": 1,
+		"components": {
+			"minecraft:custom_name": {"text": "Oak Cask", "color": "gold", "italic": false},
+			"minecraft:lore": [
+				{"text": "Full bottles of young spirit age in here (about two days).", "color": "gray", "italic": false},
+				{"text": "Keeps working while you're away.", "color": "dark_gray", "italic": false}
+			]
+		}
+	}
+}
