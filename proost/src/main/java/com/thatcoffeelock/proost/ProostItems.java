@@ -67,7 +67,7 @@ public final class ProostItems {
 			if (stack.isEmpty() || stack.has(DataComponents.CUSTOM_DATA)) {
 				return null;
 			}
-			String id = id(stack.getItem());
+			String id = ProostItems.id(stack.getItem());
 			for (Base base : values()) {
 				if (base.crop.equals(id)) {
 					return base;
