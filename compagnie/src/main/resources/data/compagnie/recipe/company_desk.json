@@ -1,0 +1,23 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:cartography_table",
+		"minecraft:gold_ingot",
+		"minecraft:book"
+	],
+	"result": {
+		"id": "minecraft:cartography_table",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"compagnie_desk": true},
+			"minecraft:item_name": {"text": "Company Desk", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Place it and right-click it to run your company:", "color": "gray", "italic": false},
+				{"text": "hire agents, bankroll jobs, lend money.", "color": "gray", "italic": false},
+				{"text": "Profit is a moral obligation.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

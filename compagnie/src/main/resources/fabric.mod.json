@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "compagnie",
+	"version": "${version}",
+	"name": "De Compagnie",
+	"description": "Run a shady 17th-century trading company from a Company Desk: hire agents, bankroll trade voyages, raids, expeditions and smuggling runs, answer telegrams from the road, lend money to dubious borrowers and send collectors after the ones who don't pay. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.compagnie.CompagnieMod"]
+	},
+	"mixins": ["compagnie.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*",
+		"market": ">=1.0.0"
+	}
+}
