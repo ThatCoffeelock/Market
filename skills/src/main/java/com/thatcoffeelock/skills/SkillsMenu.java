@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  */
 final class SkillsMenu extends ChestMenu {
 	private static final int SIZE = 54;
-	private static final int[] SKILL_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
+	private static final int[] SKILL_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 40};
 	private static final int[] PERK_ROWS = {2, 3, 4};
 
 	private final ServerPlayer viewer;
@@ -108,7 +108,7 @@ final class SkillsMenu extends ChestMenu {
 				render();
 			});
 		}
-		button(40, icon("book", text("How it works", ChatFormatting.YELLOW), List.of(
+		button(49, icon("book", text("How it works", ChatFormatting.YELLOW), List.of(
 			text("Skills level from 0 to 100 by using them.", ChatFormatting.GRAY),
 			text("Each level gives a small passive bonus.", ChatFormatting.GRAY),
 			text("Every 10 levels you earn a perk point", ChatFormatting.GRAY),

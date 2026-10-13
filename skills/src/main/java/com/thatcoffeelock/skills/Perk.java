@@ -115,7 +115,12 @@ public enum Perk {
 	// Leadership
 	QUARTERMASTER(Skill.LEADERSHIP, "Quartermaster", "gold_ingot", 0.06, "-%s gold for mercenary promotions"),
 	DRILLMASTER(Skill.LEADERSHIP, "Drillmaster", "iron_sword", 0.05, "+%s damage dealt by your mercenaries"),
-	SHIELD_WALL(Skill.LEADERSHIP, "Shield Wall", "shield", 0.04, "-%s damage taken by your mercenaries");
+	SHIELD_WALL(Skill.LEADERSHIP, "Shield Wall", "shield", 0.04, "-%s damage taken by your mercenaries"),
+
+	// Enterprise
+	BROKER(Skill.ENTERPRISE, "Broker", "emerald", 0.05, "-%s agent wages and hiring fees"),
+	CHARTERED(Skill.ENTERPRISE, "Chartered", "filled_map", 0.05, "+%s Marks and spoils from Compagnie jobs"),
+	IRON_LEDGER(Skill.ENTERPRISE, "Iron Ledger", "book", 0.08, "%s chance a defaulting borrower pays after all");
 
 	public static final int MAX_RANK = 5;
 

@@ -43,7 +43,7 @@ jobs:
           set -o pipefail
           ./gradlew build 2>&1 | tee build.log
 
-      - name: Smoke test (boot a server, run a company: agents, jobs, telegrams, the Ledger, save and load)
+      - name: Smoke test (boot a server, run a company with agents, jobs, telegrams and the Ledger, save and load)
         run: |
           mkdir -p run/smoke
           echo "eula=true" > run/smoke/eula.txt
