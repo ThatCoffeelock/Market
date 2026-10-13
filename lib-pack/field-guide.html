@@ -129,13 +129,13 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Seventeen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, drive camper vans and tanks, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Seventeen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, level 13 skills, raid castles that were already there push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.19.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.20.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -155,7 +155,6 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
         <tbody>
           <tr><th>Ship (Ahoy)</th><td>Right-click the ship. Owner takes the wheel</td><td><span class="key">W</span><span class="key">S</span> sails · <span class="key">A</span><span class="key">D</span> rudder</td><td>Ring the bell</td><td>Get off (ashore, or overboard)</td><td>Empty-hand right-click aboard (or <code>/ahoy menu</code>), or sneak + right-click</td><td>Menu → Bottle it up</td></tr>
           <tr><th>Airship (Blimey)</th><td>Right-click it. Owner takes the controls</td><td><span class="key">W</span><span class="key">S</span> throttle · <span class="key">A</span><span class="key">D</span> turn · <span class="key">Ctrl</span> descend</td><td>Climb</td><td>Get off (bail out mid-air: parachute)</td><td>Empty-hand right-click aboard (or <code>/blimey menu</code>), or sneak + right-click</td><td>Land, then menu → Fold it up</td></tr>
-          <tr><th>Van / Tank</th><td>Right-click it. Owner drives</td><td><span class="key">W</span><span class="key">S</span> gas · <span class="key">A</span><span class="key">D</span> steer · <span class="key">Ctrl</span> turbo</td><td>Honk</td><td>Get out by the door</td><td>Right-click seated, or sneak + right-click</td><td>Menu → Pack up</td></tr>
           <tr><th>Cargo Train</th><td>Right-click the locomotive (cab)</td><td>Drives itself. Stop it, then <span class="key">W</span><span class="key">S</span></td><td>Horn</td><td>Get off</td><td>Sneak + right-click the locomotive</td><td>Menu → Pick up the train</td></tr>
           <tr><th>Cannon</th><td>Right-click the cannon</td><td>Look to aim (−10° to 60°)</td><td>Fire (2 s reload)</td><td>Get off</td><td class="dash">–</td><td>Sneak + right-click</td></tr>
         </tbody>
@@ -330,7 +329,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.19.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Mobile Home, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords</span>
+    <span>LIB Pack 1.20.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -446,15 +445,6 @@ const MODS = [
           "Roll at a crafting table while holding tobacco",
           "See the tobacco road below"],
     cmds: ["/havana", ["/havana give", true]] },
-  { name: "Mobile Home", id: "mobilehome", colour: "#3aa7a0", tag: "Drivable camper vans and tanks with 54 slots, a workbench and a force field.",
-    recipes: [
-      { name: "Camper Van", pattern: ["GGG", "ICI", "MFM"], key: { G: "glass", I: "iron_block", C: "chest", M: "minecart", F: "furnace" }, out: ["Van", "#3aa7a0"] },
-      { name: "Tank", pattern: ["IDI", "OCO", "MFM"], key: { I: "iron_block", D: "dispenser", O: "obsidian", C: "chest", M: "minecart", F: "furnace" }, out: ["Tank", "#4c6b35"] }],
-    how: ["Runs on anything a furnace burns. A lava bucket is about 30 min",
-          "Tank: turns on the spot, climbs 2-block walls, double fuel",
-          "Seated means safe: no damage, no drowning, monsters zapped",
-          "It floats. Nobody planned that"],
-    cmds: ["/mobilehome", ["/mobilehome give", true], ["/mobilehome refuel", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [
       { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },
@@ -520,7 +510,7 @@ const MODS = [
           "Promote for <b>gold ingots</b> (5, 10, 20, 40). The first promotion picks the path: <b>Ranged</b> → Musketeer, <b>Melee</b> → Foestopper Bulwark",
           "<b>Goat horn</b>: rally everyone in 48 blocks, or make your followers hold. <b>Sneak</b> + horn: Charge! at what you look at",
           "They fight what attacks you and what you hit, never villagers, players or pets. Idle ones patrol 50 blocks around their station",
-          "They board your ships, airships and campers, follow you through portals, heal slowly. Logged out? They guard where you left them"],
+          "They board your ships and airships, follow you through portals, heal slowly. Logged out? They guard where you left them"],
     cmds: ["/sellswords", "/sellswords list", "/sellswords rally", "/sellswords charge", ["/sellswords give station", true], ["/sellswords hire", true]] },
 ];
 

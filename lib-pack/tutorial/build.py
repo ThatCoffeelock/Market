@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.19.0"
+VERSION = "1.20.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -141,18 +141,6 @@ MODS = [
         "Puff three times fast and you cough. Lit cigars go out underwater.",
         "Any barrel or chest named \"Curing\" or \"Humidor\" works too, and it keeps curing while you're away."],
   cmds="/havana"),
- dict(name="Mobile Home", colour="#3aa7a0", tag="Drivable camper vans and tanks with 54 slots, a workbench and a monster force field.",
-  recipes=[shaped("Camper Van", ["GGG","ICI","MFM"], dict(G="glass",I="ironblock",C="chest",M="minecart",F="furnace"), "Van"),
-           shaped("Tank", ["IDI","OCO","MFM"], dict(I="ironblock",D="dispenser",O="obsidian",C="chest",M="minecart",F="furnace"), "Tank")],
-  steps=["Right-click the ground with the vehicle to park it.",
-         "Refuel: sneak + right-click it holding fuel. Anything a furnace burns works.",
-         "Right-click to get in. Drive with <b>W/S</b>, steer with <b>A/D</b>, <b>Ctrl</b> for turbo, <b>Space</b> to honk, <b>Shift</b> to get out.",
-         "Menu: right-click while seated. Storage, workbench, ender stash, lock and <b>Pack up</b>."],
-  tips=["One coal is about 2½ minutes of van driving; a lava bucket about half an hour.",
-        "The tank turns on the spot and climbs 2-block walls, but burns twice the fuel.",
-        "While seated nothing hurts you and monsters get zapped away.",
-        "It floats. Nobody planned that."],
-  cmds="/mobilehome"),
  dict(name="Warehouse", colour="#c07a2c", tag="Big, sorted storage: tens of thousands of items, fed by hand, hoppers, trains and ships.",
   recipes=[shaped("Warehouse Core", ["IBI","CTC","ICI"], dict(I="iron",B="book",C="chest",T="carto"), "Core"),
            shapeless("Storage Rack", ["barrel","chest","iron","iron"], "Rack"),
@@ -268,7 +256,7 @@ MODS = [
   recipes=[shaped("Mercenary Station", [" C ","STS","GGG"], dict(C="crossbow",S="sword",T="target",G="gold"), "Merc")],
   steps=["Craft a <b>Mercenary Station</b> and place it. Right-click it and <b>hire a Recruit</b> for ₥250. They bring their own crossbow, sword and orange tunic.",
          "Right-click a mercenary with an <b>empty hand</b> for their menu: <b>Follow me</b>, <b>Hold this spot</b> (like telling a dog to stay), <b>Back to the station</b>, <b>Hunting</b> and <b>Dismiss</b>.",
-         "Following, they fight whatever attacks you and whatever you hit (a hunting party), climb aboard your ship, airship or camper with you, and come through portals.",
+         "Following, they fight whatever attacks you and whatever you hit (a hunting party), climb aboard your ship or airship with you, and come through portals.",
          "Promote them with <b>gold ingots</b> in the same menu: 5, 10, 20, then 40. The first promotion picks a path for good: <b>Ranged</b> ends as a <b>Musketeer</b>, <b>Melee</b> as a <b>Foestopper Bulwark</b>.",
          "Blow a <b>goat horn</b> to rally everyone within 48 blocks, or to make your followers hold where they stand. <b>Sneak</b> and blow it: <b>Charge!</b> at whatever you're looking at."],
   tips=["Idle mercenaries patrol <b>50 blocks</b> around their station and protect it and its villagers. Hold-this-spot on a wall makes a fine archer post.",
@@ -368,7 +356,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Eighteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Seventeen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

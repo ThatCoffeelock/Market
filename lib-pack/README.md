@@ -12,7 +12,6 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Cargo Train](../cargo-train/README.md) | A self-driving locomotive and cargo wagons that haul between station chests |
 | [Flintlock](../flintlock/README.md) | Flintlock pistols, muskets and blunderbusses, with cartridges and slow reloads |
 | [Havana](../havana/README.md) | Grow tobacco, cure it in a barrel, roll and smoke cigars |
-| [Mobile Home](../mobile-home/README.md) | Drivable camper vans and tanks with storage and a force field |
 | [Warehouse](../warehouse/README.md) | Big sorted storage: a core plus racks, intake chests, train drop-off, Loading Docks for ships, drill rigs unloading straight in, and networks of branches around a central warehouse |
 | [Skills](../skills/README.md) | Elder Scrolls style skills: level up by doing, spend perk points every 10 levels |
 | [Hamlets & Horrors](../hamlets/README.md) | Random cottages, castles and dungeons: some lived in by villagers, some overrun by monsters |
@@ -41,4 +40,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all eighteen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all eighteen mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all seventeen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all seventeen mods load and the server starts.
