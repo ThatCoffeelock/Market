@@ -5,7 +5,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | Mod | What it adds |
 |---|---|
 | [Market](../README.md) | Sell anything for Marks (₥), buy items back, flex with pallets of cash |
-| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks: farms, ranches, apiaries, fisheries, tobacco farms, a harbor with a Loading Dock, a train station, medieval walls and towers, and a town street with a trading post (master traders), a bank with a shared walk-in vault, a museum for your relics, a chapel, a library and a fuel depot, plus a guildhouse that hires Sellswords cheaper. Storehouses are real warehouses |
+| [Colonycraft](../colonycraft/README.md) | Colonies, prefab buildings and villager workers paid in Marks: farms, ranches, apiaries, fisheries, tobacco farms, a harbor with a Loading Dock, a train station, medieval walls and towers, and a town street with a trading post (master traders), a bank with a shared walk-in vault, a museum for your relics, a chapel, a library and a fuel depot, plus a guildhouse that hires Sellswords cheaper, and a distillery and a tavern that turn your grain into genever money. Storehouses are real warehouses |
 | [Ahoy](../ahoy/README.md) | A sailing ship in a bottle: captain + 8 passengers, cargo holds, wind |
 | [Burlap Sack](../burlap-sack/README.md) | Bag villagers and wandering traders, let them out somewhere else |
 | [Cannon](../cannon/README.md) | An aimable cannon and iron + gunpowder cannonballs |
@@ -21,6 +21,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Riches](../riches/README.md) | Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics |
 | [Blimey](../blimey/README.md) | A riveted iron airship that runs on Fossil Fool diesel: refits for speed, fuel economy and cargo, plus small, big and huge bombs that wreck buildings |
 | [Sellswords](../sellswords/README.md) | Hire Dutch mercenaries with crossbows and swords: they follow you, hold a spot, hunt with you, guard your walls and villagers, board your ships and airships, and climb the ranks for gold to Musketeer or Foestopper Bulwark |
+| [Proost](../proost/README.md) | Ferment wheat, sugar cane and apples into mash, distill genever, whisky, rum and brandy in a cauldron over a fire, age them in oak casks, and drink until the world spins (Dutch Courage included) |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 
@@ -40,4 +41,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all seventeen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all seventeen mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all eighteen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all eighteen mods load and the server starts.

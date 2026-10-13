@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.21.0"
+VERSION = "1.22.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -28,6 +28,7 @@ I = {
  "membrane": ("Phm", "#b9c7a8", "Phantom Membrane", True), "netherite": ("Nthr", "#4a3f3f", "Netherite Ingot", False),
  "tnt": ("TNT", "#c8322a", "TNT", False), "endcrystal": ("Crys", "#c49ad8", "End Crystal", True),
  "smoker": ("Smk", "#5b4a3a", "Smoker", False),
+ "waterbucket": ("Wtr", "#3f76e4", "Water Bucket", False),
  "crossbow": ("Xbow", "#6b4a2b", "Crossbow", False), "sword": ("Swd", "#cfcfcf", "Iron Sword", True), "target": ("Tgt", "#d23a3a", "Target", False),
 }
 
@@ -54,7 +55,7 @@ MODS = [
          "Right-click inside your colony with a blueprint to see the outline, then click the same spot again to build it.",
          "Every morning you pay wages (₥3 a worker) and the workers deliver to your Storehouses. Can't pay? Everyone strikes.",
          "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems.",
-         "Build a <b>town street</b>: a Trading Post with master traders (emeralds), a Bank with a shared vault, a Museum for your relics, a Chapel, a Library with a maxed enchanting table, a Ranch, an Apiary and a Fuel Depot. The shop, bank and museum earn marks every day."],
+         "Build a <b>town street</b>: a Trading Post with master traders (emeralds), a Bank with a shared vault, a Museum for your relics, a Chapel, a Library with a maxed enchanting table, a Ranch, an Apiary and a Fuel Depot. The shop, bank and museum earn marks every day. With Proost: a <b>Distillery</b> and a <b>Tavern</b>."],
   tips=["Every worker needs a bed, so build Residences first.",
         "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically. A staffed <b>Harbor Office</b> adds 5% per tier.",
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
@@ -142,6 +143,19 @@ MODS = [
         "The Market pays more at every step: leaf ₥1.50, cured ₥3, aged ₥7, a cigar ₥12, a Gran Reserva ₥30, +₥3 for a flavour.",
         "Any barrel or chest named \"Curing\" or \"Humidor\" works too, and it keeps curing while you're away."],
   cmds="/havana"),
+ dict(name="Proost", colour="#a8562a", tag="Ferment mash, distill genever, whisky, rum and brandy, age it in oak casks and drink it.",
+  recipes=[shapeless("Mash Tun", ["barrel","waterbucket"], "Tun"), shapeless("Oak Cask", ["barrel","iron","iron"], "Cask")],
+  steps=["Put <b>wheat</b>, <b>sugar cane</b> or <b>apples</b> in a <b>Mash Tun</b>. Half a day later each one is a <b>Mash</b>.",
+         "Build a still: a <b>cauldron</b> on a lit campfire (or fire, lava, magma, a lit furnace).",
+         "Hold mash, carry a <b>glass bottle</b> and right-click the still: <b>8 mash = 1 bottle</b>. Sneak to do 8 at once.",
+         "Grain → <b>Whisky</b>, or <b>Jonge Genever</b> with sweet berries in your other hand. Cane → <b>White Rum</b>. Apple → <b>Brandy</b>.",
+         "Optional: two days in an <b>Oak Cask</b> ages full bottles into Oude Genever, Aged Whisky, Dark Rum and Brandy VSOP.",
+         "Right-click a bottle to drink. 4 swigs each; you get the glass bottle back."],
+  tips=["Genever: Strength (<i>Dutch Courage</i>). Whisky: Resistance. Rum: Water Breathing. Brandy: Haste. Aged ones do more.",
+        "Every swig makes you drunker. Tipsy is fine; drunk, the world spins and you stagger; keep going and you pass out. <code>/proost drunk</code>",
+        "Sells at the Market: ₥5–7 a bottle, ₥14–18 aged. With Skills it's <b>Connoisseur</b>, like Havana.",
+        "Colonycraft: a <b>Distillery</b> bottles your colony's grain every morning, a <b>Tavern</b> pours it for 150% and its barkeep sells you a bottle."],
+  cmds="/proost · /proost drunk"),
  dict(name="Warehouse", colour="#c07a2c", tag="Big, sorted storage: tens of thousands of items, fed by hand, hoppers, trains and ships.",
   recipes=[shaped("Warehouse Core", ["IBI","CTC","ICI"], dict(I="iron",B="book",C="chest",T="carto"), "Core"),
            shapeless("Storage Rack", ["barrel","chest","iron","iron"], "Rack"),
@@ -167,7 +181,7 @@ MODS = [
         "Blocks you placed yourself give no XP. No cheesing.",
         "Changed your mind? <b>Forget perks</b> on a skill page (costs 5 XP levels).",
         "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices.",
-        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana), <b>Piloteering</b> (Blimey), <b>Leadership</b> (Sellswords) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
+        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana and Proost), <b>Piloteering</b> (Blimey), <b>Leadership</b> (Sellswords) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
   cmds="/skills · /skills top"),
  dict(name="Hamlets & Horrors", colour="#4f6b3a", tag="Random cottages, castles and dungeons. Some lived in by villagers, some overrun by monsters.",
   recipes=[], getit="Nothing to craft: they generate in <b>new, unexplored terrain</b>.",
@@ -357,7 +371,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Seventeen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Eighteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

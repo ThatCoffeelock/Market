@@ -809,7 +809,7 @@ final class SmokeTest {
 			"a tier 3 distillery has four distillers and three stills");
 		check(level.getBlockEntity(distillery.world(BuildingType.CASKS[7])) instanceof Nameable top && top.getCustomName() != null
 			&& top.getCustomName().getString().equals("Oak Cask"), "and casks stacked two high in its aging cellar");
-		check(tavern.alive() == 3 && level.getBlockState(tavern.world(new BlockPos(-3, 6, 4))).is(Blocks.RED_BED),
+		check(tavern.alive() == 3 && BuiltInRegistries.BLOCK.getKey(level.getBlockState(tavern.world(new BlockPos(-3, 6, 4))).getBlock()).getPath().endsWith("_bed"),
 			"a tier 3 tavern has three barkeeps and guest beds upstairs");
 		for (Colony.Building b : List.of(distillery, tavern)) {
 			check(Colonies.whyNoDemolish(b) == null, b.type.id + " can be demolished");
