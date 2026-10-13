@@ -544,6 +544,7 @@ final class SmokeTest {
 		Cmd.run(level, "kill @e[type=minecraft:arrow]");
 
 		street(level);
+		proost(level);
 
 		// demolish everything, Town Hall last
 		Colony.Building workshop = find(BuildingType.WORKSHOP);
@@ -735,6 +736,108 @@ final class SmokeTest {
 		check(RichesLink.info(level, ledger) == null && FossilLink.info(level, tank) == null, "Riches and Fossil Fool forget the demolished buildings");
 		check(GuildLink.mercenaryInfo(level, hiring) == null && !GuildLink.isBountyStation(level, bounties), "and so do Sellswords and Fuck Illagers");
 		ColonycraftMod.LOG.info("[smoke] ok: the town street");
+	}
+
+	/**
+	 * Proost (on the smoke test's server): the distillery's day planner, then a real distillery (named Mash Tuns and
+	 * Oak Casks, stills over lit campfires) that bottles the storehouse's wheat on payday, and a tavern whose barkeep
+	 * stays behind the bar, prices its bottles and pours the colony's bottles for money. Then tier 3 of both.
+	 */
+	private static void proost(ServerLevel level) {
+		Production.Distilled day = Production.distill(1, 2, 100, 0, 16, 3);
+		check(day.total() == 6 && day.bottles().get("brandy") == 2 && day.bottles().get("genever") == 3 && day.bottles().get("whisky") == 1
+			&& day.wheat() == 32 && day.apples() == 16 && day.berries() == 3 && day.cane() == 0,
+			"a distillery's day: apples into brandy first, genever while the berries last, then whisky (" + day + ")");
+		Production.Distilled cellar = Production.distill(3, 4, 1000, 0, 0, 0);
+		check(cellar.bottles().get("whisky") == 18 && cellar.bottles().get("whisky:aged") == 6, "a tier 3 cellar ages one bottle in four (" + cellar + ")");
+		check(Production.distill(1, 2, 7, 7, 7, 7).total() == 0, "under 8 crops, no bottle");
+		if (!ProostLink.present()) {
+			check(!BuildingType.DISTILLERY.available() && !BuildingType.TAVERN.available(), "without Proost, no distilleries or taverns for sale");
+			return;
+		}
+		check(BuildingType.DISTILLERY.available() && BuildingType.TAVERN.available(), "with Proost, distilleries and taverns are for sale");
+		ItemStack rum = ProostLink.item("rum", 1);
+		ItemStack opened = rum.copy();
+		opened.set(DataComponents.MAX_DAMAGE, 4);
+		check(ProostLink.isSealedBottle(rum) && !ProostLink.isSealedBottle(opened) && !ProostLink.isSealedBottle(new ItemStack(Items.PAPER)),
+			"a sealed bottle is one; an opened one and plain paper aren't");
+		for (Colony.Building s : Colonies.storesOf(colony)) {
+			empty(s);
+			s.autosell = false;
+		}
+
+		Colony.Building distillery = Colonies.construct(level, colony, BuildingType.DISTILLERY, new BlockPos(4, 99, -46), 0,
+			Bank.cents(BuildingType.DISTILLERY.price), true);
+		check(distillery.alive() == 2, "the distillery has its two distillers");
+		check(level.getBlockEntity(distillery.world(BuildingType.TUNS[0])) instanceof Nameable tun && tun.getCustomName() != null
+			&& tun.getCustomName().getString().equals("Mash Tun"), "its barrels on the left are Mash Tuns");
+		check(level.getBlockEntity(distillery.world(BuildingType.CASKS[0])) instanceof Nameable cask && cask.getCustomName() != null
+			&& cask.getCustomName().getString().equals("Oak Cask"), "and on the right Oak Casks");
+		BlockPos still = distillery.world(BuildingType.STILLS[0]);
+		check(level.getBlockState(still).is(Blocks.WATER_CAULDRON) && level.getBlockState(still.below()).is(Blocks.CAMPFIRE),
+			"its still is a cauldron over a campfire");
+
+		List<Colony.Building> stores = Colonies.storesOf(colony);
+		Colonies.stow(stores, new ItemStack(Items.WHEAT, 64));
+		Colonies.stow(stores, new ItemStack(Items.SWEET_BERRIES, 8));
+		Bank.credit(OWNER, "SmokeTest", Bank.cents(10_000));
+		Colonies.payday(colony);
+		check(!colony.striking, "the wages were paid");
+		check(sealed() == 6, "payday: two distillers bottled six bottles of the colony's wheat (" + sealed() + ")");
+
+		Colony.Building tavern = Colonies.construct(level, colony, BuildingType.TAVERN, new BlockPos(22, 99, -46), 0,
+			Bank.cents(BuildingType.TAVERN.price), true);
+		check(tavern.alive() == 1 && level.getEntity(tavern.villagers.get(0)) instanceof Mob barkeep && barkeep.isNoAi(),
+			"the tavern's barkeep stays behind the bar");
+		check(level.getEntity(tavern.villagers.get(0)).getCustomName().getString().endsWith("the Barkeep"), "and is called a barkeep");
+		ItemStack genever = ProostLink.item("genever", 1);
+		long value = Bank.sellValue(genever);
+		check(value > 0 && TavernMenu.price(genever, false) == Math.round(value * Street.BAR_MARKUP)
+			&& TavernMenu.price(genever, true) < TavernMenu.price(genever, false), "guests pay double at the bar, the owner pays less");
+		long poured = Colonies.pour(Colonies.storesOf(colony), Street.pours(tavern.tier));
+		check(poured == Math.round(value * 6 * Street.POUR_MARKUP) && sealed() == 0,
+			"the tavern pours all six genevers for half again their Market price (" + Bank.format(poured) + ")");
+		check(Street.earnings(level, tavern) == Bank.cents(Street.income(BuildingType.TAVERN, 1)) && Street.income(BuildingType.TAVERN, 1) > 0,
+			"and earns a little besides");
+
+		Colonies.upgrade(level, distillery, 0);
+		Colonies.upgrade(level, distillery, 0);
+		Colonies.upgrade(level, tavern, 0);
+		Colonies.upgrade(level, tavern, 0);
+		Colonies.finishJobs();
+		check(distillery.alive() == 4 && level.getBlockState(distillery.world(BuildingType.STILLS[2])).is(Blocks.WATER_CAULDRON),
+			"a tier 3 distillery has four distillers and three stills");
+		check(level.getBlockEntity(distillery.world(BuildingType.CASKS[7])) instanceof Nameable top && top.getCustomName() != null
+			&& top.getCustomName().getString().equals("Oak Cask"), "and casks stacked two high in its aging cellar");
+		check(tavern.alive() == 3 && level.getBlockState(tavern.world(new BlockPos(-3, 6, 4))).is(Blocks.RED_BED),
+			"a tier 3 tavern has three barkeeps and guest beds upstairs");
+		for (Colony.Building b : List.of(distillery, tavern)) {
+			check(Colonies.whyNoDemolish(b) == null, b.type.id + " can be demolished");
+			Colonies.demolish(level, b);
+		}
+		ColonycraftMod.LOG.info("[smoke] ok: the distillery and the tavern");
+	}
+
+	/** Sealed Proost bottles in all the colony's storehouses, slots and warehouse shelves. */
+	private static int sealed() {
+		int n = 0;
+		for (Colony.Building s : Colonies.storesOf(colony)) {
+			for (int i = 0; i < s.storage.getContainerSize(); i++) {
+				ItemStack stack = s.storage.getItem(i);
+				if (ProostLink.isSealedBottle(stack)) {
+					n += stack.getCount();
+				}
+			}
+			String warehouse = Colonies.warehouseOf(s);
+			if (warehouse != null) {
+				for (Map.Entry<ItemStack, Long> e : WarehouseLink.stock(warehouse)) {
+					if (ProostLink.isSealedBottle(e.getKey())) {
+						n += e.getValue().intValue();
+					}
+				}
+			}
+		}
+		return n;
 	}
 
 	private static void cleanup(ServerLevel level) {

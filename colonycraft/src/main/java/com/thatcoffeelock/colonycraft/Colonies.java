@@ -578,6 +578,8 @@ public final class Colonies {
 			case APIARY -> "Beekeeper";
 			case FUEL_DEPOT -> "Depot Hand";
 			case GUILDHOUSE -> "Guildmaster";
+			case DISTILLERY -> "Distiller";
+			case TAVERN -> "Barkeep";
 		};
 	}
 
@@ -606,7 +608,7 @@ public final class Colonies {
 		String mob = b.type == BuildingType.BARRACKS ? "minecraft:iron_golem" : "minecraft:villager";
 		String extra = switch (b.type) {
 			case BARRACKS -> ",PlayerCreated:1b";
-			case WATCHTOWER -> ",NoAI:1b";
+			case WATCHTOWER, TAVERN -> ",NoAI:1b";
 			case TRADING_POST -> Street.traderNbt(index);
 			default -> "";
 		};
@@ -672,7 +674,7 @@ public final class Colonies {
 					}
 					BlockPos at = b.world(b.type.station(i));
 					boolean away = switch (b.type) {
-						case WATCHTOWER, TRADING_POST -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > 1;
+						case WATCHTOWER, TRADING_POST, TAVERN -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > 1;
 						case BARRACKS -> !c.claims(villager.blockPosition());
 						default -> villager.distanceToSqr(at.getX() + 0.5, at.getY(), at.getZ() + 0.5) > max;
 					};
@@ -903,6 +905,14 @@ public final class Colonies {
 				for (int t = 0; t < BuildingType.tracks(b.tier); t++) {
 					name(level, b.world(BuildingType.PICKUPS[t]), "Pickup Station", "aqua");
 					name(level, b.world(BuildingType.DROP_OFFS[t]), "Drop-off Station", "gold");
+				}
+			}
+			case DISTILLERY -> {
+				for (int i = 0; i < BuildingType.tuns(b.tier); i++) {
+					name(level, b.world(BuildingType.TUNS[i]), "Mash Tun", "gold");
+				}
+				for (int i = 0; i < BuildingType.casks(b.tier); i++) {
+					name(level, b.world(BuildingType.CASKS[i]), "Oak Cask", "gold");
 				}
 			}
 			default -> Street.furnish(level, b);
@@ -1181,6 +1191,30 @@ public final class Colonies {
 				stow(stores, stack); // what doesn't fit rots in the field
 			}
 		}
+		// distilleries get first pick of the grain, cane and apples (with the Proost mod), before the workshops bake bread
+		for (Colony.Building b : c.buildings) {
+			if (b.type != BuildingType.DISTILLERY || b.alive() == 0 || !ProostLink.present()) {
+				continue;
+			}
+			Production.Distilled run = Production.distill(b.tier, b.alive(), count(stores, Items.WHEAT), count(stores, Items.SUGAR_CANE),
+				count(stores, Items.APPLE), count(stores, Items.SWEET_BERRIES));
+			take(stores, Items.WHEAT, run.wheat());
+			take(stores, Items.SUGAR_CANE, run.cane());
+			take(stores, Items.APPLE, run.apples());
+			take(stores, Items.SWEET_BERRIES, run.berries());
+			for (Map.Entry<String, Integer> e : run.bottles().entrySet()) {
+				int left = e.getValue();
+				while (left > 0) {
+					int n = Math.min(left, 16);
+					ItemStack bottles = ProostLink.item(e.getKey(), n);
+					if (bottles.isEmpty()) {
+						break;
+					}
+					stow(stores, bottles);
+					left -= n;
+				}
+			}
+		}
 		// workshops turn raw goods into better ones
 		for (Colony.Building b : c.buildings) {
 			if (b.type != BuildingType.WORKSHOP || b.alive() == 0) {
@@ -1203,9 +1237,15 @@ public final class Colonies {
 				budget -= batches * r.in();
 			}
 		}
+		// taverns pour the colony's bottles for the town, for more than the Market pays
+		long earned = 0;
+		for (Colony.Building b : c.buildings) {
+			if (b.type == BuildingType.TAVERN && b.alive() > 0) {
+				earned += pour(stores, Street.pours(b.tier));
+			}
+		}
 		// storehouses with autosell on sell everything the Market will buy; a harbor gets them better prices
 		double harbor = harborBonus(c);
-		long earned = 0;
 		for (Colony.Building s : stores) {
 			if (!s.autosell) {
 				continue;
@@ -1242,6 +1282,65 @@ public final class Colonies {
 		if (earned > 0) {
 			Bank.credit(c.owner, c.ownerName, earned);
 		}
+	}
+
+	/**
+	 * A tavern's night: pours up to {@code bottles} sealed Proost bottles from the storehouses (the dearest first) and
+	 * earns {@link Street#POUR_MARKUP} times what the Market would pay for each. Returns the takings, in cents.
+	 */
+	static long pour(List<Colony.Building> stores, int bottles) {
+		long takings = 0;
+		while (bottles > 0) {
+			// the dearest sealed bottle left in the storehouses' own slots
+			Colony.Building best = null;
+			int slot = -1;
+			long each = 0;
+			for (Colony.Building s : stores) {
+				for (int i = 0; i < s.storage.getContainerSize(); i++) {
+					ItemStack stack = s.storage.getItem(i);
+					if (!ProostLink.isSealedBottle(stack)) {
+						continue;
+					}
+					long value = Bank.sellValue(stack.copyWithCount(1));
+					if (value > each) {
+						best = s;
+						slot = i;
+						each = value;
+					}
+				}
+			}
+			if (best != null) {
+				ItemStack stack = best.storage.getItem(slot);
+				int n = Math.min(bottles, stack.getCount());
+				stack.shrink(n);
+				best.storage.setItem(slot, stack.isEmpty() ? ItemStack.EMPTY : stack);
+				takings += Math.round(each * n * Street.POUR_MARKUP);
+				bottles -= n;
+				continue;
+			}
+			// then whatever is on the warehouse shelves
+			boolean poured = false;
+			for (Colony.Building s : stores) {
+				String warehouse = warehouseOf(s);
+				if (warehouse == null) {
+					continue;
+				}
+				for (Map.Entry<ItemStack, Long> e : WarehouseLink.stock(warehouse)) {
+					if (bottles <= 0 || !ProostLink.isSealedBottle(e.getKey())) {
+						continue;
+					}
+					long value = Bank.sellValue(e.getKey().copyWithCount(1));
+					long got = WarehouseLink.take(warehouse, e.getKey(), Math.min(bottles, e.getValue()));
+					takings += Math.round(value * got * Street.POUR_MARKUP);
+					bottles -= (int) got;
+					poured |= got > 0;
+				}
+			}
+			if (!poured) {
+				break;
+			}
+		}
+		return takings;
 	}
 
 	/** What a bank's vault holds, in cents, by the bank's id (for the Riches mod's pile of gold). */
@@ -1512,6 +1611,12 @@ public final class Colonies {
 		}
 		if (b.type == BuildingType.TRADING_POST) {
 			return InteractionResult.PASS; // the masters trade, the vanilla way
+		}
+		if (b.type == BuildingType.TAVERN) {
+			if (hand == InteractionHand.MAIN_HAND) {
+				TavernMenu.open(player, b); // anyone may buy a drink
+			}
+			return InteractionResult.SUCCESS;
 		}
 		if (hand == InteractionHand.MAIN_HAND) {
 			String what = switch (b.type) {

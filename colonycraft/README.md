@@ -121,6 +121,15 @@ With [Fossil Fool](../fossil-fool/README.md), the fuel depot's cauldrons are Fos
 
 With [Sellswords](../sellswords/README.md) installed, the Town Hall sells a **Guildhouse** (₥2,000, top row next to the barracks): a half-timbered hall with a long table, a hearth and orange banners. Its **target block is a Mercenary Station** where hiring costs **20% less**, **35%** at tier 2 and **50%** at tier 3, and mercenaries hired there idle around the guildhouse, protecting it and the colony's villagers within 50 blocks. With [Fuck Illagers](../fuck-illagers/README.md) too, its **fletching table is a Bounty Station**: hire your squad on one side of the hall and pick their next target on the other. A guildmaster runs the place (₥4 a day). Without Sellswords there's no guildhouse for sale.
 
+### Proost: the distillery and the tavern
+
+With [Proost](../proost/README.md) installed, the Town Hall sells two more buildings:
+
+- **Distillery** (₥1,500, top row next to the train station; 2 / 3 / 4 distillers at ₥3 a day): a brick still-house with a smoking chimney. Every morning it takes **wheat, sugar cane and apples** from your storehouses, **8 a bottle**, and bottles **3 per distiller** (more at higher tiers): apples into **brandy** first, then cane into **rum**, wheat into **genever** while there are **sweet berries** in store (one a bottle), the rest of the wheat into **whisky**. It gets first pick, before the workshop bakes bread. At tier 3 its aging cellar ages **one bottle in four**. Its stills (cauldrons over campfires), Mash Tuns and Oak Casks are real Proost ones: use them yourself. Each tier adds a still and more tuns and casks.
+- **Tavern** (₥1,800, bottom row of the Town Hall; 1 / 2 / 3 barkeeps at ₥4 a day): a two-storey half-timbered inn with a bar, tables and a hearth. Every night it **pours 8 / 16 / 32 of the colony's sealed bottles** from the storehouses, the dearest first, and earns **150% of what the Market would pay** for them, plus ₥8 / ₥15 / ₥25 besides. It pours before the storehouses auto-sell. **Right-click a barkeep** to buy a bottle off the shelf: guests pay **double the Market price** and a quarter of that goes to you; you drink at cost. Tier 3 has **guest rooms** upstairs (sleep there to set your spawn).
+
+Put a farm and a distillery next to a tavern and the grain goes out as genever money. Without Proost there are no distilleries or taverns for sale.
+
 ### Burlap Sack: bring your own workers
 
 Bag a villager, carry them to your colony and open the building page of a building with an empty job. **Hire *name* from your Burlap Sack** puts them to work for free, and you get the empty sack back. Iron golems don't come in sacks, so it's every building but the barracks.
@@ -160,7 +169,7 @@ Every building's page at the Town Hall has a **Repair & renovate** button (10% o
 
 ## The town street
 
-Eight buildings for the main street, all in the colony style. The bank, the museum and the chapel are a little wider than the rest (15, 15 and 13 blocks).
+Eight buildings for the main street, plus the tavern with Proost, all in the colony style. The bank, the museum and the chapel are a little wider than the rest (15, 15 and 13 blocks).
 
 - **Trading Post**: a market hall open to the street through three arches, a counter and a stall in every bay. Each tier puts a **master trader** in the next stall: a **Master Toolsmith** (iron and diamond tools), a **Master Armorer** (diamond armour and a shield) and a **Master Librarian** (Mending, Unbreaking III, Efficiency V and Protection IV books, and a name tag). They sell for **emeralds**, 4 of each trade, and restock every morning. They stay behind their counters. Right-click one to trade the normal way.
 - **Bank**: a portico up a flight of steps, a banking hall with teller counters and a vault at the back. Right-click the **teller's lectern** (left of the hall) to **pay in or take out** ₥10, ₥100 or ₥1,000. It's a **shared vault: anyone can pay in, anyone can take out**, so it's for a town that trusts each other (or a test of character). The owner gets a message when money moves. A bank with money in the vault can't be demolished.
@@ -169,14 +178,16 @@ Eight buildings for the main street, all in the colony style. The bank, the muse
 - **Library**: a reading room with the enchanting table in the middle of thirty bookshelves, plus an anvil and a grindstone. No staff, no upgrades; it's just a good table.
 - **Ranch** and **Apiary**: see the table above.
 - **Fuel Depot**: see Fossil Fool above. Drain its tanks before demolishing it.
+- **Tavern**: see Proost above. It's at the bottom of the Town Hall, by the close button.
 
-The trading post, the bank and the museum **earn marks every morning** while they're staffed, more than their staff cost: the building page at the Town Hall shows today's earnings next to the wages.
+The trading post, the bank, the museum and the tavern **earn marks every morning** while they're staffed, more than their staff cost: the building page at the Town Hall shows today's earnings next to the wages.
 
 | Building | Tier 1 | Tier 2 | Tier 3 | Staff |
 |---|---|---|---|---|
 | Trading Post | ₥25 | ₥55 | ₥100 | ₥4 per master |
 | Bank | ₥25 | ₥50 | ₥90 | ₥4 per clerk |
 | Museum | ₥20 + ₥10/relic | ₥40 + ₥10/relic | ₥75 + ₥10/relic | ₥3 |
+| Tavern | ₥8 + its pours | ₥15 + its pours | ₥25 + its pours | ₥4 per barkeep |
 
 ## Commands
 

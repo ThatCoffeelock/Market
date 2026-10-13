@@ -156,6 +156,7 @@ final class TownHallMenu extends ChestMenu {
 			List.of(t("A harbor with a Loading Dock for ships,", ChatFormatting.GRAY), t("a station for Cargo Trains.", ChatFormatting.GRAY))), null);
 		shopButton(1, BuildingType.HARBOR_OFFICE);
 		shopButton(2, BuildingType.TRAIN_STATION);
+		shopButton(3, BuildingType.DISTILLERY);
 		shopButton(5, BuildingType.GUILDHOUSE);
 		shopButton(6, BuildingType.BARRACKS);
 		shacklesButton(7);
@@ -183,11 +184,12 @@ final class TownHallMenu extends ChestMenu {
 
 		button(27, icon(Items.EMERALD, t("The town street", ChatFormatting.AQUA, ChatFormatting.BOLD),
 			List.of(t("Shops and public buildings.", ChatFormatting.GRAY), t("The trading post, bank and museum", ChatFormatting.GRAY),
-				t("earn marks every day.", ChatFormatting.GRAY), Component.empty(),
+				t("earn marks every day.", ChatFormatting.GRAY), t("The tavern is down by the door.", ChatFormatting.GRAY), Component.empty(),
 				t("Your buildings are listed below.", ChatFormatting.DARK_GRAY))), null);
 		for (int i = 0; i < STREET.length; i++) {
 			shopButton(28 + i, STREET[i]);
 		}
+		shopButton(47, BuildingType.TAVERN);
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		page = Math.min(page, pages - 1);
@@ -331,6 +333,9 @@ final class TownHallMenu extends ChestMenu {
 			case FUEL_DEPOT -> "Fossil Fool tanks for crude and diesel and a refinery, with a pipe manifold to plug your pipeline into.";
 			case GUILDHOUSE -> "A Mercenary Station where hiring Sellswords costs " + Math.round(BuildingType.guildDiscount(1) * 100) + "% less (up to "
 				+ Math.round(BuildingType.guildDiscount(3) * 100) + "% at tier 3)" + (GuildLink.bounties() ? ", and a Bounty Station." : ".");
+			case DISTILLERY -> "Turns the storehouses' wheat, sugar cane and apples into genever, whisky, rum and brandy. Its stills work for you too.";
+			case TAVERN -> "Pours your bottles for the town (" + Street.pours(1) + " a day, for " + Math.round(Street.POUR_MARKUP * 100)
+				+ "% of the Market price), and the barkeep sells drinks to anyone.";
 		};
 	}
 
@@ -523,6 +528,19 @@ final class TownHallMenu extends ChestMenu {
 				List.of(t("Hire mercenaries at the target on the left:", ChatFormatting.GRAY),
 					t(Math.round(BuildingType.guildDiscount(b.tier) * 100) + "% off the usual price.", ChatFormatting.GOLD),
 					t(GuildLink.bounties() ? "Take bounty contracts at the fletching table." : "With Fuck Illagers, a Bounty Station too.", ChatFormatting.GRAY))), null);
+			case DISTILLERY -> button(32, icon(Items.CAULDRON, t("The still-house", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("Every morning: " + (int) (b.alive() * Production.BOTTLES_PER_WORKER * Production.tierBonus(b.tier)) + " bottles at most,",
+						ChatFormatting.GRAY), t(Production.CROPS_PER_BOTTLE + " wheat, sugar cane or apples a bottle, from the storehouses.", ChatFormatting.GRAY),
+					t("Apples make brandy, cane rum, wheat whisky,", ChatFormatting.GRAY), t("or genever while there are sweet berries.", ChatFormatting.GRAY),
+					t(b.tier >= 3 ? "The cellar ages one bottle in four." : "At tier 3 the cellar ages some of them.", ChatFormatting.DARK_GRAY),
+					t(BuildingType.stills(b.tier) + " stills, " + BuildingType.tuns(b.tier) + " Mash Tuns, " + BuildingType.casks(b.tier)
+						+ " Oak Casks: help yourself.", ChatFormatting.DARK_GRAY))), null);
+			case TAVERN -> button(32, icon(Items.HONEY_BOTTLE, t("The bar", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("Pours up to " + Street.pours(b.tier) + " of your sealed bottles a night,", ChatFormatting.GRAY),
+					t("for " + Math.round(Street.POUR_MARKUP * 100) + "% of what the Market pays. Dearest first.", ChatFormatting.GRAY),
+					t("Fill the storehouses from a distillery.", ChatFormatting.GRAY),
+					t("Right-click a barkeep to buy a bottle: guests pay double,", ChatFormatting.DARK_GRAY),
+					t("and a quarter of it is yours.", ChatFormatting.DARK_GRAY))), null);
 			case LIBRARY -> button(32, icon(Items.ENCHANTING_TABLE, t("Reading room", ChatFormatting.AQUA, ChatFormatting.BOLD),
 				List.of(t("The enchanting table has all its bookshelves:", ChatFormatting.GRAY), t("level 30 enchantments.", ChatFormatting.GRAY))), null);
 			default -> {
@@ -559,6 +577,10 @@ final class TownHallMenu extends ChestMenu {
 			case GUILDHOUSE -> "Hiring at its Mercenary Station costs " + Math.round(BuildingType.guildDiscount(next) * 100) + "% less"
 				+ (next == 3 ? ", and a trophy over the hearth." : ", and a stocked armoury.");
 			case SCAFFOLD -> "Bigger crowds: public executions pay " + factor(next) + " the bounty.";
+			case DISTILLERY -> b.type.workers(next) + " distillers, another still and more casks"
+				+ (next == 3 ? ", and an aging cellar that ages one bottle in four." : ".");
+			case TAVERN -> b.type.workers(next) + " barkeeps: pours " + Street.pours(next) + " bottles a night"
+				+ (next == 3 ? ", and guest rooms upstairs." : ", and more tables.");
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}

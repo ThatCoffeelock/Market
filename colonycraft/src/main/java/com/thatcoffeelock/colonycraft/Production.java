@@ -1,7 +1,9 @@
 package com.thatcoffeelock.colonycraft;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import net.minecraft.world.item.Item;
@@ -58,6 +60,50 @@ final class Production {
 
 	static double tierBonus(int tier) {
 		return tier <= 1 ? 1.0 : tier == 2 ? 1.5 : 2.0;
+	}
+
+	/** Bottles a distiller gets through in a day (before the tier bonus), and the crops that go into each. */
+	static final int BOTTLES_PER_WORKER = 3;
+	static final int CROPS_PER_BOTTLE = 8;
+
+	/** What a distillery made today: bottles by Proost name ("brandy", "brandy:aged"...), and what it used up. */
+	record Distilled(Map<String, Integer> bottles, int wheat, int cane, int apples, int berries) {
+		int total() {
+			int n = 0;
+			for (int count : bottles.values()) {
+				n += count;
+			}
+			return n;
+		}
+	}
+
+	/**
+	 * A distillery's day (with the Proost mod), from what's in the storehouses: apples into brandy first, then sugar
+	 * cane into rum, wheat into genever while there are sweet berries for it (one a bottle), then wheat into whisky.
+	 * {@link #CROPS_PER_BOTTLE} crops a bottle. From tier 3 the aging cellar ages one bottle in four.
+	 */
+	static Distilled distill(int tier, int workers, long wheat, long cane, long apples, long berries) {
+		Map<String, Integer> bottles = new LinkedHashMap<>();
+		int budget = (int) (workers * BOTTLES_PER_WORKER * tierBonus(tier));
+		int brandy = (int) Math.min(budget, apples / CROPS_PER_BOTTLE);
+		budget -= brandy;
+		int rum = (int) Math.min(budget, cane / CROPS_PER_BOTTLE);
+		budget -= rum;
+		int genever = (int) Math.min(budget, Math.min(wheat / CROPS_PER_BOTTLE, berries));
+		budget -= genever;
+		int whisky = (int) Math.min(budget, (wheat - (long) genever * CROPS_PER_BOTTLE) / CROPS_PER_BOTTLE);
+		String[] names = {"brandy", "rum", "genever", "whisky"};
+		int[] counts = {brandy, rum, genever, whisky};
+		for (int i = 0; i < names.length; i++) {
+			int aged = tier >= 3 ? counts[i] / 4 : 0;
+			if (counts[i] - aged > 0) {
+				bottles.put(names[i], counts[i] - aged);
+			}
+			if (aged > 0) {
+				bottles.put(names[i] + ":aged", aged);
+			}
+		}
+		return new Distilled(bottles, (genever + whisky) * CROPS_PER_BOTTLE, rum * CROPS_PER_BOTTLE, brandy * CROPS_PER_BOTTLE, genever);
 	}
 
 	/** Tobacco leaves a planter brings in per day. */

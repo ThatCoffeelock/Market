@@ -23,16 +23,32 @@ final class Street {
 
 	// ---------------------------------------------------------------- daily income
 
-	/** What the trading post, bank and museum bring in per day, in ₥, by tier. More than their staff cost. */
+	/**
+	 * What the trading post, bank, museum and tavern bring in per day, in ₥, by tier. More than their staff cost. A
+	 * tavern earns most of its money pouring the colony's bottles, though (see {@link #pours}).
+	 */
 	static double income(BuildingType type, int tier) {
 		int t = Math.max(1, Math.min(BuildingType.MAX_TIER, tier)) - 1;
 		return switch (type) {
 			case TRADING_POST -> new double[] {25, 55, 100}[t];
 			case BANK -> new double[] {25, 50, 90}[t];
 			case MUSEUM -> new double[] {20, 40, 75}[t];
+			case TAVERN -> new double[] {8, 15, 25}[t];
 			default -> 0;
 		};
 	}
+
+	/** How many of the colony's sealed Proost bottles a tavern pours per day, by tier: 8, 16, then 32. */
+	static int pours(int tier) {
+		return 8 << (Math.max(1, Math.min(BuildingType.MAX_TIER, tier)) - 1);
+	}
+
+	/** A poured bottle earns this many times what the Market would pay for it. */
+	static final double POUR_MARKUP = 1.5;
+
+	/** The barkeep sells a bottle for this many times its Market price; a quarter of that goes to the colony's owner. */
+	static final double BAR_MARKUP = 2.0;
+	static final double OWNER_CUT = 0.25;
 
 	/** Extra per relic on show in a museum, per day, in ₥. */
 	static final double PER_RELIC = 10;

@@ -53,7 +53,9 @@ public enum BuildingType {
 	RANCH("ranch", "Ranch", Items.LEATHER, 1000, 6, 6, 9, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::ranch),
 	APIARY("apiary", "Apiary", Items.HONEYCOMB, 900, 5, 5, 8, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 3, false, BuildingType::apiary),
 	FUEL_DEPOT("fuel_depot", "Fuel Depot", Items.BLAST_FURNACE, 2000, 6, 5, 10, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 3, false, BuildingType::fuelDepot),
-	GUILDHOUSE("guildhouse", "Guildhouse", Items.TARGET, 2000, 6, 6, 13, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 4, false, BuildingType::guildhouse);
+	GUILDHOUSE("guildhouse", "Guildhouse", Items.TARGET, 2000, 6, 6, 13, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 4, false, BuildingType::guildhouse),
+	DISTILLERY("distillery", "Distillery", Items.CAULDRON, 1500, 6, 6, 13, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::distillery),
+	TAVERN("tavern", "Tavern", Items.HONEY_BOTTLE, 1800, 6, 7, 15, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 4, false, BuildingType::tavern);
 
 	public static final int MAX_TIER = 3;
 
@@ -104,7 +106,7 @@ public enum BuildingType {
 	 */
 	public boolean rebuildsOnUpgrade() {
 		return fortification || this == CELLBLOCK || this == STOREHOUSE || this == RESIDENCE || this == TRAIN_STATION
-			|| this == MUSEUM || this == FUEL_DEPOT || this == GUILDHOUSE;
+			|| this == MUSEUM || this == FUEL_DEPOT || this == GUILDHOUSE || this == DISTILLERY || this == TAVERN;
 	}
 
 	/** The highest tier this building goes to. The library is as good as it gets from the start. */
@@ -142,7 +144,8 @@ public enum BuildingType {
 	/**
 	 * Can it be bought here? The tobacco farm needs the Havana mod for its tobacco, the museum needs Riches for its
 	 * display cases, the fuel depot needs Fossil Fool for its tanks and refinery, and the guildhouse needs Sellswords
-	 * for its Mercenary Station (its Bounty Station comes with Fuck Illagers, if that's here too).
+	 * for its Mercenary Station (its Bounty Station comes with Fuck Illagers, if that's here too). The distillery and
+	 * the tavern need Proost for their spirits.
 	 */
 	public boolean available() {
 		return switch (this) {
@@ -150,6 +153,7 @@ public enum BuildingType {
 			case MUSEUM -> RichesLink.present();
 			case FUEL_DEPOT -> FossilLink.present();
 			case GUILDHOUSE -> GuildLink.sellswords();
+			case DISTILLERY, TAVERN -> ProostLink.present();
 			default -> true;
 		};
 	}
@@ -160,6 +164,7 @@ public enum BuildingType {
 			case MUSEUM -> "Riches";
 			case FUEL_DEPOT -> "Fossil Fool";
 			case GUILDHOUSE -> "Sellswords";
+			case DISTILLERY, TAVERN -> "Proost";
 			default -> "Havana";
 		};
 	}
@@ -182,6 +187,8 @@ public enum BuildingType {
 			case RANCH -> "rancher";
 			case APIARY -> "beekeeper";
 			case GUILDHOUSE -> "guildmaster";
+			case DISTILLERY -> "distiller";
+			case TAVERN -> "barkeep";
 			default -> "worker";
 		};
 		return n == 1 ? noun : noun + "s";
@@ -237,6 +244,8 @@ public enum BuildingType {
 			case RANCH -> new BlockPos(0, 1, -1);
 			case APIARY, FUEL_DEPOT -> new BlockPos(0, 1, -2);
 			case GUILDHOUSE -> new BlockPos(0, 1, -2);
+			case DISTILLERY -> new BlockPos(0, 1, -1);
+			case TAVERN -> TAVERN_BAR[0];
 			default -> new BlockPos(0, 1, 0);
 		};
 	}
@@ -307,6 +316,7 @@ public enum BuildingType {
 			case WATCHTOWER -> post(index);
 			case TRADING_POST -> TRADER_SPOTS[Math.max(0, Math.min(TRADER_SPOTS.length - 1, index))];
 			case BANK -> CLERKS[Math.max(0, Math.min(CLERKS.length - 1, index))];
+			case TAVERN -> TAVERN_BAR[Math.max(0, Math.min(TAVERN_BAR.length - 1, index))];
 			default -> home();
 		};
 	}
@@ -2342,6 +2352,167 @@ public enum BuildingType {
 			p.set(-1, 4, 4, "minecraft:gilded_blackstone");
 			p.set(1, 4, 4, "minecraft:gilded_blackstone");
 			p.fill(-1, 1, -3, 1, 1, -3, "minecraft:orange_carpet");
+		}
+	}
+
+	/** The distillery's stills (a water cauldron over a lit campfire, a Proost still), in the order the tiers add them. */
+	public static final BlockPos[] STILLS = {new BlockPos(-3, 2, 4), new BlockPos(3, 2, 4), new BlockPos(0, 2, 4)};
+	/** Its Mash Tuns (barrels along the left wall) and Oak Casks (along the right, two high in the tier 3 aging cellar). */
+	public static final BlockPos[] TUNS = {new BlockPos(-4, 1, -2), new BlockPos(-4, 1, -1), new BlockPos(-4, 1, 0), new BlockPos(-4, 1, 1)};
+	public static final BlockPos[] CASKS = {new BlockPos(4, 1, -2), new BlockPos(4, 1, -1), new BlockPos(4, 1, 0), new BlockPos(4, 1, 1),
+		new BlockPos(4, 2, -2), new BlockPos(4, 2, -1), new BlockPos(4, 2, 0), new BlockPos(4, 2, 1)};
+
+	/** How many stills, tuns and casks a distillery of this tier has: 1/2/3 stills, 2/3/4 tuns, 2/4/8 casks. */
+	public static int stills(int tier) {
+		return Math.max(1, Math.min(MAX_TIER, tier));
+	}
+
+	public static int tuns(int tier) {
+		return 1 + Math.max(1, Math.min(MAX_TIER, tier));
+	}
+
+	public static int casks(int tier) {
+		return tier <= 1 ? 2 : tier == 2 ? 4 : 8;
+	}
+
+	/**
+	 * A distillery: a brick still-house under a slate roof with a smoking chimney. Along the back wall, copper-flanked
+	 * stills (water cauldrons over lit campfires: any player can use them as Proost stills), Mash Tuns down the left
+	 * wall and Oak Casks down the right. Each tier adds a still, more tuns and more casks; tier 3's aging cellar
+	 * stacks the casks two high.
+	 */
+	private static void distillery(Plan p) {
+		p.fillMix(-6, 0, -6, 6, 0, -5, PAVING, "minecraft:cobblestone");
+		p.fill(-5, 0, -4, 5, 0, 5, PLINTH);
+		p.fillMix(-4, 0, -3, 4, 0, 4, "minecraft:polished_andesite", "minecraft:andesite");
+		for (int y = 1; y <= 5; y++) {
+			p.rect(-5, -4, 5, 5, y, y == 1 ? PLINTH : y == 5 ? TRIM : BRICK);
+		}
+		for (int[] c : new int[][] {{-5, -4}, {5, -4}, {-5, 5}, {5, 5}}) {
+			p.corner(c[0], c[1], 2, 4);
+		}
+		p.door(-4, "spruce");
+		p.set(0, 3, -4, TRIM);
+		p.windowX(-4, -4, -3, 2, 3);
+		p.windowX(-4, 3, 4, 2, 3);
+		for (int x : new int[] {-5, 5}) {
+			p.windowZ(x, 2, 3, 2, 3);
+		}
+		p.roofAlongZ(-5, -4, 5, 5, 6, SLATE, SLATE_SLAB, BRICK);
+		// a barrel over the door for a sign, lanterns either side of it, and the chimney smoking away at the back
+		p.set(0, 7, -4, "minecraft:barrel[facing=north]");
+		for (int x : new int[] {-4, 4}) {
+			p.set(x, 1, -5, "minecraft:spruce_fence");
+			p.set(x, 2, -5, "minecraft:lantern[hanging=false]");
+		}
+		p.fill(3, 6, 5, 3, 12, 5, BRICK);
+		p.set(3, 13, 5, "minecraft:campfire[lit=true,signal_fire=false,facing=north]");
+		// the stills: a cauldron of water over a campfire, waxed copper either side
+		for (int i = 0; i < stills(p.tier); i++) {
+			BlockPos s = STILLS[i];
+			p.set(s.getX(), 1, s.getZ(), "minecraft:campfire[lit=true,signal_fire=false,facing=north]");
+			p.set(s.getX(), 2, s.getZ(), "minecraft:water_cauldron[level=3]");
+			p.set(s.getX() - 1, 1, s.getZ(), "minecraft:waxed_copper_block");
+			p.set(s.getX() + 1, 1, s.getZ(), "minecraft:waxed_copper_block");
+		}
+		for (int i = 0; i < tuns(p.tier); i++) {
+			BlockPos t = TUNS[i];
+			p.set(t.getX(), t.getY(), t.getZ(), "minecraft:barrel[facing=east]");
+		}
+		for (int i = 0; i < casks(p.tier); i++) {
+			BlockPos c = CASKS[i];
+			p.set(c.getX(), c.getY(), c.getZ(), "minecraft:barrel[facing=west]");
+		}
+		// sacks of grain by the door, lamps over the floor
+		p.set(-3, 1, -3, "minecraft:hay_block");
+		p.set(3, 1, -3, "minecraft:hay_block");
+		for (int z : new int[] {-1, 2}) {
+			p.set(0, 5, z, "minecraft:lantern[hanging=true]");
+		}
+	}
+
+	/** Where the tavern's barkeeps stand, behind the bar. */
+	public static final BlockPos[] TAVERN_BAR = {new BlockPos(0, 1, 4), new BlockPos(-2, 1, 4), new BlockPos(2, 1, 4)};
+
+	/**
+	 * A tavern: a two-storey half-timbered inn under a steep dark oak roof with a yellow banner over the door. Downstairs
+	 * a bar counter with the barkeeps behind it and a shelf of barrels against the back wall, tables with stools, a
+	 * hearth in the left wall and stairs up the right. Tier 2 puts out more tables and stocks the shelf; tier 3 turns
+	 * the upstairs into guest rooms (sleep in a bed to set your spawn there).
+	 */
+	private static void tavern(Plan p) {
+		String post = "minecraft:stripped_dark_oak_log[axis=y]";
+		String plaster = "minecraft:white_terracotta";
+		String band = "minecraft:dark_oak_planks";
+		p.fillMix(-6, 0, -7, 6, 0, -6, PAVING, "minecraft:cobblestone");
+		p.fill(-5, 0, -5, 5, 0, 6, PLINTH);
+		p.fillMix(-4, 0, -4, 4, 0, 5, "minecraft:spruce_planks", "minecraft:stripped_spruce_wood");
+		// two storeys of half-timbering on a stone footing, a dark oak band at each floor
+		for (int y = 1; y <= 8; y++) {
+			p.rect(-5, -5, 5, 6, y, y == 1 ? PLINTH : y == 5 || y == 8 ? band : plaster);
+		}
+		for (int[] c : new int[][] {{-5, -5}, {5, -5}, {-5, 6}, {5, 6}, {-2, -5}, {2, -5}, {-5, 0}, {5, 0}, {-2, 6}, {2, 6}}) {
+			p.fill(c[0], 2, c[1], c[0], 4, c[1], post);
+			p.fill(c[0], 6, c[1], c[0], 7, c[1], post);
+		}
+		p.fill(-4, 5, -4, 4, 5, 5, "minecraft:spruce_planks");
+		p.door(-5, "dark_oak");
+		p.windowX(-5, -4, -3, 2, 3);
+		p.windowX(-5, 3, 4, 2, 3);
+		p.windowX(-5, -4, -3, 6, 7);
+		p.windowX(-5, 3, 4, 6, 7);
+		for (int x : new int[] {-5, 5}) {
+			p.windowZ(x, 2, 3, 2, 3);
+			p.windowZ(x, 2, 3, 6, 7);
+		}
+		p.roofAlongZ(-5, -5, 5, 6, 9, "minecraft:dark_oak_stairs", band, plaster);
+		p.set(0, 4, -6, "minecraft:yellow_wall_banner[facing=north]");
+		for (int x : new int[] {-3, 3}) {
+			p.set(x, 1, -6, "minecraft:dark_oak_fence");
+			p.set(x, 2, -6, "minecraft:lantern[hanging=false]");
+		}
+		// the bar: a counter across the room, the barkeeps behind it, barrels on the back wall
+		p.fill(-3, 1, 2, 3, 1, 2, "minecraft:stripped_dark_oak_log[axis=x]");
+		p.fill(-4, 1, 5, 4, 1, 5, "minecraft:barrel[facing=north]");
+		p.set(0, 2, 5, "minecraft:brewing_stand");
+		// the hearth in the left wall
+		p.fill(-5, 1, -1, -5, 4, 1, BRICK);
+		p.set(-4, 1, 0, "minecraft:campfire[lit=true,signal_fire=false,facing=east]");
+		p.set(-4, 1, -1, "minecraft:brick_wall");
+		p.set(-4, 1, 1, "minecraft:brick_wall");
+		// tables with stools
+		int[][] tables = p.tier >= 2 ? new int[][] {{-2, -2}, {2, -2}, {-2, 0}, {2, 0}} : new int[][] {{-2, -2}, {2, -2}};
+		for (int[] t : tables) {
+			p.set(t[0], 1, t[1], "minecraft:spruce_fence");
+			p.set(t[0], 2, t[1], "minecraft:spruce_pressure_plate");
+			p.stairs(t[0] - 1, 1, t[1], "minecraft:spruce_stairs", "west", false);
+			p.stairs(t[0] + 1, 1, t[1], "minecraft:spruce_stairs", "east", false);
+		}
+		// stairs up the right wall, with a rail along the top
+		for (int i = 0; i < 4; i++) {
+			p.stairs(4, 1 + i, -4 + i, "minecraft:spruce_stairs", "south", false);
+			p.set(4, 5, -4 + i, "minecraft:air");
+		}
+		p.fill(3, 6, -4, 3, 6, -1, "minecraft:spruce_fence");
+		for (int z : new int[] {-3, 0}) {
+			p.set(0, 4, z, "minecraft:lantern[hanging=true]");
+		}
+		if (p.tier >= 2) {
+			for (int x : new int[] {-4, -3, 3, 4}) {
+				p.set(x, 2, 5, "minecraft:barrel[facing=north]");
+			}
+			p.set(-4, 6, 5, "minecraft:barrel[facing=up]");
+			p.set(-3, 6, 5, "minecraft:barrel[facing=up]");
+		}
+		if (p.tier >= 3) {
+			// guest rooms upstairs: three beds against the back wall, a rug down the landing
+			for (int x : new int[] {-3, -1, 1}) {
+				p.set(x, 6, 4, "minecraft:red_bed[facing=south,part=foot,occupied=false]");
+				p.set(x, 6, 5, "minecraft:red_bed[facing=south,part=head,occupied=false]");
+			}
+			p.set(-4, 6, 5, "minecraft:air");
+			p.set(-4, 6, 4, "minecraft:lantern[hanging=false]");
+			p.fill(-3, 6, -2, 1, 6, 1, "minecraft:red_carpet");
 		}
 	}
 
