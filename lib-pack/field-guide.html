@@ -129,13 +129,13 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Eighteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, level 21 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Nineteen mods in one jar. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, run a shady trading company, level 22 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
       <ol>
         <li>Install Fabric Loader for 26.3 on the server.</li>
-        <li>Put <b>Fabric API</b> and <code>lib-pack-1.22.0+mc26.3.jar</code> in <code>mods/</code>.</li>
+        <li>Put <b>Fabric API</b> and <code>lib-pack-1.23.0+mc26.3.jar</code> in <code>mods/</code>.</li>
         <li>Remove the separate mod jars if you had them. Worlds, balances and colonies carry over.</li>
       </ol>
       <p class="note">Recipes unlock in the normal recipe book. Ops get any item with each mod's <code>give</code> command.</p>
@@ -329,7 +329,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.22.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost</span>
+    <span>LIB Pack 1.23.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -459,6 +459,16 @@ const MODS = [
           "4 swigs a bottle. Genever: Strength. Whisky: Resistance. Rum: Water Breathing. Brandy: Haste",
           "Tipsy, then drunk (the world spins), then you pass out. /proost drunk"],
     cmds: ["/proost", "/proost drunk", ["/proost give", true]] },
+  { name: "De Compagnie", id: "compagnie", colour: "#c27a1b", tag: "Run a shady VOC trading company from a Company Desk: agents, jobs, telegrams, moneylending.",
+    recipes: [{ name: "Company Desk", shapeless: ["cartography_table", "gold_ingot", "book"], out: ["Desk", "#c27a1b"] }],
+    how: ["Hire agents at the Hiring Board: Force, Coin, Guile, a trait or two, a daily wage",
+          "32 jobs: trade, raid, explore, shady. Pick De Kapitein, De Koopman or De Spion, a stake and an agent",
+          "Jobs come home at dawn: triumph, success, partial, failure or disaster. Spoils go to the Strongbox",
+          "Exploring jobs bring back a Company Chart to a real wreck, treasure, village or castle",
+          "Telegrams from the road: pay, press on or gamble. /compagnie telegrams",
+          "The Ledger: lend Marks or gold; send a collector after defaulters",
+          "Charter → Trading House → Compagnie → VOC. With Skills: Enterprise"],
+    cmds: ["/compagnie", "/compagnie news", "/compagnie telegrams", ["/compagnie give desk", true], ["/compagnie dawn", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [
       { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },

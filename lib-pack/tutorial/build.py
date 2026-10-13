@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.22.0"
+VERSION = "1.23.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -156,6 +156,19 @@ MODS = [
         "Sells at the Market: ₥5–7 a bottle, ₥14–18 aged. With Skills it's <b>Connoisseur</b>, like Havana.",
         "Colonycraft: a <b>Distillery</b> bottles your colony's grain every morning, a <b>Tavern</b> pours it for 150% and its barkeep sells you a bottle."],
   cmds="/proost · /proost drunk"),
+ dict(name="De Compagnie", colour="#c27a1b", tag="Run a shady VOC trading company: agents, jobs, telegrams and moneylending, from a Company Desk.",
+  recipes=[shapeless("Company Desk", ["carto","gold","book"], "Desk")],
+  steps=["Place the <b>Company Desk</b> and right-click it. Hire an <b>agent</b> at the Hiring Board: Force, Coin and Guile, a trait or two, a daily wage.",
+         "Pick a job on the <b>Job Board</b>: trade, raid, explore or something shady. 32 of them, bigger ones as you grow.",
+         "Choose an advisor: <b>De Kapitein</b> (force), <b>De Koopman</b> (coin) or <b>De Spion</b> (guile). Pick a stake (lean, standard, lavish) and an agent, and send them.",
+         "Every dawn (a Minecraft day), jobs come home: <b>triumph, success, partial, failure or disaster</b>. Marks to your balance, spoils to the <b>Strongbox</b>.",
+         "Answer <b>telegrams</b> from the road: pay up, press on, or gamble.",
+         "Lend money on <b>the Ledger</b>. Defaulters get a collector, or get sold to Leonard the Usurer."],
+  tips=["Exploring jobs bring back a <b>Company Chart</b> to a real structure nearby: a wreck, a buried treasure, a village, a Hamlets castle...",
+        "Agents get wounded, captured (pay the ransom or plan a rescue) or killed. Cowards run; Drunkards are cheap.",
+        "Grow from a Charter to the <b>VOC</b>: more job slots, more agents, bigger loans. With Skills, it levels <b>Enterprise</b>.",
+        "Telegrams can be answered from anywhere: <code>/compagnie telegrams</code>."],
+  cmds="/compagnie · /compagnie news · /compagnie telegrams"),
  dict(name="Warehouse", colour="#c07a2c", tag="Big, sorted storage: tens of thousands of items, fed by hand, hoppers, trains and ships.",
   recipes=[shaped("Warehouse Core", ["IBI","CTC","ICI"], dict(I="iron",B="book",C="chest",T="carto"), "Core"),
            shapeless("Storage Rack", ["barrel","chest","iron","iron"], "Rack"),
@@ -181,7 +194,7 @@ MODS = [
         "Blocks you placed yourself give no XP. No cheesing.",
         "Changed your mind? <b>Forget perks</b> on a skill page (costs 5 XP levels).",
         "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices.",
-        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana and Proost), <b>Piloteering</b> (Blimey), <b>Leadership</b> (Sellswords) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
+        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana and Proost), <b>Piloteering</b> (Blimey), <b>Leadership</b> (Sellswords), <b>Enterprise</b> (De Compagnie) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
   cmds="/skills · /skills top"),
  dict(name="Hamlets & Horrors", colour="#4f6b3a", tag="Random cottages, castles and dungeons. Some lived in by villagers, some overrun by monsters.",
   recipes=[], getit="Nothing to craft: they generate in <b>new, unexplored terrain</b>.",
@@ -371,7 +384,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Eighteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Nineteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>
