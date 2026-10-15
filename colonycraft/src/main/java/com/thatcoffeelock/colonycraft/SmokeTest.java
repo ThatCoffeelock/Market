@@ -612,6 +612,21 @@ final class SmokeTest {
 		// linking and roles
 		check(Network.setRole(outpost, Network.Role.BREADBASKET) != null, "an unlinked colony takes no role");
 		check(Network.link(outpost) == null && Network.linked(outpost), "the outpost joins the network");
+
+		// a rival's army (De Hooghe Heeren, through the ObjectShare): a siege
+		Map<String, Object> heer = Map.of("owner", OWNER, "by", "Huis Smoke", "days", 4);
+		check("Buitenpost".equals(NetworkApi.call("siege", heer)), "a rival besieges the outpost, not the capital");
+		check(Network.cutOff(outpost) && Network.gather(outpost, BuildingType.FARM) == 0 && Network.route(capital, outpost) != null,
+			"besieged: no harvest, no convoys");
+		check(NetworkApi.call("besieged", heer) instanceof List<?> l && l.size() == 1, "the rival knows what it's besieging");
+		check(Integer.valueOf(1).equals(NetworkApi.call("lift", heer)) && !Network.cutOff(outpost) && Network.route(capital, outpost) == null,
+			"a won battle lifts the siege");
+		Network.of(OWNER).roles.put(outpost.id, Network.Role.FORTRESS.name());
+		Network.besiege(outpost, "Huis Smoke", 4);
+		check(!Network.cutOff(outpost) && Network.siegeFactor(outpost) == 0.75 && Network.siege(outpost).until == Network.day + 2,
+			"a Fortress holds: 75% work, convoys through, the siege half as long");
+		Network.lift(OWNER, null);
+		Network.of(OWNER).roles.remove(outpost.id);
 		check(Network.role(outpost) == Network.Role.NONE && Network.gather(outpost, BuildingType.FARM) == 1.0, "roles are optional: none to start with");
 		check(Network.setRole(outpost, Network.Role.BREADBASKET) == null && Network.gather(outpost, BuildingType.FARM) == 1.25
 			&& Network.gather(outpost, BuildingType.MINE) == 0.85, "a Breadbasket farms better, digs worse");
@@ -694,6 +709,15 @@ final class SmokeTest {
 				"other mods' books add up: -₥30 a day, ₥300 held");
 			share.remove("hoogheheeren:books");
 		}
+
+		// raiders on the road
+		int onRoad = Network.of(OWNER).convoys.size();
+		long carried = onRoad == 0 ? 0 : Network.of(OWNER).convoys.get(0).items;
+		Object raided = NetworkApi.call("raid_convoy", Map.of("owner", OWNER, "by", "Huis Smoke"));
+		check(onRoad == 0 ? raided == null : raided instanceof Map<?, ?> m && Long.valueOf(carried).equals(m.get("items"))
+			&& Network.of(OWNER).convoys.size() == onRoad - 1, "a rival's riders carry off a convoy on the road (" + onRoad + " under way)");
+		Network.of(OWNER).convoys.clear();
+		check(NetworkApi.call("raid_convoy", Map.of("owner", OWNER, "by", "Huis Smoke")) == null, "and with nothing on the road, there's nothing to take");
 
 		// the Governor's Desk: the table without the palace
 		check(GovernorDesk.isItem(GovernorDesk.item()) && !GovernorDesk.isItem(new ItemStack(Items.LECTERN)), "a Governor's Desk is one, a plain lectern isn't");

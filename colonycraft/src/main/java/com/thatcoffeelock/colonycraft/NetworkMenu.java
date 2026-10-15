@@ -234,6 +234,11 @@ final class NetworkMenu extends ChestMenu {
 		if (c.striking) {
 			lore.add(t("ON STRIKE: wages unpaid", ChatFormatting.RED, ChatFormatting.BOLD));
 		}
+		Network.Siege siege = Network.siege(c);
+		if (siege != null) {
+			lore.add(t("⚔ BESIEGED by " + siege.by + " (to day " + siege.until + ")", ChatFormatting.RED, ChatFormatting.BOLD));
+			lore.add(t(Network.cutOff(c) ? "No work, no convoys in or out." : "The Fortress holds: 75% work, convoys get through.", ChatFormatting.RED));
+		}
 		long items = 0;
 		List<Network.Stock> stock = Network.stock(c);
 		for (Network.Stock s : stock) {
@@ -266,7 +271,7 @@ final class NetworkMenu extends ChestMenu {
 			lore.add(t("Click to manage it.", ChatFormatting.YELLOW));
 			ItemStack stack = icon(home ? Items.FILLED_MAP : Network.linked(c) ? Items.BELL : Items.MAP, t(c.name, home ? ChatFormatting.GOLD
 				: ChatFormatting.WHITE, ChatFormatting.BOLD), lore);
-			boolean trouble = c.striking;
+			boolean trouble = c.striking || Network.siege(c) != null;
 			for (Colony.Building b : c.buildings) {
 				trouble |= b.dead() > 0;
 			}
@@ -419,7 +424,7 @@ final class NetworkMenu extends ChestMenu {
 		button(4, icon(Items.BELL, t(c.name + ": choose a role", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
 			t("Optional: a role makes a colony better at one", ChatFormatting.GRAY), t("thing and a little worse at the rest.", ChatFormatting.GRAY),
 			t("Only counts while it's in the network.", ChatFormatting.DARK_GRAY))), null);
-		int[] slots = {20, 21, 22, 23, 24, 31};
+		int[] slots = {20, 21, 22, 23, 24, 30, 32};
 		Network.Role[] roles = Network.Role.values();
 		for (int i = 0; i < roles.length && i < slots.length; i++) {
 			Network.Role r = roles[i];

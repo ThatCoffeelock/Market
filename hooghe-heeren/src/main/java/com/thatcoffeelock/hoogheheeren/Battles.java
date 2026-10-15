@@ -93,6 +93,15 @@ final class Battles {
 		b.day = when;
 		b.x = hx + (int) Math.round(dx / dist * along);
 		b.z = hz + (int) Math.round(dz / dist * along);
+		int[] siege = ColonyLink.siegeAt(c, r);
+		if (siege != null) {
+			// they're camped outside one of your colonies: the battle is at its walls, on their side
+			double sx = r.seatX - siege[0];
+			double sz = r.seatZ - siege[2];
+			double sd = Math.max(1, Math.sqrt(sx * sx + sz * sz));
+			b.x = siege[0] + (int) Math.round(sx / sd * 40);
+			b.z = siege[2] + (int) Math.round(sz / sd * 40);
+		}
 		b.ours = ours;
 		c.battle = b;
 		Courts.tell(c, "⚔ " + (ours ? "You give battle! Your regiments march out against " + r.House() + "." : Ai.capital(r.name()) + "'s army marches on you!")
@@ -281,6 +290,9 @@ final class Battles {
 			Bank.credit(c.uuid(), c.ownerName, take);
 			c.fear(5);
 			line.append("⚔ Victory over ").append(r.House()).append("! ");
+			if (ColonyLink.lift(c, r) > 0) {
+				line.append("The siege is lifted. ");
+			}
 			if (take > 0) {
 				line.append("Their baggage train held ").append(Bank.format(take)).append(". ");
 			}

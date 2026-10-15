@@ -123,8 +123,13 @@ A linked colony can take on a **role**, if you want it to. It's optional, per co
 | **Manufactory** | Workshops get through 40% more | Everything gathered -10% |
 | **Market Town** | Auto-sales +10%, the town street earns 20% more | Everything gathered -10% |
 | **Port** | Fisheries +25%, the harbor's bonus doubled, convoys to and from it cost a quarter less | Everything else gathered -10% |
+| **Fortress** | Walls and a garrison: besieged, it still works at 75% and its convoys get through, and sieges lift in half the time | Everything gathered -10% |
 
 A Breadbasket feeding a Manufactory feeding a Market Town is the idea.
+
+### Sieges and raiders (with De Hooghe Heeren)
+
+Play the Heeren and your network is fair game. A house's **riders raid your convoys**: when your regiments don't beat them off, a convoy on the road is lost. **At war**, a house with regiments to spare **lays siege** to one of your linked colonies (the newest links first, the capital last): for six days nobody works its fields, mines or workshops, the town street is shut, and **no convoy gets in or out** (they wait outside the lines). The colony card glows and says who's camped outside. **Win a battle** against that house (they offer it at the colony's walls), or **make peace**, and the siege lifts. A **Fortress** shrugs it off: 75% work, convoys through, and half as long.
 
 ### Governors
 

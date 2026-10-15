@@ -43,7 +43,8 @@ final class Network {
 		MINING_TOWN("Mining Town", "Mines and lumber camps +25%. Farms, ranches, apiaries, fisheries and tobacco -15%.", "iron_pickaxe"),
 		MANUFACTORY("Manufactory", "Workshops get through 40% more. Everything gathered -10%.", "crafting_table"),
 		MARKET_TOWN("Market Town", "Auto-sales +10%, the town street earns 20% more. Everything gathered -10%.", "emerald"),
-		PORT("Port", "Fisheries +25%, the harbor's bonus doubled, convoys to and from it cost a quarter less. Everything else gathered -10%.", "oak_boat");
+		PORT("Port", "Fisheries +25%, the harbor's bonus doubled, convoys to and from it cost a quarter less. Everything else gathered -10%.", "oak_boat"),
+		FORTRESS("Fortress", "Walls and a garrison: besieged, it still works at 75% and its convoys get through, and sieges lift in half the time. Everything gathered -10%.", "shield");
 
 		final String title;
 		final String text;
@@ -79,6 +80,12 @@ final class Network {
 		String order = "";
 	}
 
+	/** A rival's army camped outside a colony (De Hooghe Heeren): nothing gets in or out, nobody works the fields. */
+	static final class Siege {
+		String by = "";
+		long until;
+	}
+
 	/** "Every payday, send up to so many of this from here to there." */
 	static final class Order {
 		String id = "";
@@ -106,6 +113,8 @@ final class Network {
 		/** The desk you govern from (when there's no palace), and its chancery's tier (kept when the desk moves). */
 		String hqDesk = "";
 		int hqTier;
+		/** Colony id -> the siege it's under. */
+		Map<String, Siege> sieges = new HashMap<>();
 		/** Each colony's books since its last payday: {earned, wages, convoy fees, rehiring}. */
 		Map<String, long[]> books = new HashMap<>();
 		/** The owner's balance at the last payday, and how much it moved over the day before (from everything they do). */
@@ -402,19 +411,104 @@ final class Network {
 			|| type == BuildingType.TOBACCO_FARM;
 		boolean dig = type == BuildingType.MINE || type == BuildingType.LUMBER_CAMP;
 		if (!food && !dig) {
-			return 1.0;
+			return siegeFactor(c);
 		}
-		return switch (role) {
+		double r = switch (role) {
 			case NONE -> 1.0;
 			case BREADBASKET -> food ? 1.25 : 0.85;
 			case MINING_TOWN -> dig ? 1.25 : 0.85;
 			case MANUFACTORY, MARKET_TOWN -> 0.9;
 			case PORT -> type == BuildingType.FISHERY ? 1.25 : 0.9;
+			case FORTRESS -> 0.9;
 		};
+		return r * siegeFactor(c);
 	}
 
 	static double workshop(Colony c) {
-		return role(c) == Role.MANUFACTORY ? 1.4 : 1.0;
+		return (role(c) == Role.MANUFACTORY ? 1.4 : 1.0) * siegeFactor(c);
+	}
+
+	// ---------------------------------------------------------------- sieges
+
+	/** The siege this colony is under, or null. */
+	static @Nullable Siege siege(Colony c) {
+		Net n = ALL.get(c.owner.toString());
+		Siege s = n == null ? null : n.sieges.get(c.id);
+		return s != null && s.until >= day ? s : null;
+	}
+
+	/** Is it cut off? A Fortress never quite is. */
+	static boolean cutOff(Colony c) {
+		return siege(c) != null && role(c) != Role.FORTRESS;
+	}
+
+	/** How much work gets done: everything, 75% in a besieged Fortress, nothing in any other besieged colony. */
+	static double siegeFactor(Colony c) {
+		return siege(c) == null ? 1.0 : role(c) == Role.FORTRESS ? 0.75 : 0.0;
+	}
+
+	/** An army camps outside the colony for so many days (half that at a Fortress). Returns why not, or null. */
+	static @Nullable String besiege(Colony c, String by, int days) {
+		if (siege(c) != null) {
+			return c.name + " is already under siege.";
+		}
+		Net n = of(c.owner);
+		Siege s = new Siege();
+		s.by = by;
+		s.until = day + Math.max(1, role(c) == Role.FORTRESS ? (days + 1) / 2 : days);
+		n.sieges.put(c.id, s);
+		n.report("⚔ " + by + "'s army has laid siege to " + c.name + "! " + (role(c) == Role.FORTRESS
+			? "Its walls hold: it works at 75% and its convoys get through."
+			: "Nobody works the fields, no convoy gets in or out.") + " Win a battle, make peace, or wait them out (day " + s.until + ").");
+		changed();
+		return null;
+	}
+
+	/** Lifts the sieges of this rival on the owner's colonies (all rivals' with by = null). Returns how many. */
+	static int lift(UUID owner, @Nullable String by) {
+		Net n = ALL.get(owner.toString());
+		if (n == null) {
+			return 0;
+		}
+		int lifted = 0;
+		for (Map.Entry<String, Siege> e : new ArrayList<>(n.sieges.entrySet())) {
+			if (by == null || e.getValue().by.equals(by)) {
+				n.sieges.remove(e.getKey());
+				Colony c = colony(e.getKey());
+				if (e.getValue().until >= day) {
+					lifted++;
+					n.report("🏳 The siege of " + (c == null ? "a colony" : c.name) + " is lifted: " + e.getValue().by + "'s army marches away.");
+				}
+			}
+		}
+		if (lifted > 0) {
+			changed();
+		}
+		return lifted;
+	}
+
+	/** Raiders fall on a convoy under way: it's lost. Returns the convoy taken, or null when nothing's on the road. */
+	static @Nullable Convoy raid(UUID owner, String by, java.util.Random random) {
+		Net n = ALL.get(owner.toString());
+		if (n == null || n.convoys.isEmpty()) {
+			return null;
+		}
+		Convoy cv = n.convoys.remove(random.nextInt(n.convoys.size()));
+		Colony from = colony(cv.from);
+		Colony to = colony(cv.to);
+		n.report("⚔ " + by + "'s riders fell on the convoy from " + (from == null ? "?" : from.name) + " to " + (to == null ? "?" : to.name)
+			+ " and carried off " + cv.items + " items.");
+		changed();
+		return cv;
+	}
+
+	/** What a convoy's cargo would fetch at the Market. */
+	static long value(Convoy cv) {
+		long v = 0;
+		for (ItemStack stack : cv.cargo) {
+			v += Math.max(0, Bank.sellValue(stack));
+		}
+		return v;
 	}
 
 	static double autosell(Colony c) {
@@ -422,7 +516,7 @@ final class Network {
 	}
 
 	static double street(Colony c) {
-		return role(c) == Role.MARKET_TOWN ? 1.2 : 1.0;
+		return (role(c) == Role.MARKET_TOWN ? 1.2 : 1.0) * siegeFactor(c);
 	}
 
 	static double harbor(Colony c) {
@@ -567,6 +661,12 @@ final class Network {
 		if (!from.dimension.equals(to.dimension)) {
 			return "No road runs between dimensions.";
 		}
+		for (Colony c : List.of(from, to)) {
+			Siege s = siege(c);
+			if (s != null && cutOff(c)) {
+				return c.name + " is under siege by " + s.by + ": nothing gets in or out.";
+			}
+		}
 		return null;
 	}
 
@@ -696,6 +796,9 @@ final class Network {
 			return;
 		}
 		List<Colony.Building> stores = Colonies.storesOf(c);
+		if (cutOff(c)) {
+			return; // the convoys wait outside the siege lines
+		}
 		for (Convoy cv : new ArrayList<>(net.convoys)) {
 			if (!cv.to.equals(c.id) || cv.arrives > day) {
 				continue;
@@ -948,6 +1051,9 @@ final class Network {
 		}
 		if (n.report == null) {
 			n.report = new ArrayList<>();
+		}
+		if (n.sieges == null) {
+			n.sieges = new HashMap<>();
 		}
 		if (n.desks == null) {
 			n.desks = new ArrayList<>();

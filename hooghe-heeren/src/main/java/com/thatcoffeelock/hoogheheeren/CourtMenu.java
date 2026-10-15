@@ -630,6 +630,9 @@ final class CourtMenu extends Ui {
 			war.add(t("War score " + Wars.signed(r.warScore) + " (100: they're crushed)", ChatFormatting.WHITE));
 			war.add(r.known(today) ? t("They have " + r.regiments + " regiments, " + Bank.format(r.treasury), ChatFormatting.GOLD)
 				: t("Word is they have " + army(r.regiments) + ".", ChatFormatting.GOLD));
+			for (String colony : ColonyLink.besieged(court, r)) {
+				war.add(t("⚔ Besieging " + colony + ": win a battle to lift it", ChatFormatting.RED));
+			}
 			war.add(t("Click for the dossier.", ChatFormatting.YELLOW));
 			button(38 + i++, glow(icon(Items.IRON_SWORD, t("At war with " + r.House(), ChatFormatting.RED, ChatFormatting.BOLD), war)), () -> {
 				click();

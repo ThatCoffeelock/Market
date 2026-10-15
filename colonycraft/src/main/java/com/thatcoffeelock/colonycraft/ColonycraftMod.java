@@ -42,6 +42,7 @@ public final class ColonycraftMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		NetworkApi.publish();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Colonies.load(server);
 			if (Boolean.getBoolean("colonycraft.smokeTest")) {

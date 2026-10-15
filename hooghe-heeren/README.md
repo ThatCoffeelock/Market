@@ -138,6 +138,7 @@ A botched errand may be **traced back to you**: the house remembers, you lose Ho
 - Every dawn the armies **skirmish**: both sides lose regiments, the score moves (by up to 20), and the day's winner plunders the loser's purse.
 - A house that's losing badly **sues for peace**: take reparations, tribute for ten days, or (at +80) **their ruin**: the house falls. A house that's winning offers you terms: pay reparations, or fight on. At ±100 the war ends on its own.
 - No regiments and no gold to raise them? That's how wars end, for them and for you.
+- **With Colonycraft:** an army with regiments to spare may **besiege one of your linked colonies**: no work, no convoys in or out. They offer battle at its walls; **win it** (or make peace) and the siege lifts. A **Fortress** colony holds out at 75%. And their raiders don't just take Marks: when your regiments don't stop them, they carry off a **convoy** on the road.
 
 ### Pitched battles
 
@@ -145,6 +146,7 @@ Now and then a house's army marches on you, or you **give battle** yourself from
 
 - **Be within 64 blocks at noon** and the battle is fought for real: your regiments in orange and theirs in their colours form up in two lines (a soldier for every half regiment, up to twelve a side) and charge. **Fight in it**. A boss bar shows who's still standing. What happens on the field decides the day: the score swings with who lost more, and the winner takes the loser's baggage train.
 - **Stay away** and the captains fight it without you: a bigger swing than a skirmish, either way.
+- **Bring your Sellswords.** Their men are fair game to your mercenaries, who pile in like at any other fight; and the rival's soldiers hit back at whoever hits them.
 
 ### Storming a seat
 

@@ -87,8 +87,9 @@ In the mercenary's menu, the middle rows are the promotion tree: the **Ranged pa
 - **Colonycraft**: the **Guildhouse** (₥2,000) has a Mercenary Station where hiring is cheaper (20/35/50% by tier), and a Bounty Station with Fuck Illagers.
 - **Fuck Illagers**: illagers your mercenaries kill drop fingers, and a contract boss they kill drops its skull. Their illager kills give you Bounty Hunting XP.
 - **Ahoy, Blimey, Mobile Home**: following mercenaries take a free passenger seat when you board, and get off when you do.
+- **De Hooghe Heeren**: bring them to a pitched battle or a seat's garrison and they fight the rival's soldiers like any monster (and those soldiers fight back). Your own regiments are friends.
 - **Burlap Sack**: they don't fit in a sack. They've read their contract.
-- **For mod makers**: `sellswords:api` in Fabric's ObjectShare (`station`, `remove`, `info`, `is_mercenary`), and the list `sellswords:board` for vehicles to seat mercenaries. Nobody needs anybody else to compile.
+- **For mod makers**: `sellswords:api` in Fabric's ObjectShare (`station`, `remove`, `info`, `is_mercenary`), the list `sellswords:board` for vehicles to seat mercenaries, and they treat anything `hoogheheeren:foe` (a `Predicate<Entity>`) marks as an enemy. Nobody needs anybody else to compile.
 
 ## Commands
 

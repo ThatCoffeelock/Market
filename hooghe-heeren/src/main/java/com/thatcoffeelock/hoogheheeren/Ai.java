@@ -366,6 +366,7 @@ final class Ai {
 					long take = Bank.seize(c.uuid(), Math.min(Math.max(0, Bank.balance(c.uuid())) * 3 / 100, Bank.cents(800 + 400 * rank)));
 					r.treasury += take;
 					c.chronicle(r.House() + "'s riders raided your convoys and carried off " + Bank.format(take) + ".");
+					r.treasury += ColonyLink.raidConvoy(c, r);
 				}
 				if (!r.war) {
 					r.provoked = day + 10;

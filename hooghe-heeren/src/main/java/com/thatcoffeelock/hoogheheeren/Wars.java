@@ -79,6 +79,7 @@ final class Wars {
 					Battles.schedule(c, r, day, false);
 				}
 			}
+			siege(c, r, day, random);
 			peaceTalks(c, r, day);
 		}
 		rivalWars(c, day, random);
@@ -114,6 +115,25 @@ final class Wars {
 				+ Bank.format(take) + "." : ".") + " War score " + signed(r.warScore) + ".");
 		}
 		Courts.changed();
+	}
+
+	/**
+	 * At war, an army with regiments to spare may lay siege to one of your colonies (Colonycraft's network): no work,
+	 * no convoys, until you beat them in the field or make peace. They'll offer battle at its walls.
+	 */
+	static void siege(Court c, Rival r, long day, Random random) {
+		if (r.regiments < 2 || random.nextInt(10) >= 2 || !ColonyLink.besieged(c, r).isEmpty()) {
+			return;
+		}
+		String where = ColonyLink.besiege(c, r, 6);
+		if (where == null) {
+			return;
+		}
+		Courts.tell(c, "⚔ " + Ai.capital(r.House()) + "'s army has laid siege to " + where + "! Nothing gets in or out. Beat them in the field to lift it.",
+			ChatFormatting.RED);
+		if (c.battle == null && c.regiments > 0) {
+			Battles.schedule(c, r, day, false);
+		}
 	}
 
 	/** Whoever's losing badly sues for peace; whoever's crushed has peace forced on them. */
@@ -155,6 +175,7 @@ final class Wars {
 		if (c.battle != null && c.battle.rival.equals(r.id)) {
 			Battles.cancel(c);
 		}
+		ColonyLink.lift(c, r);
 		switch (outcome) {
 			case WON -> {
 				c.warsWon++;
