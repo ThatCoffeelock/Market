@@ -1,8 +1,12 @@
 package com.thatcoffeelock.compagnie;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
@@ -17,6 +21,9 @@ import net.minecraft.server.level.ServerLevel;
  * <li>{@code "compagnie:house"}: (owner, tier) the best Company House the owner has, 0 for none: +1 job slot, +1 agent
  * per tier, 10% off wages per tier.</li>
  * <li>{@code "compagnie:is_desk"}: (level, pos) is there a Company Desk?</li>
+ * <li>{@code "compagnie:books"}: owner to a list of book lines for one treasury across mods. Each line is a map with
+ * {@code label} (String), {@code cents} (Long; negative is a cost) and {@code kind} ("daily": every day, or "asset":
+ * worth this much now).</li>
  * </ul>
  */
 public final class CompagnieApi {
@@ -24,6 +31,7 @@ public final class CompagnieApi {
 	public static final String REMOVE_DESK = "compagnie:remove_desk";
 	public static final String HOUSE = "compagnie:house";
 	public static final String IS_DESK = "compagnie:is_desk";
+	public static final String BOOKS = "compagnie:books";
 
 	private CompagnieApi() {
 	}
@@ -44,5 +52,46 @@ public final class CompagnieApi {
 			}
 		});
 		share.put(IS_DESK, (BiFunction<ServerLevel, BlockPos, Boolean>) (level, pos) -> Desks.at(level, pos) != null);
+		share.put(BOOKS, (Function<UUID, List<Map<String, Object>>>) CompagnieApi::books);
+	}
+
+	/** The company's lines in the one treasury: wages every day; stakes in flight, money lent and the strongbox now. */
+	static List<Map<String, Object>> books(UUID owner) {
+		List<Map<String, Object>> out = new ArrayList<>();
+		Company c = Companies.get(owner);
+		if (c == null) {
+			return out;
+		}
+		if (!c.agents.isEmpty()) {
+			out.add(line("Compagnie agents' wages", -c.dailyWages(), "daily"));
+		}
+		long staked = 0;
+		for (Job j : c.active) {
+			staked += j.paid;
+		}
+		if (staked > 0) {
+			out.add(line("Compagnie stakes on " + c.active.size() + " errands", staked, "asset"));
+		}
+		long lent = 0;
+		for (Loan l : c.loans) {
+			if (l.state() == Loan.State.ACTIVE && !l.gold) {
+				lent += l.owed();
+			}
+		}
+		if (lent > 0) {
+			out.add(line("Compagnie loans owed to you", lent, "asset"));
+		}
+		long box = 0;
+		for (net.minecraft.world.item.ItemStack stack : c.strongbox) {
+			box += Math.max(0, Bank.sellValue(stack));
+		}
+		if (box > 0) {
+			out.add(line("The Compagnie strongbox (at Market prices)", box, "asset"));
+		}
+		return out;
+	}
+
+	private static Map<String, Object> line(String label, long cents, String kind) {
+		return Map.of("label", label, "cents", cents, "kind", kind);
 	}
 }

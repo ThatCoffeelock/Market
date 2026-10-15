@@ -682,6 +682,19 @@ final class SmokeTest {
 		Network.newDay();
 		check(Network.of(OWNER).balanceKnown, "after two paydays the day's balance change is known");
 
+		// one treasury: the other mods' books, through the ObjectShare
+		var share = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare();
+		if (share.get("hoogheheeren:books") == null && share.get("compagnie:books") == null) {
+			share.put("hoogheheeren:books", (java.util.function.Function<java.util.UUID, List<java.util.Map<String, Object>>>) who -> List.of(
+				java.util.Map.of("label", "Upkeep", "cents", -Bank.cents(50), "kind", "daily"),
+				java.util.Map.of("label", "Pacts", "cents", Bank.cents(20), "kind", "daily"),
+				java.util.Map.of("label", "Plunder", "cents", Bank.cents(300), "kind", "asset")));
+			List<Ledgers.Line> lines = Ledgers.lines(OWNER);
+			check(Ledgers.daily(lines) == -Bank.cents(30) && Ledgers.assets(lines) == Bank.cents(300),
+				"other mods' books add up: -₥30 a day, ₥300 held");
+			share.remove("hoogheheeren:books");
+		}
+
 		// the Governor's Desk: the table without the palace
 		check(GovernorDesk.isItem(GovernorDesk.item()) && !GovernorDesk.isItem(new ItemStack(Items.LECTERN)), "a Governor's Desk is one, a plain lectern isn't");
 

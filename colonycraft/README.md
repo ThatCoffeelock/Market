@@ -86,7 +86,7 @@ The HQ's colony is always in the network. Link others from the **Governor's Tabl
 | **On the road** | Convoys under way: what, from where to where, when they arrive |
 | **Standing orders** | Convoys that leave every day. Shift-click one to cancel it |
 | **Reports** | What the mayors and the carriers wrote: arrivals, hirings, orders that couldn't go |
-| **The treasury** | What you're worth: your Market balance plus what's in your banks' vaults (per bank). The colonies' **last payday**: earned (auto-sales, the town street, taverns) minus wages, convoy fees and rehiring, in total and per colony. **Your whole day**: how much your balance moved between the last two paydays, from everything (colonies, the Compagnie, oil, what you sold and spent). **Tomorrow's bills**: the wage bill and the standing orders, and whether you can cover them |
+| **The treasury** | What you're worth: your Market balance plus what's in your banks' vaults (per bank). The colonies' **last payday**: earned (auto-sales, the town street, taverns) minus wages, convoy fees and rehiring, in total and per colony. **Your whole day**: how much your balance moved between the last two paydays, from everything (colonies, the Compagnie, oil, what you sold and spent). **Your other affairs** (one treasury for the whole pack): De Compagnie's agent wages, the Heeren's regiment upkeep, trade pacts and tribute, a day; Compagnie stakes, loans owed you and the strongbox count toward what you're worth. **Tomorrow's bills**: the wage bill, the standing orders and the other affairs' costs, and whether you can cover them |
 
 Click a colony to manage it:
 

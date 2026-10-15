@@ -51,6 +51,7 @@ public final class HeerenMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		CompagnieHooks.register(new Extension());
+		HeerenApi.publish();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Courts.load(server);
 			if (Boolean.getBoolean("hoogheheeren.smokeTest")) {

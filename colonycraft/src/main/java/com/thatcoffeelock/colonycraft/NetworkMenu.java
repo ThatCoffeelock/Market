@@ -198,7 +198,7 @@ final class NetworkMenu extends ChestMenu {
 			() -> go(Page.ORDERS));
 		button(3, tab("written_book", "Reports", page == Page.REPORT, List.of(t("What the mayors and carriers wrote.", ChatFormatting.GRAY))),
 			() -> go(Page.REPORT));
-		long total = Bank.balance(viewer) + Network.vaults(viewer.getUUID());
+		long total = Bank.balance(viewer) + Network.vaults(viewer.getUUID()) + Ledgers.assets(Ledgers.lines(viewer.getUUID()));
 		button(5, tab("gold_ingot", "The treasury", page == Page.TREASURY, List.of(t("Everything you're worth: " + Bank.format(total), ChatFormatting.GOLD),
 			t("Daily income, wages, what's in the vaults.", ChatFormatting.GRAY))), () -> go(Page.TREASURY));
 		button(8, icon(Items.BARRIER, t("Close", ChatFormatting.RED), List.of()), () -> ColonycraftMod.nextTick(viewer::closeContainer));
@@ -624,6 +624,9 @@ final class NetworkMenu extends ChestMenu {
 		Network.Net net = Network.of(owner);
 		long cash = Bank.balance(viewer);
 		long vaults = Network.vaults(owner);
+		List<Ledgers.Line> elsewhere = Ledgers.lines(owner);
+		long assets = Ledgers.assets(elsewhere);
+		long otherDaily = Ledgers.daily(elsewhere);
 		List<Component> worth = new ArrayList<>();
 		worth.add(t("In hand (your Market balance): " + Bank.format(cash), ChatFormatting.GOLD));
 		worth.add(t("In your banks' vaults: " + Bank.format(vaults), ChatFormatting.GOLD));
@@ -634,8 +637,13 @@ final class NetworkMenu extends ChestMenu {
 				}
 			}
 		}
+		for (Ledgers.Line l : elsewhere) {
+			if (!l.daily()) {
+				worth.add(t(l.label() + ": " + Bank.format(l.cents()), ChatFormatting.GOLD));
+			}
+		}
 		worth.add(t("(A vault is open to anyone at the teller.)", ChatFormatting.DARK_GRAY));
-		button(20, glow(icon(Items.GOLD_BLOCK, t("Worth: " + Bank.format(cash + vaults), ChatFormatting.GOLD, ChatFormatting.BOLD), worth)), null);
+		button(20, glow(icon(Items.GOLD_BLOCK, t("Worth: " + Bank.format(cash + vaults + assets), ChatFormatting.GOLD, ChatFormatting.BOLD), worth)), null);
 
 		long earned = 0;
 		long wages = 0;
@@ -676,6 +684,22 @@ final class NetworkMenu extends ChestMenu {
 		}
 		button(24, icon(Items.CLOCK, t("Your whole day", ChatFormatting.AQUA, ChatFormatting.BOLD), all), null);
 
+		List<Component> affairs = new ArrayList<>();
+		for (Ledgers.Line l : elsewhere) {
+			if (l.daily()) {
+				affairs.add(t(l.label() + ": " + (l.cents() >= 0 ? "+" : "-") + Bank.format(Math.abs(l.cents())) + " a day",
+					l.cents() >= 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+			}
+		}
+		if (affairs.isEmpty()) {
+			affairs.add(t("Nothing from De Compagnie or the Heeren.", ChatFormatting.GRAY));
+		}
+		affairs.add(t("Colonies and other affairs together:", ChatFormatting.WHITE));
+		long together = netDay + otherDaily;
+		affairs.add(t((together >= 0 ? "+" : "-") + Bank.format(Math.abs(together)) + " a day", together >= 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+		button(29, icon(Items.FILLED_MAP, t("Your other affairs: " + (otherDaily >= 0 ? "+" : "-") + Bank.format(Math.abs(otherDaily)) + " a day",
+			ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD), affairs), null);
+
 		long wageBill = 0;
 		for (Colony c : Colonies.ownedBy(owner)) {
 			wageBill += c.dailyWages();
@@ -688,11 +712,19 @@ final class NetworkMenu extends ChestMenu {
 				orders += Network.fee(from, to, o.amount);
 			}
 		}
-		button(31, icon(Items.PAPER, t("Tomorrow's bills", ChatFormatting.YELLOW, ChatFormatting.BOLD), List.of(
-			t("Wages: " + Bank.format(wageBill), ChatFormatting.GRAY),
-			t("Standing orders (full loads): up to " + Bank.format(orders), ChatFormatting.GRAY),
-			t(cash >= wageBill + orders ? "Covered." : "Short! Unpaid colonies go on strike.", cash >= wageBill + orders ? ChatFormatting.GREEN
-				: ChatFormatting.RED))), null);
+		long otherBills = 0;
+		List<Component> bills = new ArrayList<>();
+		bills.add(t("Wages: " + Bank.format(wageBill), ChatFormatting.GRAY));
+		bills.add(t("Standing orders (full loads): up to " + Bank.format(orders), ChatFormatting.GRAY));
+		for (Ledgers.Line l : elsewhere) {
+			if (l.daily() && l.cents() < 0) {
+				otherBills -= l.cents();
+				bills.add(t(l.label() + ": " + Bank.format(-l.cents()), ChatFormatting.GRAY));
+			}
+		}
+		long due = wageBill + orders + otherBills;
+		bills.add(t(cash >= due ? "Covered." : "Short! Unpaid colonies strike, unpaid troops desert.", cash >= due ? ChatFormatting.GREEN : ChatFormatting.RED));
+		button(31, icon(Items.PAPER, t("Tomorrow's bills: " + Bank.format(due), ChatFormatting.YELLOW, ChatFormatting.BOLD), bills), null);
 	}
 
 	private void report() {
