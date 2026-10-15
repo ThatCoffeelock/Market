@@ -289,6 +289,7 @@ final class Battles {
 			r.treasury -= take;
 			Bank.credit(c.uuid(), c.ownerName, take);
 			c.fear(5);
+			SkillsLink.xp(c.uuid(), "statecraft", 15);
 			line.append("⚔ Victory over ").append(r.House()).append("! ");
 			if (ColonyLink.lift(c, r) > 0) {
 				line.append("The siege is lifted. ");

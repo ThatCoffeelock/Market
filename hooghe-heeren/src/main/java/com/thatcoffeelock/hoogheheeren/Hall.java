@@ -328,6 +328,8 @@ public final class Hall {
 		if (r.is(Temperament.SPENDTHRIFT)) {
 			score *= 1.3;
 		}
+		score *= 1 + SkillsLink.bonus(c.uuid(), "statecraft/envoy");
+		SkillsLink.xp(c.uuid(), "statecraft", 5);
 		int value = (int) Math.round(Math.max(-15, Math.min(25, score + spirits)));
 		c.feasted = day;
 		r.remember("A feast in your hall", value, day, 30);

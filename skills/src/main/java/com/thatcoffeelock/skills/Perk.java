@@ -120,7 +120,12 @@ public enum Perk {
 	// Enterprise
 	BROKER(Skill.ENTERPRISE, "Broker", "emerald", 0.05, "-%s agent wages and hiring fees"),
 	CHARTERED(Skill.ENTERPRISE, "Chartered", "filled_map", 0.05, "+%s Marks and spoils from Compagnie jobs"),
-	IRON_LEDGER(Skill.ENTERPRISE, "Iron Ledger", "book", 0.08, "%s chance a defaulting borrower pays after all");
+	IRON_LEDGER(Skill.ENTERPRISE, "Iron Ledger", "book", 0.08, "%s chance a defaulting borrower pays after all"),
+
+	// Statecraft
+	ENVOY(Skill.STATECRAFT, "Envoy", "cake", 0.06, "+%s goodwill from gifts and feasts"),
+	SPYMASTER(Skill.STATECRAFT, "Spymaster", "ender_eye", 0.03, "+%s odds on errands against the Heeren"),
+	IRON_HAND(Skill.STATECRAFT, "Iron Hand", "iron_bars", 0.04, "+%s odds when you demand tribute");
 
 	public static final int MAX_RANK = 5;
 

@@ -42,6 +42,8 @@ final class Diplomacy {
 		if (inPerson) {
 			value *= r.is(Quirk.VAIN) ? 2 : 1.5;
 		}
+		value *= 1 + SkillsLink.bonus(c.uuid(), "statecraft/envoy");
+		SkillsLink.xp(c.uuid(), "statecraft", big ? 4 : 2);
 		if (day == r.lastGift) {
 			value /= 2; // a second purse in a day looks desperate
 		} else {
@@ -73,7 +75,7 @@ final class Diplomacy {
 		}
 		double p = 0.3 + op / 100.0 + (c.honour - 50) / 150.0;
 		p += r.is(Temperament.MERCHANT) ? 0.2 : r.is(Temperament.MISER) ? -0.1 : 0;
-		return p + (inPerson ? IN_PERSON : 0);
+		return p + (inPerson ? IN_PERSON : 0) + statecraft(c);
 	}
 
 	static double peaceOdds(Court c, Rival r, boolean inPerson, long day) {
@@ -81,7 +83,7 @@ final class Diplomacy {
 		if (op < 0) {
 			return 0;
 		}
-		return 0.2 + op / 80.0 + (c.fear - 30) / 200.0 + (inPerson ? IN_PERSON : 0);
+		return 0.2 + op / 80.0 + (c.fear - 30) / 200.0 + (inPerson ? IN_PERSON : 0) + statecraft(c);
 	}
 
 	static double allianceOdds(Court c, Rival r, boolean inPerson, long day) {
@@ -89,7 +91,7 @@ final class Diplomacy {
 		if (op < 40 || !r.peacePact) {
 			return 0;
 		}
-		return op / 100.0 + (c.honour - 50) / 100.0 + (inPerson ? IN_PERSON : 0);
+		return op / 100.0 + (c.honour - 50) / 100.0 + (inPerson ? IN_PERSON : 0) + statecraft(c);
 	}
 
 	/** Will they pay tribute? Fear and the size of your army against theirs. Never if they're Proud. */
@@ -99,7 +101,12 @@ final class Diplomacy {
 		}
 		double ratio = (c.regiments - r.regiments) / (double) (c.regiments + r.regiments + 1);
 		double p = (c.fear - 20) / 100.0 + ratio * 0.6 + (r.is(Quirk.COWARDLY) ? 0.25 : 0) - (r.is(Temperament.WARLORD) ? 0.15 : 0);
-		return p + (inPerson ? IN_PERSON : 0);
+		return p + (inPerson ? IN_PERSON : 0) + statecraft(c) + SkillsLink.bonus(c.uuid(), "statecraft/iron_hand");
+	}
+
+	/** The Statecraft skill's passive: better odds on every proposal. */
+	static double statecraft(Court c) {
+		return SkillsLink.bonus(c.uuid(), "statecraft/passive");
 	}
 
 	static long tributeAmount(Rival r) {
@@ -116,6 +123,7 @@ final class Diplomacy {
 		}
 		r.lastAsked = day;
 		if (roll(tradeOdds(c, r, inPerson, day))) {
+			SkillsLink.xp(c.uuid(), "statecraft", inPerson ? 15 : 10);
 			r.tradePact = true;
 			Courts.tell(c, Ai.capital(r.name()) + " signs a trade pact: " + Bank.format(Ai.pactIncome(c)) + " a day for each of you.", ChatFormatting.GREEN);
 		} else {
@@ -134,6 +142,7 @@ final class Diplomacy {
 		}
 		r.lastAsked = day;
 		if (roll(peaceOdds(c, r, inPerson, day))) {
+			SkillsLink.xp(c.uuid(), "statecraft", inPerson ? 15 : 10);
 			r.peacePact = true;
 			Courts.tell(c, Ai.capital(r.name()) + " signs a peace pact with you.", ChatFormatting.GREEN);
 		} else {
@@ -152,6 +161,7 @@ final class Diplomacy {
 		}
 		r.lastAsked = day;
 		if (roll(allianceOdds(c, r, inPerson, day))) {
+			SkillsLink.xp(c.uuid(), "statecraft", inPerson ? 25 : 20);
 			r.alliance = true;
 			Courts.tell(c, Ai.capital(r.name()) + " is now your ally. Your wars are " + r.their() + " wars, and the other way round.", ChatFormatting.GREEN);
 		} else {
@@ -173,6 +183,7 @@ final class Diplomacy {
 		}
 		r.lastAsked = day;
 		if (roll(tributeOdds(c, r, inPerson, day))) {
+			SkillsLink.xp(c.uuid(), "statecraft", 12);
 			r.tribute = tributeAmount(r);
 			r.tributeToUs = true;
 			r.tributeUntil = day + 10;

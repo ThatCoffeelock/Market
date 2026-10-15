@@ -108,6 +108,7 @@ final class Covert {
 		if (r.is(Temperament.SCHEMER)) {
 			p -= 0.05;
 		}
+		p += SkillsLink.bonus(c.uuid(), "statecraft/spymaster");
 		return Math.max(0.05, Math.min(0.95, p));
 	}
 
@@ -201,6 +202,7 @@ final class Covert {
 		}
 		double p = odds(c, r, t, approach(op.approach), op.agent);
 		Tier tier = roll(p, random);
+		SkillsLink.xp(c.uuid(), "statecraft", tier == Tier.TRIUMPH ? 12 : tier.good() ? 8 : tier == Tier.PARTIAL ? 3 : 0);
 		StringBuilder line = new StringBuilder();
 		line.append(tier.good() ? "✔ " : tier == Tier.PARTIAL ? "≈ " : "✘ ").append(t.title).append(" (").append(r.House()).append(", ")
 			.append(op.agentName).append("): ");

@@ -190,6 +190,12 @@ Raise regiments in the **Your Army** tab: **₥500** each, then **₥25 a day**,
 - `/heeren intel` (op): every house's letters are an open book for a week
 - `/heeren battle` (op): moves the pending battle to today's noon
 
+## With the other LIB Pack mods
+
+- **Skills**: the **Statecraft** skill. XP for pacts, tribute, errands, gifts, feasts, battles and wars won. Passive: up to +15% odds on every proposal. Perks: **Envoy** (gifts and feasts count for more), **Spymaster** (errand odds), **Iron Hand** (tribute odds).
+- **Colonycraft**: their riders raid your convoys and their armies besiege your colonies (see War). The Governor's Table's treasury shows your regiments' upkeep, trade pacts and tribute (`hoogheheeren:books`).
+- **Sellswords**: your mercenaries fight their soldiers (`hoogheheeren:foe`).
+
 ## Notes
 
 - Courts are saved in `<world>/hoogheheeren.json`. Each player has their own table of rivals (single player and servers alike).

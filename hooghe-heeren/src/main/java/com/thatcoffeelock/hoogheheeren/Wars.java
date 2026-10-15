@@ -180,6 +180,7 @@ final class Wars {
 			case WON -> {
 				c.warsWon++;
 				c.fear(15);
+				SkillsLink.xp(c.uuid(), "statecraft", 40);
 				r.remember("Lost a war to you", -25, day, 60);
 				CompagnieHooks.reputation(c.uuid(), 500);
 				Courts.tell(c, "☮ Peace with " + r.name() + ". You won the war.", ChatFormatting.GREEN);

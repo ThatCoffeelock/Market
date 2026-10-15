@@ -187,7 +187,7 @@ final class SmokeTest {
 		check(api.apply(oilman, "artillery/haggler") == 0.0 && api.apply(oilman, "nonsense") == 0.0, "wrong keys give nothing");
 		((java.util.function.BiConsumer<UUID, java.util.Map.Entry<String, Double>>) apiXp).accept(oilman, java.util.Map.entry("governance", 300.0));
 		check(profile.level(Skill.GOVERNANCE) >= 2, "offline Governance XP is banked");
-		check(Skill.values().length == 22 && Perk.values().length == 66, "22 skills, 66 perks");
+		check(Skill.values().length == 23 && Perk.values().length == 69, "23 skills, 69 perks");
 		profile.xp.put(Skill.PILOTEERING.id(), Skill.totalFor(100));
 		profile.perks.put(Perk.ACE.id(), 5);
 		check(Math.abs(api.apply(oilman, "piloteering/passive") - 0.30) < 1e-9, "Piloteering 100 burns 30% less diesel");

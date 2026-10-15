@@ -2,7 +2,7 @@
 
 A Fabric mod for Minecraft **26.3** that adds an **Elder Scrolls style skill system**: you get better at things by doing them.
 
-- **22 skills**, from Combat and Mining to Sailing, Mercantile, Governance, Treasure Hunting, Piloteering, Leadership and Enterprise. Each levels **0 to 100** as you use it.
+- **23 skills**, from Combat and Mining to Sailing, Mercantile, Governance, Treasure Hunting, Piloteering, Leadership, Enterprise and Statecraft. Each levels **0 to 100** as you use it.
 - **Every level gives a small passive bonus.** Level 100 makes you about **twice as good** at that thing as a beginner. Demigod tier, not "the server blows up" tier.
 - **Every 10 levels you earn a perk point** for that skill. Each skill has **3 perks with 5 ranks each**: 15 ranks, but only 10 points. Pick what suits you.
 - **A long road.** Early levels come fast, then each level costs 4.5% more than the last. Level 50 is about 10% of the way to 100.
@@ -57,6 +57,7 @@ Admin commands (op level 2): `/skills admin setlevel <player> <skill> <level>`, 
 | **Wildcatting** | Fossil Fool: blocks your Drill Rig drills (0.4, ores 2), striking oil (50), buckets pumped or scooped (1), diesel refined (6), dowsing (0.5) | +25% fuel efficiency in Drill Rigs and Refineries | **Roughneck** +6% Drill Rig speed · **Refiner** 5% chance of a bonus bucket of diesel · **Dowser** Dowsing Rod reaches +8 blocks |
 | **Leadership** | Sellswords: hiring a mercenary (10), promoting one (20 per rank), every kill your mercenaries make (3, more for big mobs) | +25% mercenary health, and room for one more mercenary per 25 levels (up to +4) | **Quartermaster** -6% gold for promotions · **Drillmaster** +5% mercenary damage · **Shield Wall** -4% damage taken by your mercenaries |
 | **Enterprise** | De Compagnie: a job brought home (15 for a triumph, 10 for a success, 4 for a partial), a loan repaid (5), a debt collected (8) | +15% odds on Compagnie jobs | **Broker** -5% agent wages and hiring fees · **Chartered** +5% Marks and spoils from jobs · **Iron Ledger** 8% chance a defaulting borrower pays after all |
+| **Statecraft** | De Hooghe Heeren: a pact signed (10, 15 in person; an alliance 20/25), tribute forced (12), an errand run against them (12 for a triumph, 8 a success, 3 a partial), a gift (2/4), a feast (5), a battle won (15), a war won (40) | +15% odds on every proposal to the Heeren | **Envoy** +6% goodwill from gifts and feasts · **Spymaster** +3% odds on errands against them · **Iron Hand** +4% odds when you demand tribute |
 
 Damage reductions from all perks together are capped at 60%. Market buy prices never drop below 1.25x what the market pays, so even a maxed merchant can't print money.
 
@@ -82,7 +83,7 @@ Skill progress is saved in `<world>/skills.json`. Player-placed blocks are remem
 - **Market**: Mercantile raises your sell prices and lowers your buy prices, and selling and buying gives Mercantile XP. Neither mod needs the other.
 - **Flintlock**: gun damage levels Marksmanship and gets its bonuses. The Marksmanship passive also shortens reloads (stacking with Quick Charge), and Recovery can make a reload free.
 - **Ahoy**: sailing the ship levels Sailing.
-- **Cannon**: Artillery. **Fuck Illagers**: Bounty Hunting. **Colonycraft**: Governance (it works for offline colony owners too). **Havana** and **Proost**: Connoisseur. **Blimey**: Piloteering. **Sellswords**: Leadership. **De Compagnie**: Enterprise. **Riches**: Treasure Hunting's relic perks. Treasure Hunting's chest bonus works without any other mod.
+- **Cannon**: Artillery. **Fuck Illagers**: Bounty Hunting. **Colonycraft**: Governance (it works for offline colony owners too). **Havana** and **Proost**: Connoisseur. **Blimey**: Piloteering. **Sellswords**: Leadership. **De Compagnie**: Enterprise. **De Hooghe Heeren**: Statecraft. **Riches**: Treasure Hunting's relic perks. Treasure Hunting's chest bonus works without any other mod.
 - **For mod makers**: other mods read bonuses through the ObjectShare function `skills:bonus` ("artillery/passive", "artillery/powder_monkey") and give XP through `skills:xp`. Nobody needs anybody else to compile.
 - **Fossil Fool**: Wildcatting is the oil skill. Your Drill Rigs and Refineries earn it for you even while you're offline (the level-up message waits until you're back). Neither mod needs the other.
 - **Havana**: Green Thumb never replants potatoes while Havana is installed, so it can't mix up young tobacco plants.
