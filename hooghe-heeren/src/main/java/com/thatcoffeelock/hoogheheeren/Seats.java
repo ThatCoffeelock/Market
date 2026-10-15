@@ -114,13 +114,13 @@ final class Seats {
 		int op = c.opinion(r, today);
 		Court.Tier tier = Court.Tier.of(op);
 		String what = (r.met || r.known(today) ? r.temperament().title : "Head of the house") + " · " + tier.title;
-		return new Figures.Look(r.name(), Figures.line(what, tier.color.getName()), r.woman, r.skin, r.colour, "",
+		return new Figures.Look(r.name(), Figures.line(what, tier.color.name().toLowerCase(java.util.Locale.ROOT)), r.woman, r.skin, r.colour, "",
 			r.is(Temperament.WARLORD) ? "minecraft:iron_sword" : r.is(Temperament.ZEALOT) ? "minecraft:book" : "", "");
 	}
 
 	static Figures.Look guardLook(Rival r, int seed) {
 		boolean crossbow = seed % 2 == 0;
-		return new Figures.Look("Guard of " + r.House(), Figures.line(r.seatName, Names.colour(r.colour).chat().getName()), false,
+		return new Figures.Look("Guard of " + r.House(), Figures.line(r.seatName, Names.colour(r.colour).chat().name().toLowerCase(java.util.Locale.ROOT)), false,
 			Names.skin(new java.util.Random(seed)), r.colour, "minecraft:iron_helmet", crossbow ? "minecraft:crossbow" : "minecraft:iron_sword", "");
 	}
 
