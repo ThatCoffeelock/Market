@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -381,7 +382,7 @@ final class SmokeTest {
 		Entity bob = level.getEntity(fishery.villagers.get(0));
 		check(bob != null && bob.getCustomName() != null && bob.getCustomName().getString().equals("Bob the Fisher"), "and is called Bob the Fisher");
 		check(!Colonies.hiresVillagers(BuildingType.BARRACKS), "iron golems don't come in sacks");
-		if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("burlapsack")) {
+		if (FabricLoader.getInstance().isModLoaded("burlapsack")) {
 			ItemStack back = SackLink.emptySack();
 			check(back != null && !SackLink.isVillagerSack(back) && back.is(Items.BUNDLE), "Burlap Sack hands back an empty sack");
 		}
@@ -698,7 +699,7 @@ final class SmokeTest {
 		check(Network.of(OWNER).balanceKnown, "after two paydays the day's balance change is known");
 
 		// one treasury: the other mods' books, through the ObjectShare
-		var share = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare();
+		var share = FabricLoader.getInstance().getObjectShare();
 		if (share.get("hoogheheeren:books") == null && share.get("compagnie:books") == null) {
 			share.put("hoogheheeren:books", (java.util.function.Function<java.util.UUID, List<java.util.Map<String, Object>>>) who -> List.of(
 				java.util.Map.of("label", "Upkeep", "cents", -Bank.cents(50), "kind", "daily"),
