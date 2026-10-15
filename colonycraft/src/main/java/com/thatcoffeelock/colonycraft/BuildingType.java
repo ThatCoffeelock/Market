@@ -57,7 +57,9 @@ public enum BuildingType {
 	DISTILLERY("distillery", "Distillery", Items.CAULDRON, 1500, 6, 6, 13, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::distillery),
 	TAVERN("tavern", "Tavern", Items.HONEY_BOTTLE, 1800, 6, 7, 15, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 4, false, BuildingType::tavern),
 	COMPANY_HOUSE("company_house", "Company House", Items.CARTOGRAPHY_TABLE, 2200, 4, 6, 17, new int[] {1, 1, 2}, new int[] {0, 0, 0}, 4, false,
-		BuildingType::companyHouse);
+		BuildingType::companyHouse),
+	HEADQUARTERS("headquarters", "Headquarters", Items.FILLED_MAP, 6000, 6, 6, 26, new int[] {0, 0, 0}, new int[] {0, 0, 0}, 0, false,
+		BuildingType::headquarters);
 
 	public static final int MAX_TIER = 3;
 
@@ -108,7 +110,8 @@ public enum BuildingType {
 	 */
 	public boolean rebuildsOnUpgrade() {
 		return fortification || this == CELLBLOCK || this == STOREHOUSE || this == RESIDENCE || this == TRAIN_STATION
-			|| this == MUSEUM || this == FUEL_DEPOT || this == GUILDHOUSE || this == DISTILLERY || this == TAVERN || this == COMPANY_HOUSE;
+			|| this == MUSEUM || this == FUEL_DEPOT || this == GUILDHOUSE || this == DISTILLERY || this == TAVERN || this == COMPANY_HOUSE
+			|| this == HEADQUARTERS;
 	}
 
 	/** The highest tier this building goes to. The library is as good as it gets from the start. */
@@ -2524,6 +2527,85 @@ public enum BuildingType {
 
 	/** The Company House's Company Desk (a cartography table at the back of the office). */
 	public static final BlockPos COMPANY_DESK = new BlockPos(0, 1, 3);
+
+	/** The Headquarters' Governor's Table: a lectern in the middle of the map on the floor. */
+	public static final BlockPos HQ_TABLE = new BlockPos(0, 1, 2);
+
+	/**
+	 * Headquarters: the Gouvernement, seat of your colonial network. A broad three-bay brick palace with sandstone
+	 * dressings under a slate roof, a flagpole with your orange flag, and inside a double-height hall with a map of
+	 * the world laid out on the floor in carpet (sea and land, your colonies in orange) and the Governor's Table, a
+	 * lectern, in the middle of it. Bookshelves of reports along the back. Tier 2 adds map tables and a gallery of
+	 * banners; tier 3 a gilded hall.
+	 */
+	private static void headquarters(Plan p) {
+		p.fill(-6, 0, -6, 6, 0, 6, PAVING);
+		p.fill(-5, 0, -4, 5, 0, 6, PLINTH);
+		p.fill(-4, 0, -3, 4, 0, 5, "minecraft:dark_oak_planks");
+		for (int y = 1; y <= 12; y++) {
+			p.rect(-5, -4, 5, 6, y, y == 1 ? PLINTH : y == 6 ? BAND : y == 12 ? TRIM : BRICK);
+		}
+		for (int[] c : new int[][] {{-5, -4}, {5, -4}, {-5, 6}, {5, 6}}) {
+			p.corner(c[0], c[1], 2, 11);
+		}
+		// the front: a door between sandstone pilasters under a pediment, tall windows either side
+		p.fill(-1, 1, -4, -1, 5, -4, TRIM);
+		p.fill(1, 1, -4, 1, 5, -4, TRIM);
+		p.door(-4, "dark_oak");
+		p.set(0, 3, -4, "minecraft:glass_pane");
+		p.set(0, 4, -4, ACCENT);
+		p.set(0, 5, -4, ACCENT);
+		p.windowX(-4, -4, -3, 2, 4);
+		p.windowX(-4, 3, 4, 2, 4);
+		p.windowX(-4, -4, -3, 8, 10);
+		p.windowX(-4, -1, 1, 8, 10);
+		p.windowX(-4, 3, 4, 8, 10);
+		p.windowX(6, -3, -2, 8, 10);
+		p.windowX(6, 2, 3, 8, 10);
+		for (int x : new int[] {-5, 5}) {
+			p.windowZ(x, -2, -1, 2, 4);
+			p.windowZ(x, 3, 4, 2, 4);
+			p.windowZ(x, -2, -1, 8, 10);
+			p.windowZ(x, 3, 4, 8, 10);
+		}
+		for (int x : new int[] {-2, 2}) {
+			p.set(x, 1, -5, "minecraft:dark_oak_fence");
+			p.set(x, 2, -5, "minecraft:lantern[hanging=false]");
+		}
+		int top = p.roofAlongZ(-5, -4, 5, 6, 13, SLATE, SLATE_SLAB, BRICK);
+		// the flag
+		p.fill(0, top + 1, 1, 0, top + 4, 1, "minecraft:dark_oak_fence");
+		p.set(0, top + 5, 1, "minecraft:orange_banner[rotation=0]");
+		// the hall: a map of the world on the floor, the Governor's Table in the middle of it
+		p.fill(-3, 1, -1, 3, 1, 5, "minecraft:blue_carpet");
+		for (int[] land : new int[][] {{-3, -1}, {-2, -1}, {-3, 0}, {-2, 0}, {-1, 0}, {2, 0}, {3, 0}, {3, 1}, {2, 1}, {-3, 3}, {-3, 4}, {-2, 4},
+			{-1, 4}, {1, 4}, {2, 4}, {3, 4}, {3, 5}, {2, 5}, {-3, 5}}) {
+			p.set(land[0], 1, land[1], "minecraft:green_carpet");
+		}
+		for (int[] colony : new int[][] {{-2, 0}, {3, 1}, {-2, 4}, {2, 5}}) {
+			p.set(colony[0], 1, colony[1], "minecraft:orange_carpet");
+		}
+		p.set(HQ_TABLE.getX(), HQ_TABLE.getY(), HQ_TABLE.getZ(), "minecraft:lectern[facing=north,has_book=true]");
+		p.fill(-4, 1, 5, 4, 4, 5, "minecraft:bookshelf");
+		p.set(-4, 5, 0, "minecraft:orange_wall_banner[facing=east]");
+		p.set(4, 5, 0, "minecraft:orange_wall_banner[facing=west]");
+		for (int[] l : new int[][] {{0, 11, 2}, {-3, 11, -1}, {3, 11, -1}, {-3, 11, 4}, {3, 11, 4}}) {
+			p.set(l[0], l[1], l[2], "minecraft:lantern[hanging=true]");
+		}
+		if (p.tier >= 2) {
+			p.set(-4, 1, -2, "minecraft:cartography_table");
+			p.set(4, 1, -2, "minecraft:cartography_table");
+			p.set(-4, 7, 3, "minecraft:orange_wall_banner[facing=east]");
+			p.set(4, 7, 3, "minecraft:orange_wall_banner[facing=west]");
+			p.set(-4, 7, -2, "minecraft:white_wall_banner[facing=east]");
+			p.set(4, 7, -2, "minecraft:white_wall_banner[facing=west]");
+		}
+		if (p.tier >= 3) {
+			p.fill(-1, 1, -3, 1, 1, -2, "minecraft:orange_carpet");
+			p.fill(-4, 5, 5, 4, 5, 5, "minecraft:gold_block");
+			p.set(0, top + 1, 1, "minecraft:gold_block");
+		}
+	}
 
 	/**
 	 * A Company House: a tall, narrow Amsterdam canal house in brick, three rows of tall windows, a hoist beam over the

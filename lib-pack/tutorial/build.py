@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.25.0"
+VERSION = "1.26.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -61,6 +61,7 @@ MODS = [
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
         "Got a villager in a <b>Burlap Sack</b>? Give them an empty job for free. With Havana, buy a <b>Tobacco Farm</b>. With Sellswords, a <b>Guildhouse</b> hires mercenaries 20–50% cheaper.",
         "<b>Law and order:</b> buy Shackles (₥50), beat an illager under 40% health and shackle it. Jail it in a <b>Cellblock</b>, then ransom it or execute it on the <b>Scaffold</b> for 2–3× the bounty.",
+        "<b>Headquarters</b> (₥6,000, one per player): its <b>Governor's Table</b> shows every colony, opens any Town Hall by letter, sends <b>convoys</b> between storehouses (a fee, days on the road, once or daily), gives colonies an optional <b>role</b>, and lets their mayors rehire the dead.",
         "Needs the Market mod (it's in the pack)."],
   cmds="/colonycraft · /colonycraft charter"),
  dict(name="Ahoy", colour="#3e8fc7", tag="A two-masted sailing ship in a bottle: captain + 8 passengers, two 54-slot holds and wind.",

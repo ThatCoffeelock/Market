@@ -574,6 +574,128 @@ final class SmokeTest {
 		}
 		Colonies.demolish(level, hall);
 		check(Colonies.all().isEmpty(), "the colony is disbanded");
+		// the colony network, far from here: load its land first, give it time to wake up
+		Cmd.run(level, "forceload add 1560 -40 1640 40");
+		Cmd.run(level, "forceload add 1560 1560 1640 1640");
+		ColonycraftMod.later(100, () -> step(level.getServer(), () -> network(level)));
+	}
+
+	private static Colony capital;
+	private static Colony outpost;
+	private static Colony.Building outpostFarm;
+
+	/** Headquarters: two colonies 1,600 blocks apart, linked, with roles, a convoy, a standing order and a mayor who governs. */
+	private static void network(ServerLevel level) {
+		capital = new Colony("smoke-capital", "Hoofdstad", OWNER, "SmokeTest", Colonies.dim(level));
+		outpost = new Colony("smoke-outpost", "Buitenpost", OWNER, "SmokeTest", Colonies.dim(level));
+		Colonies.all().add(capital);
+		Colonies.all().add(outpost);
+		Colonies.construct(level, capital, BuildingType.TOWN_HALL, new BlockPos(1600, 99, 0), 0, Bank.cents(2500), true);
+		Colonies.construct(level, outpost, BuildingType.TOWN_HALL, new BlockPos(1600, 99, 1600), 0, Bank.cents(2500), true);
+		Colony.Building capitalStore = Colonies.construct(level, capital, BuildingType.STOREHOUSE, new BlockPos(1584, 99, 0), 1, Bank.cents(500), true);
+		Colonies.construct(level, outpost, BuildingType.STOREHOUSE, new BlockPos(1584, 99, 1600), 1, Bank.cents(500), true);
+		Colonies.construct(level, outpost, BuildingType.RESIDENCE, new BlockPos(1616, 99, 1600), 3, Bank.cents(400), true);
+		outpostFarm = Colonies.construct(level, outpost, BuildingType.FARM, new BlockPos(1600, 99, 1616), 0, Bank.cents(800), true);
+		Colonies.finishJobs();
+
+		// Headquarters: one per player, with its Governor's Table
+		check(Network.hq(OWNER) == null && Network.capacity(OWNER) == 0, "no Headquarters yet, no network");
+		check(Network.link(outpost) != null, "and nothing to link to");
+		Colony.Building hq = Colonies.construct(level, capital, BuildingType.HEADQUARTERS, new BlockPos(1600, 99, 17), 0,
+			Bank.cents(BuildingType.HEADQUARTERS.price), true);
+		Colonies.finishJobs();
+		check(Network.hq(OWNER) == hq, "Headquarters in " + capital.name);
+		check(level.getBlockState(hq.world(BuildingType.HQ_TABLE)).is(Blocks.LECTERN), "with the Governor's Table in its hall");
+		check(Network.linked(capital) && !Network.linked(outpost) && Network.capacity(OWNER) == 3,
+			"its own colony is in the network, the outpost isn't yet, and there's room for 3 more");
+
+		// linking and roles
+		check(Network.setRole(outpost, Network.Role.BREADBASKET) != null, "an unlinked colony takes no role");
+		check(Network.link(outpost) == null && Network.linked(outpost), "the outpost joins the network");
+		check(Network.role(outpost) == Network.Role.NONE && Network.gather(outpost, BuildingType.FARM) == 1.0, "roles are optional: none to start with");
+		check(Network.setRole(outpost, Network.Role.BREADBASKET) == null && Network.gather(outpost, BuildingType.FARM) == 1.25
+			&& Network.gather(outpost, BuildingType.MINE) == 0.85, "a Breadbasket farms better, digs worse");
+		long before = Bank.balance(OWNER);
+		check(Network.setRole(outpost, Network.Role.MINING_TOWN) == null && before - Bank.balance(OWNER) == Network.ROLE_CHANGE,
+			"changing a role costs " + Bank.format(Network.ROLE_CHANGE));
+		check(Network.setRole(outpost, Network.Role.NONE) == null, "and it can go back to no role at all");
+
+		// a convoy: wheat from the capital to the outpost, two days on the road
+		capitalStore.storage.clearContent();
+		capitalStore.storage.addItem(new ItemStack(Items.WHEAT, 64));
+		capitalStore.storage.addItem(new ItemStack(Items.WHEAT, 64));
+		ItemStack wheat = new ItemStack(Items.WHEAT);
+		check(Network.count(capital, wheat) >= 128, "the capital has wheat to spare");
+		long start = Network.count(capital, wheat);
+		check(Network.days(capital, outpost) == 2, "1,600 blocks is two days on the road");
+		before = Bank.balance(OWNER);
+		long fee = Network.fee(capital, outpost, 100);
+		check(Network.send(capital, outpost, wheat, 100, "") == null, "a convoy of 100 wheat leaves the capital");
+		check(Network.count(capital, wheat) == start - 100 && before - Bank.balance(OWNER) == fee, "the wheat is loaded and the fee paid (" + Bank.format(fee) + ")");
+		long there = Network.count(outpost, wheat);
+		Network.newDay();
+		Network.arrivals(outpost);
+		check(Network.count(outpost, wheat) == there, "a day later it's still on the road");
+		Network.newDay();
+		Network.arrivals(outpost);
+		check(Network.count(outpost, wheat) == there + 100 && Network.of(OWNER).convoys.isEmpty(), "two days later it's in the outpost's storehouse");
+
+		// a standing order: every day, up to 10 wheat
+		check(Network.addOrder(capital, outpost, wheat, 10) == null && Network.of(OWNER).orders.size() == 1, "a standing order is placed");
+		long left = Network.count(capital, wheat);
+		Network.dispatch(capital);
+		check(Network.count(capital, wheat) == left - 10 && Network.of(OWNER).convoys.size() == 1, "and the morning's 10 wheat leave");
+
+		// the mayor governs: a farmer dies, the mayor hires another
+		check(outpost.townHall().alive() == 1, "the outpost has its mayor");
+		java.util.UUID farmer = outpostFarm.villagers.get(0);
+		check(farmer != null, "the farm has its farmers");
+		net.minecraft.world.entity.Entity body = level.getEntity(farmer);
+		if (body != null) {
+			body.discard();
+		}
+		outpostFarm.villagers.set(0, null);
+		Network.govern(outpost);
+		ColonycraftMod.later(10, () -> step(level.getServer(), () -> networkAfter(level)));
+	}
+
+	private static void networkAfter(ServerLevel level) {
+		check(outpostFarm.villagers.get(0) != null && outpostFarm.dead() == 0, "the mayor hired a new farmer without being asked");
+		check(Network.of(OWNER).report.stream().anyMatch(l -> l.contains("hired")), "and wrote it in the report");
+
+		// saving and loading
+		Network.save();
+		Network.load(level.getServer());
+		Network.Net net = Network.of(OWNER);
+		check(net.orders.size() == 1 && net.orders.get(0).kind.is(Items.WHEAT) && net.convoys.size() == 1 && net.convoys.get(0).items == 10,
+			"the network survives a save and load, orders, convoys and all");
+		check(net.linked.contains(outpost.id), "with its links");
+
+		// a colony that goes takes its orders with it
+		for (Colony c : List.of(outpost, capital)) {
+			for (Colony.Building b : new ArrayList<>(c.buildings)) {
+				if (b.type == BuildingType.STOREHOUSE) {
+					empty(b);
+				}
+			}
+			for (Colony.Building b : new ArrayList<>(c.buildings)) {
+				if (b.type != BuildingType.TOWN_HALL && b.type != BuildingType.RESIDENCE) {
+					Colonies.demolish(level, b);
+				}
+			}
+			for (Colony.Building b : new ArrayList<>(c.buildings)) {
+				if (b.type == BuildingType.RESIDENCE) {
+					Colonies.demolish(level, b);
+				}
+			}
+			Colonies.demolish(level, c.townHall());
+		}
+		check(Network.hq(OWNER) == null && Network.of(OWNER).orders.isEmpty() && Network.of(OWNER).linked.isEmpty(),
+			"with the colonies gone, so is the network");
+		ColonycraftMod.LOG.info("[smoke] ok: the colony network");
+		Cmd.run(level, "forceload remove 1560 -40 1640 40");
+		Cmd.run(level, "forceload remove 1560 1560 1640 1640");
+		Network.forgetAll();
 		ColonycraftMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
 	}
 

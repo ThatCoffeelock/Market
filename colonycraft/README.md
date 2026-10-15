@@ -20,6 +20,7 @@ Put **Fabric API**, **`market-<version>.jar`** and **`colonycraft-<version>.jar`
    - Storehouses with **autosell** on sell everything the Market buys. You switch this per storehouse.
 5. **Workers can die.** Their building page at the Town Hall offers a replacement (₥100 each), or bring your own: a villager in a [Burlap Sack](../burlap-sack/README.md) takes an empty job for free.
 6. **Found more colonies** anywhere else. They need room between them to grow.
+7. **Run them as one** from a **Headquarters** (since 1.8.0): every colony on one table, convoys between their storehouses, optional roles, and mayors who rehire on their own. See [Headquarters: the colony network](#headquarters-the-colony-network).
 
 | Building | Price | Crew (tier 1/2/3) | Does |
 |---|---|---|---|
@@ -58,6 +59,69 @@ Every building is in the same Dutch neo-renaissance style: red brick dressed in 
 Upgrades cost 1.5× the price for tier 2 and 3× for tier 3. Each tier adds workers, and each worker produces more. Demolishing a building refunds half of everything you paid for it. The Town Hall goes last, and demolishing it disbands the colony.
 
 Only the owner can break blocks of colony buildings. Colony villagers don't trade, they're busy. The trading post's masters are the exception: trading is their job.
+
+## Headquarters: the colony network
+
+Every colony runs on its own until you build **Headquarters** (₥6,000, at any Town Hall, bottom row next to the tavern). There's **one per player**: it's the seat of your colonial government, and its colony becomes your capital.
+
+It's a broad brick palace with your orange flag on the roof. Inside, a map of the world is laid out on the floor in carpet, and in the middle of it stands the **Governor's Table** (a lectern): right-click it. Its own building page at the Town Hall has a button for it too.
+
+### Linking colonies
+
+The HQ's colony is always in the network. Link others from the **Governor's Table** (a colony's page → *Link it to the network*) or from the colony's own Town Hall (the **colony network** tile, bottom row). Your HQ runs **3 colonies besides its own, 6 at tier 2, 10 at tier 3**. Colonies in another dimension can't be linked: no road goes there. Unlinked colonies work exactly as before.
+
+### The Governor's Table
+
+| Tab | What's there |
+|---|---|
+| **The colonies** | Every colony you own, the capital first: level, buildings, workers (and empty jobs), wages, what's in store, its role, whether its mayor governs. Glowing ones have trouble: empty jobs, or a strike |
+| **On the road** | Convoys under way: what, from where to where, when they arrive |
+| **Standing orders** | Convoys that leave every day. Shift-click one to cancel it |
+| **Reports** | What the mayors and the carriers wrote: arrivals, hirings, orders that couldn't go |
+
+Click a colony to manage it:
+
+- **Open its Town Hall**: the counter, by letter, from wherever you are. Buy blueprints, upgrade, replace workers, repair, demolish.
+- **Link / unlink** it.
+- **Role** (optional): see below.
+- **Governor**: whether its mayor governs (see below).
+- **Send a convoy from here.**
+- What's in its storehouses, the biggest piles first.
+
+### Convoys
+
+Goods from one colony's storehouses to another's, between linked colonies:
+
+1. Open the colony the goods are in, click **Send a convoy from here**.
+2. Top row: **where to** (with the distance and the days on the road). Middle: **what** (click a pile in its storehouses). Bottom: **how many** (−64, −8, +8, +64, or all of it) and **just once** or **every day**.
+3. Click **Send**.
+
+| | |
+|---|---|
+| **Time** | 1 day on the road, plus 1 for every 1,500 blocks. A "day" is Colonycraft's payday (every morning). Convoys unload at the destination at the start of its payday, in time for that day's work (a distillery gets its wheat before it fires up) |
+| **Fee** | ₥0.50 a stack per 100 blocks, at least ₥5, paid when the convoy leaves. **Half price** when both colonies have a **Train Station** (or both a **Harbor Office**): your own lines carry it. A **Port** at either end takes a quarter off |
+| **Full storehouses** | What doesn't fit at the destination goes back to where it came from; if there's no room there either, it's sold on the quay at Market prices |
+| **Standing orders** | Every morning, after the colony's work and **before its storehouses auto-sell**, up to the amount leaves (whatever there is, nothing if there's none). The fee is paid each time |
+
+### Roles
+
+A linked colony can take on a **role**, if you want it to. It's optional, per colony, and only counts while the colony is in the network. The first role is free; changing it later costs ₥500.
+
+| Role | Better | Worse |
+|---|---|---|
+| **Breadbasket** | Farms, ranches, apiaries, fisheries and tobacco farms +25% | Mines and lumber camps -15% |
+| **Mining Town** | Mines and lumber camps +25% | Farms, ranches, apiaries, fisheries and tobacco farms -15% |
+| **Manufactory** | Workshops get through 40% more | Everything gathered -10% |
+| **Market Town** | Auto-sales +10%, the town street earns 20% more | Everything gathered -10% |
+| **Port** | Fisheries +25%, the harbor's bonus doubled, convoys to and from it cost a quarter less | Everything else gathered -10% |
+
+A Breadbasket feeding a Manufactory feeding a Market Town is the idea.
+
+### Governors
+
+In a linked colony, the **mayor** (the Town Hall's crew) is the governor. Every morning, after payday, a governing mayor **rehires every worker who died**, at the usual replacement price (the chapel's discount counts), as long as you can pay. If the colony is far away and nobody's there, it's woken up for a moment so the new hands can be shown in. Each hiring goes in the reports.
+
+Switch it off per colony on the Governor's Table if you'd rather replace workers yourself. A colony without a living mayor has no governor: the reports will say so. Replace the mayor at its Town Hall.
 
 ## Defences
 

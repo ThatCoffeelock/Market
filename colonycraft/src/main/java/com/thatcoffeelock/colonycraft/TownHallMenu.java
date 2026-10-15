@@ -52,10 +52,21 @@ final class TownHallMenu extends ChestMenu {
 	private @Nullable Colony.Building selected;
 	private int page;
 	private boolean confirmDemolish;
+	/** Opened from the Governor's Table at the HQ: it stays open wherever you are. */
+	private boolean remote;
 
 	static void open(ServerPlayer player, Colony colony) {
 		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new TownHallMenu(id, player, colony),
 			Component.literal(colony.name + " · Town Hall").withStyle(ChatFormatting.DARK_GREEN)));
+	}
+
+	/** The Town Hall's counter, from the Governor's Table: works from anywhere. */
+	static void openRemote(ServerPlayer player, Colony colony) {
+		player.openMenu(new SimpleMenuProvider((id, inv, p) -> {
+			TownHallMenu menu = new TownHallMenu(id, player, colony);
+			menu.remote = true;
+			return menu;
+		}, Component.literal(colony.name + " · Town Hall (by letter)").withStyle(ChatFormatting.DARK_GREEN)));
 	}
 
 	static void openStorage(ServerPlayer player, Colony.Building store) {
@@ -191,6 +202,8 @@ final class TownHallMenu extends ChestMenu {
 		}
 		shopButton(46, BuildingType.COMPANY_HOUSE);
 		shopButton(47, BuildingType.TAVERN);
+		shopButton(48, BuildingType.HEADQUARTERS);
+		networkButton(50);
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		page = Math.min(page, pages - 1);
@@ -272,6 +285,48 @@ final class TownHallMenu extends ChestMenu {
 		button(slot, icon(type.icon, t(name, ChatFormatting.AQUA, ChatFormatting.BOLD), lore), () -> buy(type, price));
 	}
 
+	/** This colony and the network: linked or not (click to link or unlink), and its role. */
+	private void networkButton(int slot) {
+		Colony.Building hq = Network.hq(viewer.getUUID());
+		List<Component> lore = new ArrayList<>();
+		if (hq == null) {
+			lore.add(t("No Headquarters yet. Build one (it's", ChatFormatting.GRAY));
+			lore.add(t("for sale here) to run your colonies as one:", ChatFormatting.GRAY));
+			lore.add(t("convoys, roles, mayors who govern.", ChatFormatting.GRAY));
+			button(slot, icon(Items.MAP, t("The colony network", ChatFormatting.AQUA, ChatFormatting.BOLD), lore), null);
+			return;
+		}
+		boolean home = hq.colony == colony;
+		boolean linked = Network.linked(colony);
+		lore.add(t(home ? colony.name + " is home to your Headquarters." : linked ? "Linked to your Headquarters in " + hq.colony.name + "."
+			: "Not linked to your Headquarters in " + hq.colony.name + ".", linked ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+		if (linked) {
+			Network.Role role = Network.role(colony);
+			lore.add(t("Role: " + role.title, ChatFormatting.AQUA));
+			lore.add(t("Governor: " + (Network.governs(colony) ? "the mayor rehires on their own" : "the mayor waits for orders"), ChatFormatting.GRAY));
+		}
+		lore.add(t("Run it all from the Governor's Table at the HQ.", ChatFormatting.DARK_GRAY));
+		if (!home) {
+			lore.add(t(linked ? "Click to unlink this colony." : "Click to link this colony.", ChatFormatting.YELLOW));
+		}
+		ItemStack stack = icon(linked ? Items.FILLED_MAP : Items.MAP, t("The colony network", ChatFormatting.AQUA, ChatFormatting.BOLD), lore);
+		button(slot, stack, home ? null : () -> {
+			if (linked) {
+				Network.unlink(colony);
+				viewer.sendSystemMessage(Component.literal(colony.name + " leaves the network.").withStyle(ChatFormatting.YELLOW));
+			} else {
+				String why = Network.link(colony);
+				if (why != null) {
+					nope(why);
+					return;
+				}
+				kaching();
+				viewer.sendSystemMessage(Component.literal(colony.name + " joins the network.").withStyle(ChatFormatting.GREEN));
+			}
+			render();
+		});
+	}
+
 	private void shacklesButton(int slot) {
 		long price = Bank.cents(Prison.SHACKLES_PRICE);
 		ItemStack icon = Prison.emptyShackles();
@@ -338,6 +393,9 @@ final class TownHallMenu extends ChestMenu {
 			case TAVERN -> "Pours your bottles for the town (" + Street.pours(1) + " a day, for " + Math.round(Street.POUR_MARKUP * 100)
 				+ "% of the Market price), and the barkeep sells drinks to anyone.";
 			case COMPANY_HOUSE -> "A canal house with a Company Desk inside: your Compagnie runs one more job at once, keeps more agents and pays 10% less wages per tier.";
+			case HEADQUARTERS -> "The seat of your colonial network (one per governor-general): every colony on one table, convoys between "
+				+ "their storehouses, roles, and mayors who rehire on their own. Runs " + Network.capacity(1) + " colonies besides its own, "
+				+ Network.capacity(3) + " at tier 3.";
 		};
 	}
 
@@ -549,6 +607,11 @@ final class TownHallMenu extends ChestMenu {
 					t("+1 job slot, +" + b.tier + " agents, wages -" + 10 * b.tier + "%.", ChatFormatting.GOLD))), null);
 			case LIBRARY -> button(32, icon(Items.ENCHANTING_TABLE, t("Reading room", ChatFormatting.AQUA, ChatFormatting.BOLD),
 				List.of(t("The enchanting table has all its bookshelves:", ChatFormatting.GRAY), t("level 30 enchantments.", ChatFormatting.GRAY))), null);
+			case HEADQUARTERS -> button(32, icon(Items.FILLED_MAP, t("The Governor's Table", ChatFormatting.GOLD, ChatFormatting.BOLD),
+				List.of(t("Every colony on one table: convoys, roles, governors.", ChatFormatting.GRAY),
+					t("Runs " + Network.capacity(b.tier) + " colonies besides " + colony.name + ".", ChatFormatting.GRAY),
+					t("It's the lectern on the map in the hall.", ChatFormatting.DARK_GRAY), t("Click to open it.", ChatFormatting.YELLOW))),
+				() -> ColonycraftMod.nextTick(() -> NetworkMenu.open(viewer)));
 			default -> {
 			}
 		}
@@ -589,6 +652,8 @@ final class TownHallMenu extends ChestMenu {
 				+ (next == 3 ? ", and guest rooms upstairs." : ", and more tables.");
 			case COMPANY_HOUSE -> "Your Compagnie keeps " + next + " more agents and pays " + 10 * next + "% less wages"
 				+ (next == 3 ? ", and a trophy fit for the VOC." : ", and a map room.");
+			case HEADQUARTERS -> "Runs " + Network.capacity(next) + " colonies besides its own"
+				+ (next == 3 ? ", in a gilded hall." : ", with map tables and a gallery of banners.");
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}
@@ -630,6 +695,11 @@ final class TownHallMenu extends ChestMenu {
 	}
 
 	private void buy(BuildingType type, long price) {
+		Colony.Building hq = type == BuildingType.HEADQUARTERS ? Network.hq(viewer.getUUID()) : null;
+		if (hq != null) {
+			nope("You already have Headquarters, in " + hq.colony.name + ". One seat of government is enough.");
+			return;
+		}
 		if (!Bank.pay(viewer, price)) {
 			nope("You need " + Bank.format(price) + " for that.");
 			return;
@@ -779,7 +849,7 @@ final class TownHallMenu extends ChestMenu {
 
 	@Override
 	public boolean stillValid(Player player) {
-		return Colonies.all().contains(colony) && colony.claims(player.blockPosition());
+		return Colonies.all().contains(colony) && (remote || colony.claims(player.blockPosition()));
 	}
 
 	@Override

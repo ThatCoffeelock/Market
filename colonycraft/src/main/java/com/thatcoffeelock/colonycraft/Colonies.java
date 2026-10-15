@@ -106,6 +106,7 @@ public final class Colonies {
 			}
 		}
 		Prison.index(COLONIES);
+		Network.load(s);
 		RichesLink.publishPools();
 		ColonycraftMod.LOG.info("Loaded {} colonies", COLONIES.size());
 	}
@@ -113,6 +114,7 @@ public final class Colonies {
 	static void save() {
 		if (server != null) {
 			ColonyStore.save(server, COLONIES, clock);
+			Network.save();
 			dirty = false;
 		}
 	}
@@ -124,6 +126,7 @@ public final class Colonies {
 		JOBS.clear();
 		Prison.stop();
 		save();
+		Network.stop();
 		server = null;
 		PENDING.clear();
 		ORPHANS.clear();
@@ -289,6 +292,10 @@ public final class Colonies {
 		Colony target = null;
 		if (!type.available()) {
 			return "The " + type.displayName + " needs the Havana mod for its tobacco.";
+		}
+		Colony.Building hq = type == BuildingType.HEADQUARTERS ? Network.hq(player.getUUID()) : null;
+		if (hq != null) {
+			return "You already have Headquarters, in " + hq.colony.name + ". One seat of government is enough.";
 		}
 		if (type == BuildingType.TOWN_HALL) {
 			for (Colony c : COLONIES) {
@@ -1136,6 +1143,7 @@ public final class Colonies {
 		colony.buildings.remove(b);
 		if (colony.buildings.isEmpty()) {
 			COLONIES.remove(colony);
+			Network.forget(colony);
 		}
 		long refund = Math.round(b.spent * REFUND);
 		Bank.credit(colony.owner, colony.ownerName, refund);
@@ -1147,6 +1155,7 @@ public final class Colonies {
 
 	/** Once a day: pay wages, gather, process in workshops, auto-sell. */
 	static void payday() {
+		Network.newDay();
 		for (Colony c : new ArrayList<>(COLONIES)) {
 			try {
 				payday(c);
@@ -1159,6 +1168,8 @@ public final class Colonies {
 	}
 
 	static void payday(Colony c) {
+		// convoys that have arrived unload first (whatever the wages): in time for today's work
+		Network.arrivals(c);
 		// Governance (Skills mod): cheaper wages, and every payday is experience
 		long wages = Math.round(c.dailyWages() * (1.0 - SkillsLink.bonus(c.owner, "governance/passive")));
 		if (wages > 0 && !Bank.charge(c.owner, wages)) {
@@ -1185,9 +1196,10 @@ public final class Colonies {
 		for (Colony.Building b : c.buildings) {
 			List<ItemStack> harvest = b.type == BuildingType.TOBACCO_FARM ? Production.tobacco(b.tier, b.alive(), RANDOM)
 				: Production.gather(b.type, b.tier, b.alive(), RANDOM);
+			double role = Network.gather(c, b.type);
 			for (ItemStack stack : harvest) {
-				if (taskmaster > 0) {
-					stack.setCount(Math.min(stack.getMaxStackSize(), (int) Math.round(stack.getCount() * (1.0 + taskmaster))));
+				if (taskmaster > 0 || role != 1.0) {
+					stack.setCount(Math.max(1, Math.min(stack.getMaxStackSize(), (int) Math.round(stack.getCount() * (1.0 + taskmaster) * role))));
 				}
 				stow(stores, stack); // what doesn't fit rots in the field
 			}
@@ -1221,7 +1233,7 @@ public final class Colonies {
 			if (b.type != BuildingType.WORKSHOP || b.alive() == 0) {
 				continue;
 			}
-			int budget = (int) (b.alive() * Production.WORKSHOP_PER_WORKER * Production.tierBonus(b.tier));
+			int budget = (int) (b.alive() * Production.WORKSHOP_PER_WORKER * Production.tierBonus(b.tier) * Network.workshop(c));
 			for (Production.Recipe r : Production.WORKSHOP) {
 				long have = count(stores, r.input());
 				int batches = (int) Math.min(budget / r.in(), have / r.in());
@@ -1245,13 +1257,15 @@ public final class Colonies {
 				earned += pour(stores, Street.pours(b.tier));
 			}
 		}
+		// the network's standing orders load up and leave before anything is sold
+		Network.dispatch(c);
 		// storehouses with autosell on sell everything the Market will buy; a harbor gets them better prices
-		double harbor = harborBonus(c);
+		double harbor = harborBonus(c) * Network.harbor(c);
 		for (Colony.Building s : stores) {
 			if (!s.autosell) {
 				continue;
 			}
-			double bonus = (s.tier >= 3 ? 1.1 : 1.0) * (1.0 + harbor);
+			double bonus = (s.tier >= 3 ? 1.1 : 1.0) * (1.0 + harbor) * Network.autosell(c);
 			for (int i = 0; i < s.storage.getContainerSize(); i++) {
 				ItemStack stack = s.storage.getItem(i);
 				long value = Bank.sellValue(stack);
@@ -1275,7 +1289,7 @@ public final class Colonies {
 		// the trading post, the bank and the museum earn their keep; the masters restock
 		ServerLevel here = level(c);
 		for (Colony.Building b : c.buildings) {
-			earned += Street.earnings(here, b);
+			earned += Math.round(Street.earnings(here, b) * Network.street(c));
 			if (b.type == BuildingType.TRADING_POST && here != null) {
 				Street.restock(here, b);
 			}
@@ -1283,6 +1297,8 @@ public final class Colonies {
 		if (earned > 0) {
 			Bank.credit(c.owner, c.ownerName, earned);
 		}
+		// the mayor governs: dead workers rehired (in a networked colony)
+		Network.govern(c);
 	}
 
 	/**
@@ -1570,6 +1586,17 @@ public final class Colonies {
 			return InteractionResult.SUCCESS;
 		}
 		boolean counter = b.type == BuildingType.TOWN_HALL && pos.equals(b.world(BuildingType.COUNTER));
+		if (b.type == BuildingType.HEADQUARTERS && pos.equals(b.world(BuildingType.HQ_TABLE))) {
+			if (hand == InteractionHand.MAIN_HAND) {
+				if (b.colony.isOwner(player.getUUID())) {
+					NetworkMenu.open(player);
+				} else {
+					player.sendSystemMessage(Component.literal("The Governor's Table of " + b.colony.ownerName + "'s colonies. Not your papers.")
+						.withStyle(ChatFormatting.YELLOW));
+				}
+			}
+			return InteractionResult.SUCCESS;
+		}
 		boolean store = b.type == BuildingType.STOREHOUSE && level.getBlockState(pos).is(Blocks.BARREL);
 		int cell = Prison.cellAt(b, pos);
 		if (!counter && !store && cell < 0) {
