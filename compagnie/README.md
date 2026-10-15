@@ -143,6 +143,12 @@ On the due day they pay up, or **default**. Then:
 
 Reputation comes from jobs (60 for a triumph, 40 a success, 10 a partial, plus 1 per ₥20 of profit on it), loans repaid (15) and forged charters.
 
+## De Hooghe Heeren
+
+With [De Hooghe Heeren](../hooghe-heeren/README.md), the desk gets a **banner tab** in its top-right corner (where the Close button was): rival houses to trade with, plot against and go to war with. Their covert errands (spying, sabotage, burglary, forged letters, assassination) are run by **your agents**, with the same advisors, odds and fates as a job; an agent away on one shows "Away on an errand for the Heeren". A rival's saboteurs can make your trade jobs 10% harder for a few days.
+
+Other mods can do the same through `CompagnieHooks`: a tab of their own on the desk, a turn at every dawn, a say in the job odds, and agents to send on errands (and bring home).
+
 ## Skills
 
 With [Skills](../skills/README.md), running the company levels **Enterprise**: +15% odds at level 100, and the perks **Broker** (cheaper agents), **Chartered** (more Marks and spoils from jobs) and **Iron Ledger** (a chance a defaulter pays after all).

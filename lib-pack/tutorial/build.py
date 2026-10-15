@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.24.0"
+VERSION = "1.25.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -27,7 +27,7 @@ I = {
  "quartzpillar": ("QzP", "#ece6dc", "Quartz Pillar", True),
  "membrane": ("Phm", "#b9c7a8", "Phantom Membrane", True), "netherite": ("Nthr", "#4a3f3f", "Netherite Ingot", False),
  "tnt": ("TNT", "#c8322a", "TNT", False), "endcrystal": ("Crys", "#c49ad8", "End Crystal", True),
- "smoker": ("Smk", "#5b4a3a", "Smoker", False),
+ "smoker": ("Smk", "#5b4a3a", "Smoker", False), "bell": ("Bell", "#e6b93a", "Bell", True),
  "waterbucket": ("Wtr", "#3f76e4", "Water Bucket", False),
  "crossbow": ("Xbow", "#6b4a2b", "Crossbow", False), "sword": ("Swd", "#cfcfcf", "Iron Sword", True), "target": ("Tgt", "#d23a3a", "Target", False),
 }
@@ -169,6 +169,19 @@ MODS = [
         "Grow from a Charter to the <b>VOC</b>: more job slots, more agents, bigger loans. With Skills, it levels <b>Enterprise</b>.",
         "With the other mods: export your genever and cigars, charter out your ship, survey for oil, bring settlers home in sacks, find relics. A Colonycraft <b>Company House</b> adds a job slot and cuts wages."],
   cmds="/compagnie · /compagnie news · /compagnie telegrams"),
+ dict(name="De Hooghe Heeren", colour="#8a3fa0", tag="Rival houses for your Compagnie: trade with them, plot against them, feast them, or go to war and lead your regiments in the field.",
+  recipes=[shapeless("Audience Bell", ["bell","gold","paper"], "Bell")],
+  steps=["Open your <b>Company Desk</b> and click the <b>banner tab</b> in the top-right corner: three to five rival houses, each with a treasury, an income and regiments.",
+         "They play by your rules: income pays regiments (<b>₥500</b> each, <b>₥25 a day</b>), and <b>no treasury means no army</b>. Every dawn each house does one thing it planned.",
+         "Open a <b>dossier</b>: gifts, trade and peace pacts, alliances, tribute, war and peace. Their <b>opinion</b> of you comes from what they remember.",
+         "Send your Compagnie <b>agents</b> on errands: spy, sabotage, bandits, burglary, bribery, forged letters, assassination.",
+         "At war, the armies skirmish every dawn. When a <b>battle</b> is set, be at the field at <b>noon</b> and fight in it yourself: it decides the day.",
+         "Ride to a rival's <b>seat</b> to talk in person, or hang an <b>Audience Bell</b> and invite them to your hall."],
+  tips=["<b>Honour</b> (keeping your word) wins pacts; <b>Fear</b> makes demands stick. Diplomat, Iron Ruler, Cutthroat... or the Snake.",
+        "Spy on a house to see its real purse, army, temperament and <b>plans</b>. Rumours leak anyway.",
+        "Feast your guests with food, Proost spirits and Havana cigars (not the spirits for a Pious one). Or bar the doors: they never forget.",
+        "At war, storm their seat: break the garrison, then loot the treasury chest by the high table."],
+  cmds="/heeren · /heeren court · /heeren dispatches"),
  dict(name="Warehouse", colour="#c07a2c", tag="Big, sorted storage: tens of thousands of items, fed by hand, hoppers, trains and ships.",
   recipes=[shaped("Warehouse Core", ["IBI","CTC","ICI"], dict(I="iron",B="book",C="chest",T="carto"), "Core"),
            shapeless("Storage Rack", ["barrel","chest","iron","iron"], "Rack"),
@@ -384,7 +397,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Nineteen mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Twenty mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

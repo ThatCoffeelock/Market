@@ -23,6 +23,7 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Sellswords](../sellswords/README.md) | Hire Dutch mercenaries with crossbows and swords: they follow you, hold a spot, hunt with you, guard your walls and villagers, board your ships and airships, and climb the ranks for gold to Musketeer or Foestopper Bulwark |
 | [Proost](../proost/README.md) | Ferment wheat, sugar cane and apples into mash, distill genever, whisky, rum and brandy in a cauldron over a fire, age them in oak casks, and drink until the world spins (Dutch Courage included) |
 | [De Compagnie](../compagnie/README.md) | Run a shady VOC trading company from a Company Desk: hire agents, bankroll 36 trade, raid, explore and smuggling jobs three ways, answer telegrams from the road, lend money to dubious borrowers and send collectors after them, grow from a Charter to the VOC |
+| [De Hooghe Heeren](../hooghe-heeren/README.md) | Rival houses behind a tab on the Company Desk: lords with treasuries, regiments and long memories who play by your rules. Gifts, pacts, alliances and tribute; spies, saboteurs, forged letters and assassins run by your agents; wars with pitched battles at noon you can ride out to and fight in; seats in the world to visit (or storm), and an Audience Bell hall to feast your guests in (or bar the doors) |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 
@@ -42,4 +43,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all nineteen mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all nineteen mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all twenty mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twenty mods load and the server starts.

@@ -329,7 +329,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 1.24.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie</span>
+    <span>LIB Pack 1.25.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie, De Hooghe Heeren</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -344,7 +344,7 @@ const I = {
   furnace_minecart: ["FMc", "#585858"], chest_minecart: ["CMc", "#8a6a3a"], redstone_block: ["RsB", "#b51d12"], rail: ["Rail", "#7d6a52"],
   barrel: ["Brl", "#8d6236"], hay_block: ["Hay", "#c9a82b"],
   glass: ["Gls", "#bfe3ee"], minecart: ["Mc", "#7b7b7b"], furnace: ["Frn", "#6a6a6a"],
-  flint: ["Flt", "#3b3b40"], copper_ingot: ["Cu", "#c86f4a"], paper: ["Ppr", "#f2efe6"], iron_nugget: ["Nug", "#d6d6d6"], gravel: ["Grv", "#8a8580"],
+  flint: ["Flt", "#3b3b40"], copper_ingot: ["Cu", "#c86f4a"], paper: ["Ppr", "#f2efe6"], bell: ["Bell", "#e6b93a"], iron_nugget: ["Nug", "#d6d6d6"], gravel: ["Grv", "#8a8580"],
   crafting_table: ["Wbn", "#9c6b3a"], book: ["Book", "#7a3b2a"], cartography_table: ["Map", "#7b5a3a"], lantern: ["Lntn", "#e0a33a"], lead: ["Lead", "#a58a5e"],
   phantom_membrane: ["Phm", "#b9c7a8"], netherite_ingot: ["Nthr", "#4a3f3f"], blast_furnace: ["BlF", "#4e4e55"], diamond_block: ["DiB", "#5fd8cf"],
   piston: ["Pstn", "#9a7d4f"], tnt: ["TNT", "#c8322a"], end_crystal: ["Crys", "#c49ad8"],
@@ -356,7 +356,7 @@ const names = {
   dispenser: "Dispenser", iron_ingot: "Iron Ingot", gunpowder: "Gunpowder", furnace_minecart: "Minecart with Furnace",
   chest_minecart: "Minecart with Chest", redstone_block: "Block of Redstone", rail: "Rail", barrel: "Barrel", hay_block: "Hay Bale",
   glass: "Glass", minecart: "Minecart", furnace: "Furnace",
-  flint: "Flint", copper_ingot: "Copper Ingot", paper: "Paper", iron_nugget: "Iron Nugget", gravel: "Gravel",
+  flint: "Flint", copper_ingot: "Copper Ingot", paper: "Paper", bell: "Bell", iron_nugget: "Iron Nugget", gravel: "Gravel",
   crafting_table: "Crafting Table", book: "Book", cartography_table: "Cartography Table", lantern: "Lantern", lead: "Lead",
   phantom_membrane: "Phantom Membrane", netherite_ingot: "Netherite Ingot", blast_furnace: "Blast Furnace", diamond_block: "Block of Diamond",
   piston: "Piston", tnt: "TNT", end_crystal: "End Crystal",
@@ -472,6 +472,19 @@ const MODS = [
           "Colonycraft Company House: a built-in desk, +1 job slot, cheaper wages",
           "Charter → Trading House → Compagnie → VOC. With Skills: Enterprise"],
     cmds: ["/compagnie", "/compagnie news", "/compagnie telegrams", ["/compagnie give desk", true], ["/compagnie dawn", true]] },
+  { name: "De Hooghe Heeren", id: "hoogheheeren", colour: "#8a3fa0", tag: "Rival houses behind a tab on the Company Desk: trade, pacts, spies, feasts, treachery and war.",
+    recipes: [{ name: "Audience Bell", shapeless: ["bell", "gold_ingot", "paper"], out: ["Bell", "#8a3fa0"] }],
+    how: ["Company Desk → the banner tab (top right): 3 to 5 rival houses, more as the company grows",
+          "Same rules as you: income pays regiments (₥500, then ₥25 a day). No treasury, no army",
+          "Opinion: Blood Feud to Sworn Ally, built from what they remember. Betrayals never fade",
+          "Honour wins pacts, Fear makes demands stick. Diplomat, Iron Ruler, Cutthroat, Snake",
+          "Dossier: gifts, trade and peace pacts, alliances, tribute, war, peace, directions to their seat",
+          "Errands by your agents: spy (read their plans), sabotage, bandits, rob, bribe, forge a letter, assassinate",
+          "War: skirmishes at dawn. Battles at noon: be within 64 blocks of the field and fight in it",
+          "Their seat: talk to the lord in person (+15% on proposals). At war: beat the garrison, loot the treasury chest",
+          "Audience Bell: invite a house to your hall. Feast them (food, spirits, cigars), see them off, or bar the doors",
+          "Dispatches: pacts offered, tribute demanded, spies caught, calls to arms, peace terms. /heeren dispatches"],
+    cmds: ["/heeren", "/heeren court", "/heeren dispatches", "/heeren answer", ["/heeren give bell", true], ["/heeren intel", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [
       { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },
