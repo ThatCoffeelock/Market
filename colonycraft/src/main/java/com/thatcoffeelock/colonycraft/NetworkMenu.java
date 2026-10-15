@@ -33,7 +33,7 @@ final class NetworkMenu extends ChestMenu {
 	private static final int[] GRID = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
 
 	enum Page {
-		COLONIES, COLONY, ROLES, SEND, CONVOYS, ORDERS, REPORT
+		COLONIES, COLONY, ROLES, SEND, CONVOYS, ORDERS, REPORT, TREASURY
 	}
 
 	@FunctionalInterface
@@ -160,6 +160,7 @@ final class NetworkMenu extends ChestMenu {
 			case CONVOYS -> convoys();
 			case ORDERS -> orders();
 			case REPORT -> report();
+			case TREASURY -> treasury();
 		}
 	}
 
@@ -186,6 +187,9 @@ final class NetworkMenu extends ChestMenu {
 			() -> go(Page.ORDERS));
 		button(3, tab("written_book", "Reports", page == Page.REPORT, List.of(t("What the mayors and carriers wrote.", ChatFormatting.GRAY))),
 			() -> go(Page.REPORT));
+		long total = Bank.balance(viewer) + Network.vaults(viewer.getUUID());
+		button(5, tab("gold_ingot", "The treasury", page == Page.TREASURY, List.of(t("Everything you're worth: " + Bank.format(total), ChatFormatting.GOLD),
+			t("Daily income, wages, what's in the vaults.", ChatFormatting.GRAY))), () -> go(Page.TREASURY));
 		button(8, icon(Items.BARRIER, t("Close", ChatFormatting.RED), List.of()), () -> ColonycraftMod.nextTick(viewer::closeContainer));
 		button(49, icon(Items.SUNFLOWER, t("Your balance", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(t(Bank.format(Bank.balance(viewer)), ChatFormatting.GOLD))),
 			null);
@@ -210,6 +214,12 @@ final class NetworkMenu extends ChestMenu {
 		lore.add(t("Level " + c.tier() + " · " + c.slotsUsed() + " / " + c.maxBuildings() + " buildings", ChatFormatting.GRAY));
 		lore.add(t("Workers " + (jobs - dead) + " / " + jobs + (dead > 0 ? " · " + dead + " jobs empty!" : ""), dead > 0 ? ChatFormatting.RED : ChatFormatting.GRAY));
 		lore.add(t("Wages " + Bank.format(c.dailyWages()) + " a day", ChatFormatting.GRAY));
+		long[] book = Network.of(c.owner).books.get(c.id);
+		if (book != null) {
+			long net = Network.net(c);
+			lore.add(t("Last payday: +" + Bank.format(book[0]) + " earned, -" + Bank.format(book[1] + book[2] + book[3]) + " costs = "
+				+ (net >= 0 ? "+" : "") + Bank.format(net), net >= 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+		}
 		if (c.striking) {
 			lore.add(t("ON STRIKE: wages unpaid", ChatFormatting.RED, ChatFormatting.BOLD));
 		}
@@ -235,16 +245,12 @@ final class NetworkMenu extends ChestMenu {
 
 	private void colonies() {
 		Colony.Building hq = Network.hq(viewer.getUUID());
-		if (hq == null) {
-			button(22, icon(Items.BARRIER, t("No Headquarters", ChatFormatting.RED), List.of(t("Your Headquarters is gone.", ChatFormatting.GRAY))), null);
-			return;
-		}
 		int i = 0;
 		for (Colony c : Network.colonies(viewer.getUUID())) {
 			if (i >= GRID.length) {
 				break;
 			}
-			boolean home = hq.colony == c;
+			boolean home = hq != null && hq.colony == c;
 			List<Component> lore = summary(c);
 			lore.add(t("Click to manage it.", ChatFormatting.YELLOW));
 			ItemStack stack = icon(home ? Items.FILLED_MAP : Network.linked(c) ? Items.BELL : Items.MAP, t(c.name, home ? ChatFormatting.GOLD
@@ -259,11 +265,19 @@ final class NetworkMenu extends ChestMenu {
 				page = Page.COLONY;
 			});
 		}
-		button(4, glow(icon(Items.FILLED_MAP, t("The Governor's Table", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
+		if (i == 0) {
+			button(22, icon(Items.BARRIER, t("No colonies", ChatFormatting.GRAY), List.of(t("Found one with a Colony Charter.", ChatFormatting.DARK_GRAY))), null);
+		}
+		button(13, glow(icon(Items.FILLED_MAP, t("The Governor's Table", ChatFormatting.GOLD, ChatFormatting.BOLD), hq != null ? List.of(
 			t("Headquarters in " + hq.colony.name + " (tier " + hq.tier + ")", ChatFormatting.GRAY),
 			t("Runs " + Network.capacity(hq.tier) + " colonies besides its own.", ChatFormatting.GRAY),
 			t("Linked colonies send each other convoys, may take", ChatFormatting.DARK_GRAY),
 			t("a role, and their mayors govern for you.", ChatFormatting.DARK_GRAY),
+			t("Glowing: trouble (empty jobs, a strike).", ChatFormatting.DARK_GRAY)) : List.of(
+			t("No Headquarters: every colony at a glance, its", ChatFormatting.GRAY),
+			t("money, its Town Hall by letter. Build Headquarters", ChatFormatting.GRAY),
+			t("(any Town Hall sells it) to link them: convoys,", ChatFormatting.DARK_GRAY),
+			t("roles, and mayors who govern.", ChatFormatting.DARK_GRAY),
 			t("Glowing: trouble (empty jobs, a strike).", ChatFormatting.DARK_GRAY)))), null);
 	}
 
@@ -547,6 +561,82 @@ final class NetworkMenu extends ChestMenu {
 				t("Send a convoy \"every day\" from a colony's page:", ChatFormatting.DARK_GRAY), t("wheat to the distillery, ore to the workshop...", ChatFormatting.DARK_GRAY))),
 				null);
 		}
+	}
+
+	private void treasury() {
+		java.util.UUID owner = viewer.getUUID();
+		Network.Net net = Network.of(owner);
+		long cash = Bank.balance(viewer);
+		long vaults = Network.vaults(owner);
+		List<Component> worth = new ArrayList<>();
+		worth.add(t("In hand (your Market balance): " + Bank.format(cash), ChatFormatting.GOLD));
+		worth.add(t("In your banks' vaults: " + Bank.format(vaults), ChatFormatting.GOLD));
+		for (Colony c : Colonies.ownedBy(owner)) {
+			for (Colony.Building b : c.buildings) {
+				if (b.type == BuildingType.BANK && b.vault > 0) {
+					worth.add(t("  " + c.name + ": " + Bank.format(b.vault), ChatFormatting.DARK_GRAY));
+				}
+			}
+		}
+		worth.add(t("(A vault is open to anyone at the teller.)", ChatFormatting.DARK_GRAY));
+		button(20, glow(icon(Items.GOLD_BLOCK, t("Worth: " + Bank.format(cash + vaults), ChatFormatting.GOLD, ChatFormatting.BOLD), worth)), null);
+
+		long earned = 0;
+		long wages = 0;
+		long fees = 0;
+		long hires = 0;
+		List<Component> per = new ArrayList<>();
+		for (Colony c : Colonies.ownedBy(owner)) {
+			long[] b = net.books.get(c.id);
+			if (b == null) {
+				continue;
+			}
+			earned += b[0];
+			wages += b[1];
+			fees += b[2];
+			hires += b[3];
+			long n = Network.net(c);
+			per.add(t("  " + c.name + ": " + (n >= 0 ? "+" : "") + Bank.format(n), n >= 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+		}
+		long netDay = earned - wages - fees - hires;
+		List<Component> books = new ArrayList<>();
+		books.add(t("Earned (auto-sales, the town street, taverns): +" + Bank.format(earned), ChatFormatting.GREEN));
+		books.add(t("Wages: -" + Bank.format(wages), ChatFormatting.RED));
+		books.add(t("Convoys: -" + Bank.format(fees), ChatFormatting.RED));
+		books.add(t("Rehiring the dead: -" + Bank.format(hires), ChatFormatting.RED));
+		books.add(t("By colony:", ChatFormatting.WHITE));
+		books.addAll(per);
+		button(22, glow(icon(Items.WRITABLE_BOOK, t("The colonies' last payday: " + (netDay >= 0 ? "+" : "") + Bank.format(netDay),
+			netDay >= 0 ? ChatFormatting.GREEN : ChatFormatting.RED, ChatFormatting.BOLD), books)), null);
+
+		List<Component> all = new ArrayList<>();
+		if (net.balanceKnown) {
+			all.add(t("Your balance moved " + (net.balanceChange >= 0 ? "+" : "") + Bank.format(net.balanceChange), net.balanceChange >= 0
+				? ChatFormatting.GREEN : ChatFormatting.RED));
+			all.add(t("between the last two paydays, from everything:", ChatFormatting.GRAY));
+			all.add(t("colonies, the Compagnie, oil, sales, spending.", ChatFormatting.GRAY));
+		} else {
+			all.add(t("Known after the next two paydays.", ChatFormatting.GRAY));
+		}
+		button(24, icon(Items.CLOCK, t("Your whole day", ChatFormatting.AQUA, ChatFormatting.BOLD), all), null);
+
+		long wageBill = 0;
+		for (Colony c : Colonies.ownedBy(owner)) {
+			wageBill += c.dailyWages();
+		}
+		long orders = 0;
+		for (Network.Order o : net.orders) {
+			Colony from = Network.colony(o.from);
+			Colony to = Network.colony(o.to);
+			if (from != null && to != null) {
+				orders += Network.fee(from, to, o.amount);
+			}
+		}
+		button(31, icon(Items.PAPER, t("Tomorrow's bills", ChatFormatting.YELLOW, ChatFormatting.BOLD), List.of(
+			t("Wages: " + Bank.format(wageBill), ChatFormatting.GRAY),
+			t("Standing orders (full loads): up to " + Bank.format(orders), ChatFormatting.GRAY),
+			t(cash >= wageBill + orders ? "Covered." : "Short! Unpaid colonies go on strike.", cash >= wageBill + orders ? ChatFormatting.GREEN
+				: ChatFormatting.RED))), null);
 	}
 
 	private void report() {

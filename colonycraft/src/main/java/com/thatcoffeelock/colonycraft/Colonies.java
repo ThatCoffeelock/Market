@@ -1170,6 +1170,7 @@ public final class Colonies {
 
 	static void payday(Colony c) {
 		// convoys that have arrived unload first (whatever the wages): in time for today's work
+		Network.openBooks(c);
 		Network.arrivals(c);
 		// Governance (Skills mod): cheaper wages, and every payday is experience
 		long wages = Math.round(c.dailyWages() * (1.0 - SkillsLink.bonus(c.owner, "governance/passive")));
@@ -1186,6 +1187,7 @@ public final class Colonies {
 			return;
 		}
 		c.striking = false;
+		Network.wagesPaid(c, wages);
 		SkillsLink.xp(c.owner, "governance", wages / 100.0 * 1.5);
 		double taskmaster = SkillsLink.bonus(c.owner, "governance/taskmaster");
 
@@ -1298,6 +1300,7 @@ public final class Colonies {
 		if (earned > 0) {
 			Bank.credit(c.owner, c.ownerName, earned);
 		}
+		Network.earned(c, earned);
 		// the mayor governs: dead workers rehired (in a networked colony)
 		Network.govern(c);
 	}

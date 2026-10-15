@@ -671,6 +671,20 @@ final class SmokeTest {
 			"the network survives a save and load, orders, convoys and all");
 		check(net.linked.contains(outpost.id), "with its links");
 
+		// the treasury: a payday's books
+		long wages = Math.round(outpost.dailyWages() * (1.0 - SkillsLink.bonus(OWNER, "governance/passive")));
+		Colonies.payday(outpost);
+		long[] book = Network.of(OWNER).books.get(outpost.id);
+		check(book != null && book[1] == wages && Network.net(outpost) == book[0] - book[1] - book[2] - book[3],
+			"the outpost's books: wages " + Bank.format(wages) + ", net " + (book == null ? "?" : Bank.format(Network.net(outpost))));
+		check(Network.vaults(OWNER) == 0, "no bank, nothing in the vaults");
+		Network.newDay();
+		Network.newDay();
+		check(Network.of(OWNER).balanceKnown, "after two paydays the day's balance change is known");
+
+		// the Governor's Desk: the table without the palace
+		check(GovernorDesk.isItem(GovernorDesk.item()) && !GovernorDesk.isItem(new ItemStack(Items.LECTERN)), "a Governor's Desk is one, a plain lectern isn't");
+
 		// a colony that goes takes its orders with it
 		for (Colony c : List.of(outpost, capital)) {
 			for (Colony.Building b : new ArrayList<>(c.buildings)) {

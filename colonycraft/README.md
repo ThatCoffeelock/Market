@@ -66,6 +66,12 @@ Every colony runs on its own until you build **Headquarters** (₥6,000, at any 
 
 It's a broad brick palace with your orange flag on the roof. Inside, a map of the world is laid out on the floor in carpet, and in the middle of it stands the **Governor's Table** (a lectern): right-click it. Its own building page at the Town Hall has a button for it too.
 
+### The Governor's Desk: the table without the palace
+
+Any Town Hall also sells a **Governor's Desk** (₥750, bottom right): a lectern you can put down **anywhere** (your house, your ship, your Company House). Right-click it and you get the same Governor's Table. Break it and you get it back; nobody else can use or break yours.
+
+Without Headquarters, the table still shows **every colony** and its money, the treasury, and **opens any Town Hall by letter**. Linking, convoys, roles and governors need Headquarters.
+
 ### Linking colonies
 
 The HQ's colony is always in the network. Link others from the **Governor's Table** (a colony's page → *Link it to the network*) or from the colony's own Town Hall (the **colony network** tile, bottom row). Your HQ runs **3 colonies besides its own, 6 at tier 2, 10 at tier 3**. Colonies in another dimension can't be linked: no road goes there. Unlinked colonies work exactly as before.
@@ -78,6 +84,7 @@ The HQ's colony is always in the network. Link others from the **Governor's Tabl
 | **On the road** | Convoys under way: what, from where to where, when they arrive |
 | **Standing orders** | Convoys that leave every day. Shift-click one to cancel it |
 | **Reports** | What the mayors and the carriers wrote: arrivals, hirings, orders that couldn't go |
+| **The treasury** | What you're worth: your Market balance plus what's in your banks' vaults (per bank). The colonies' **last payday**: earned (auto-sales, the town street, taverns) minus wages, convoy fees and rehiring, in total and per colony. **Your whole day**: how much your balance moved between the last two paydays, from everything (colonies, the Compagnie, oil, what you sold and spent). **Tomorrow's bills**: the wage bill and the standing orders, and whether you can cover them |
 
 Click a colony to manage it:
 

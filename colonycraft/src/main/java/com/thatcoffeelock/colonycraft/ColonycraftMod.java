@@ -80,6 +80,10 @@ public final class ColonycraftMod implements ModInitializer {
 			if (Blueprints.type(player.getItemInHand(hand)) != null) {
 				return Colonies.useBlueprint(sp, level, hand, hit);
 			}
+			InteractionResult desk = GovernorDesk.use(sp, level, hand, hit);
+			if (desk != InteractionResult.PASS) {
+				return desk;
+			}
 			return Colonies.useBlock(sp, level, hand, hit);
 		});
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
@@ -94,7 +98,8 @@ public final class ColonycraftMod implements ModInitializer {
 			}
 			return Colonies.useVillager(sp, hand, entity);
 		});
-		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> Colonies.allowBreak(player, world, pos));
+		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
+			GovernorDesk.allowBreak(player, world, pos) && Colonies.allowBreak(player, world, pos));
 
 		CommandRegistrationCallback.EVENT.register(ColonyCommands::register);
 		LOG.info("Colonycraft loaded. Greed is good.");

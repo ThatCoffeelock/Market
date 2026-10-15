@@ -204,6 +204,7 @@ final class TownHallMenu extends ChestMenu {
 		shopButton(47, BuildingType.TAVERN);
 		shopButton(48, BuildingType.HEADQUARTERS);
 		networkButton(50);
+		deskButton(52);
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		page = Math.min(page, pages - 1);
@@ -283,6 +284,27 @@ final class TownHallMenu extends ChestMenu {
 		}
 		lore.add(t("Click to buy.", ChatFormatting.YELLOW));
 		button(slot, icon(type.icon, t(name, ChatFormatting.AQUA, ChatFormatting.BOLD), lore), () -> buy(type, price));
+	}
+
+	/** The Governor's Desk: the Governor's Table for anywhere, no palace needed. */
+	private void deskButton(int slot) {
+		ItemStack icon = GovernorDesk.item();
+		icon.set(DataComponents.LORE, new ItemLore(List.of(money("Price: ", GovernorDesk.PRICE),
+			t("The Governor's Table, without the palace:", ChatFormatting.GRAY),
+			t("every colony, its money, its Town Hall by letter.", ChatFormatting.GRAY),
+			t("Put it down anywhere. Linking, convoys, roles", ChatFormatting.DARK_GRAY),
+			t("and governors need Headquarters.", ChatFormatting.DARK_GRAY),
+			Component.empty(), t("Click to buy.", ChatFormatting.YELLOW))));
+		button(slot, icon, () -> {
+			if (!Bank.pay(viewer, GovernorDesk.PRICE)) {
+				nope("You need " + Bank.format(GovernorDesk.PRICE) + " for that.");
+				return;
+			}
+			Blueprints.give(viewer, GovernorDesk.item());
+			kaching();
+			viewer.sendSystemMessage(Component.literal("Bought: a Governor's Desk. Put it down anywhere and right-click it.").withStyle(ChatFormatting.GREEN));
+			render();
+		});
 	}
 
 	/** This colony and the network: linked or not (click to link or unlink), and its role. */

@@ -101,6 +101,18 @@ final class Network {
 		List<Order> orders = new ArrayList<>();
 		/** What happened lately, newest last. */
 		List<String> report = new ArrayList<>();
+		/** Governor's Desks, by "dimension|x,y,z". */
+		List<String> desks = new ArrayList<>();
+		/** Each colony's books since its last payday: {earned, wages, convoy fees, rehiring}. */
+		Map<String, long[]> books = new HashMap<>();
+		/** The owner's balance at the last payday, and how much it moved over the day before (from everything they do). */
+		long lastBalance = Long.MIN_VALUE;
+		long balanceChange;
+		boolean balanceKnown;
+
+		long[] book(String colony) {
+			return books.computeIfAbsent(colony, k -> new long[4]);
+		}
 		int nextId = 1;
 
 		String newId(String prefix) {
@@ -488,6 +500,7 @@ final class Network {
 			c.items += s.getCount();
 		}
 		c.fee = fee;
+		net.book(from.id)[2] += fee;
 		c.sent = day;
 		c.arrives = day + days(from, to);
 		c.order = order;
@@ -521,10 +534,60 @@ final class Network {
 
 	// ---------------------------------------------------------------- payday
 
-	/** Before the colonies' paydays: another day on the road. */
+	/** Before the colonies' paydays: another day on the road, and a line drawn under everyone's balance. */
 	static void newDay() {
 		day++;
+		for (Colony c : Colonies.all()) {
+			of(c.owner);
+		}
+		for (Net n : ALL.values()) {
+			try {
+				long now = Bank.balance(UUID.fromString(n.owner));
+				if (n.lastBalance != Long.MIN_VALUE) {
+					n.balanceChange = now - n.lastBalance;
+					n.balanceKnown = true;
+				}
+				n.lastBalance = now;
+			} catch (IllegalArgumentException ignored) {
+			}
+		}
 		changed();
+	}
+
+	/** The colony's payday begins: a fresh page in its books. */
+	static void openBooks(Colony c) {
+		of(c.owner).books.put(c.id, new long[4]);
+		changed();
+	}
+
+	static void wagesPaid(Colony c, long wages) {
+		of(c.owner).book(c.id)[1] += wages;
+		changed();
+	}
+
+	static void earned(Colony c, long earned) {
+		of(c.owner).book(c.id)[0] += earned;
+		changed();
+	}
+
+	/** What the colony made since its last payday, less what it cost: earnings, wages, convoys it sent, rehiring. */
+	static long net(Colony c) {
+		Net n = ALL.get(c.owner.toString());
+		long[] b = n == null ? null : n.books.get(c.id);
+		return b == null ? 0 : b[0] - b[1] - b[2] - b[3];
+	}
+
+	/** Money in the colonies' bank vaults (anyone can take from a vault, mind). */
+	static long vaults(UUID owner) {
+		long sum = 0;
+		for (Colony c : Colonies.ownedBy(owner)) {
+			for (Colony.Building b : c.buildings) {
+				if (b.type == BuildingType.BANK) {
+					sum += b.vault;
+				}
+			}
+		}
+		return sum;
 	}
 
 	/** At the start of a colony's payday: convoys that have arrived unload into its storehouses (in time for today's work). */
@@ -669,6 +732,7 @@ final class Network {
 			if (hired > 0) {
 				Colonies.markDirty();
 				Net n = of(c.owner);
+				n.book(c.id)[3] += paid;
 				n.report("🏛 The mayor of " + c.name + " hired " + hired + (hired == 1 ? " new worker" : " new workers") + " (" + Bank.format(paid) + ").");
 				changed();
 			}
@@ -696,6 +760,7 @@ final class Network {
 			return;
 		}
 		n.linked.remove(c.id);
+		n.books.remove(c.id);
 		n.roles.remove(c.id);
 		n.noGovernor.remove(c.id);
 		n.orders.removeIf(o -> o.from.equals(c.id) || o.to.equals(c.id));
@@ -784,6 +849,12 @@ final class Network {
 		}
 		if (n.report == null) {
 			n.report = new ArrayList<>();
+		}
+		if (n.desks == null) {
+			n.desks = new ArrayList<>();
+		}
+		if (n.books == null) {
+			n.books = new HashMap<>();
 		}
 	}
 
