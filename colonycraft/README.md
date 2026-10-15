@@ -70,7 +70,9 @@ It's a broad brick palace with your orange flag on the roof. Inside, a map of th
 
 Any Town Hall also sells a **Governor's Desk** (₥750, bottom right): a lectern you can put down **anywhere** (your house, your ship, your Company House). Right-click it and you get the same Governor's Table. Break it and you get it back; nobody else can use or break yours.
 
-Without Headquarters, the table still shows **every colony** and its money, the treasury, and **opens any Town Hall by letter**. Linking, convoys, roles and governors need Headquarters.
+Without Headquarters, the table still shows **every colony** and its money, the treasury, and **opens any Town Hall by letter**. Linking, convoys, roles and governors need a seat of government.
+
+**Your own house as HQ.** Don't fancy the palace? Open a desk and click **Govern from this desk** (₥6,000, the same as the palace): that desk is now your seat of government. If it stands on a colony's land, that colony is your **capital** (always in the network, like the palace's). Out in the wild it's fine too: you just link every colony. **Expand the chancery** from the same button (₥9,000, then ₥18,000) for 6, then 10 colonies. Break the desk and the seat is gone until you give another desk the charter. Moving it is free and keeps the tier. If you have the palace, it is the seat, and desks are just windows onto the same table.
 
 ### Linking colonies
 

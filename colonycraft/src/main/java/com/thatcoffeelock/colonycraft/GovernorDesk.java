@@ -23,9 +23,9 @@ import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * The Governor's Desk: the Governor's Table without the palace. A lectern you buy at any Town Hall and put down
- * anywhere (your house, your ship, your Company House) that opens the same table for its owner. Without Headquarters
- * it still shows every colony, its money and opens their Town Halls by letter; linking, convoys, roles and governors
- * need the HQ.
+ * anywhere (your house, your ship, your Company House) that opens the same table for its owner. Without a seat of
+ * government it still shows every colony, its money and opens their Town Halls by letter; give one desk the charter
+ * (or build the palace) and it's your Headquarters: linking, convoys, roles and governors.
  */
 final class GovernorDesk {
 	static final String TAG = "colonycraft_desk";
@@ -56,7 +56,7 @@ final class GovernorDesk {
 		return data != null && data.copyTag().contains(TAG);
 	}
 
-	private static String key(Level level, BlockPos pos) {
+	static String key(Level level, BlockPos pos) {
 		return Colonies.dim(level) + "|" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
 	}
 
@@ -117,6 +117,16 @@ final class GovernorDesk {
 		return InteractionResult.SUCCESS;
 	}
 
+	/** A desk is gone. If you governed from it, the charter waits (tier and all) for the next desk you give it to. */
+	static void forget(Network.Net owner, String key) {
+		owner.desks.remove(key);
+		if (key.equals(owner.hqDesk)) {
+			owner.hqDesk = "";
+			owner.report("Your Governor's Desk is gone: no seat of government until you give another desk the charter.");
+		}
+		Network.changed();
+	}
+
 	/** Breaking a desk gives it back. False cancels vanilla's break (which would drop a plain lectern). */
 	static boolean allowBreak(Player player, Level world, BlockPos pos) {
 		if (!(world instanceof ServerLevel level)) {
@@ -130,8 +140,7 @@ final class GovernorDesk {
 			player.sendSystemMessage(Component.literal("That's somebody's Governor's Desk. Hands off.").withStyle(ChatFormatting.RED));
 			return false;
 		}
-		owner.desks.remove(key(level, pos));
-		Network.changed();
+		forget(owner, key(level, pos));
 		level.removeBlock(pos, false);
 		if (!player.isCreative()) {
 			ItemEntity drop = new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, item());

@@ -685,6 +685,29 @@ final class SmokeTest {
 		// the Governor's Desk: the table without the palace
 		check(GovernorDesk.isItem(GovernorDesk.item()) && !GovernorDesk.isItem(new ItemStack(Items.LECTERN)), "a Governor's Desk is one, a plain lectern isn't");
 
+		// ...which, given the charter, is your Headquarters in a house of your own
+		String desk = Colonies.dim(level) + "|1600,100,1605";
+		Network.of(OWNER).desks.add(desk);
+		check(Network.charter(OWNER, desk) != null && Network.seat(OWNER).palace(), "while the palace stands, it's the seat of government");
+		Colony.Building palace = Network.hq(OWNER);
+		Colonies.demolish(level, palace);
+		check(Network.hq(OWNER) == null && Network.seat(OWNER) == null && !Network.linked(outpost), "no palace, no seat: the network sleeps");
+		long before = Bank.balance(OWNER);
+		check(Network.charter(OWNER, desk) == null && before - Bank.balance(OWNER) == Network.charterPrice(1),
+			"a desk takes the charter for " + Bank.format(Network.charterPrice(1)));
+		Network.Seat seat = Network.seat(OWNER);
+		check(seat != null && !seat.palace() && seat.home() == outpost && Network.linked(outpost) && Network.capacity(OWNER) == 3,
+			"the desk stands in " + outpost.name + ": that's the capital now");
+		check(Network.link(capital) == null && Network.linked(capital), "and " + capital.name + " joins from there");
+		check(Network.expand(OWNER) == null && Network.capacity(OWNER) == 6, "the chancery expands to run 6");
+		GovernorDesk.forget(Network.of(OWNER), desk);
+		check(Network.seat(OWNER) == null && Network.of(OWNER).hqTier == 2, "a broken desk drops the seat, but the charter keeps its tier");
+		Network.of(OWNER).desks.add(desk);
+		before = Bank.balance(OWNER);
+		check(Network.charter(OWNER, desk) == null && Bank.balance(OWNER) == before && Network.capacity(OWNER) == 6,
+			"and moves to the next desk for free");
+		GovernorDesk.forget(Network.of(OWNER), desk);
+
 		// a colony that goes takes its orders with it
 		for (Colony c : List.of(outpost, capital)) {
 			for (Colony.Building b : new ArrayList<>(c.buildings)) {

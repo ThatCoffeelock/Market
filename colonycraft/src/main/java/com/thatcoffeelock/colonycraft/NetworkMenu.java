@@ -53,9 +53,20 @@ final class NetworkMenu extends ChestMenu {
 	private boolean daily;
 	private boolean shift;
 	private boolean right;
+	/** The Governor's Desk this table was opened from ("dimension|x,y,z"), or "" at the palace. */
+	private String desk = "";
 
 	static void open(ServerPlayer player) {
-		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new NetworkMenu(id, player, new SimpleContainer(SIZE)),
+		open(player, "");
+	}
+
+	static void open(ServerPlayer player, String desk) {
+		player.openMenu(new SimpleMenuProvider((id, inv, p) -> {
+			NetworkMenu menu = new NetworkMenu(id, player, new SimpleContainer(SIZE));
+			menu.desk = desk;
+			menu.render();
+			return menu;
+		},
 			Component.literal("The Governor's Table").withStyle(ChatFormatting.DARK_GREEN)));
 	}
 
@@ -171,7 +182,7 @@ final class NetworkMenu extends ChestMenu {
 
 	private void tabs() {
 		Network.Net net = Network.of(viewer.getUUID());
-		Colony.Building hq = Network.hq(viewer.getUUID());
+		Network.Seat seat = Network.seat(viewer.getUUID());
 		int linked = 0;
 		for (Colony c : Colonies.ownedBy(viewer.getUUID())) {
 			if (Network.linked(c)) {
@@ -179,7 +190,7 @@ final class NetworkMenu extends ChestMenu {
 			}
 		}
 		button(0, tab("filled_map", "The colonies", page == Page.COLONIES || page == Page.COLONY || page == Page.ROLES,
-			List.of(t(linked + " in the network" + (hq == null ? "" : " (room for " + (Network.capacity(hq.tier) + 1) + ")"), ChatFormatting.GRAY))),
+			List.of(t(linked + " in the network" + (seat == null ? "" : " (room for " + (Network.capacity(seat.tier()) + (seat.home() == null ? 0 : 1)) + ")"), ChatFormatting.GRAY))),
 			() -> go(Page.COLONIES));
 		button(1, tab("chest_minecart", "On the road", page == Page.CONVOYS, List.of(t(net.convoys.size() + " convoys under way", ChatFormatting.GRAY))),
 			() -> go(Page.CONVOYS));
@@ -198,10 +209,10 @@ final class NetworkMenu extends ChestMenu {
 	/** A colony at a glance. */
 	private List<Component> summary(Colony c) {
 		List<Component> lore = new ArrayList<>();
-		Colony.Building hq = Network.hq(c.owner);
-		boolean home = hq != null && hq.colony == c;
+		Network.Seat seat = Network.seat(c.owner);
+		boolean home = seat != null && seat.home() == c;
 		boolean linked = Network.linked(c);
-		lore.add(t(home ? "★ Home to your Headquarters" : linked ? "In the network" : "Not in the network", linked ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+		lore.add(t(home ? "★ Your capital: the seat of government" : linked ? "In the network" : "Not in the network", linked ? ChatFormatting.GREEN : ChatFormatting.GRAY));
 		if (linked) {
 			lore.add(t("Role: " + Network.role(c).title, ChatFormatting.AQUA));
 		}
@@ -237,20 +248,20 @@ final class NetworkMenu extends ChestMenu {
 			lore.add(t(hall == null || hall.alive() == 0 ? "No mayor: nobody governs!" : Network.governs(c) ? "The mayor governs: rehires the dead"
 				: "The mayor waits for orders", hall == null || hall.alive() == 0 ? ChatFormatting.RED : ChatFormatting.GRAY));
 		}
-		if (hq != null && !home && c.dimension.equals(hq.colony.dimension)) {
-			lore.add(t(Math.round(Network.distance(c, hq.colony)) + " blocks from the HQ", ChatFormatting.DARK_GRAY));
+		if (seat != null && seat.home() != null && !home && c.dimension.equals(seat.dimension())) {
+			lore.add(t(Math.round(Network.distance(c, seat.home())) + " blocks from the capital", ChatFormatting.DARK_GRAY));
 		}
 		return lore;
 	}
 
 	private void colonies() {
-		Colony.Building hq = Network.hq(viewer.getUUID());
+		Network.Seat seat = Network.seat(viewer.getUUID());
 		int i = 0;
 		for (Colony c : Network.colonies(viewer.getUUID())) {
 			if (i >= GRID.length) {
 				break;
 			}
-			boolean home = hq != null && hq.colony == c;
+			boolean home = seat != null && seat.home() == c;
 			List<Component> lore = summary(c);
 			lore.add(t("Click to manage it.", ChatFormatting.YELLOW));
 			ItemStack stack = icon(home ? Items.FILLED_MAP : Network.linked(c) ? Items.BELL : Items.MAP, t(c.name, home ? ChatFormatting.GOLD
@@ -268,17 +279,62 @@ final class NetworkMenu extends ChestMenu {
 		if (i == 0) {
 			button(22, icon(Items.BARRIER, t("No colonies", ChatFormatting.GRAY), List.of(t("Found one with a Colony Charter.", ChatFormatting.DARK_GRAY))), null);
 		}
-		button(13, glow(icon(Items.FILLED_MAP, t("The Governor's Table", ChatFormatting.GOLD, ChatFormatting.BOLD), hq != null ? List.of(
-			t("Headquarters in " + hq.colony.name + " (tier " + hq.tier + ")", ChatFormatting.GRAY),
-			t("Runs " + Network.capacity(hq.tier) + " colonies besides its own.", ChatFormatting.GRAY),
+		button(13, glow(icon(Items.FILLED_MAP, t("The Governor's Table", ChatFormatting.GOLD, ChatFormatting.BOLD), seat != null ? List.of(
+			t("You govern from " + seat.where() + " (tier " + seat.tier() + ")", ChatFormatting.GRAY),
+			t("Runs " + Network.capacity(seat.tier()) + " colonies" + (seat.home() == null ? "." : " besides its own."), ChatFormatting.GRAY),
 			t("Linked colonies send each other convoys, may take", ChatFormatting.DARK_GRAY),
 			t("a role, and their mayors govern for you.", ChatFormatting.DARK_GRAY),
 			t("Glowing: trouble (empty jobs, a strike).", ChatFormatting.DARK_GRAY)) : List.of(
-			t("No Headquarters: every colony at a glance, its", ChatFormatting.GRAY),
-			t("money, its Town Hall by letter. Build Headquarters", ChatFormatting.GRAY),
-			t("(any Town Hall sells it) to link them: convoys,", ChatFormatting.DARK_GRAY),
-			t("roles, and mayors who govern.", ChatFormatting.DARK_GRAY),
+			t("No seat of government: every colony at a glance,", ChatFormatting.GRAY),
+			t("its money, its Town Hall by letter. Build Headquarters", ChatFormatting.GRAY),
+			t("or give a Governor's Desk the charter to link them:", ChatFormatting.DARK_GRAY),
+			t("convoys, roles, and mayors who govern.", ChatFormatting.DARK_GRAY),
 			t("Glowing: trouble (empty jobs, a strike).", ChatFormatting.DARK_GRAY)))), null);
+		charterButton(seat);
+	}
+
+	/** At a Governor's Desk: give it the charter (govern from here), or expand its chancery. */
+	private void charterButton(@Nullable Network.Seat seat) {
+		if (desk.isEmpty()) {
+			return;
+		}
+		Network.Net net = Network.of(viewer.getUUID());
+		boolean here = seat != null && !seat.palace() && desk.equals(net.hqDesk);
+		if (seat != null && seat.palace()) {
+			button(15, icon(Items.LECTERN, t("A desk, not the seat", ChatFormatting.GRAY, ChatFormatting.BOLD), List.of(
+				t("You govern from " + seat.where() + ".", ChatFormatting.GRAY),
+				t("This desk is a window onto the same table.", ChatFormatting.DARK_GRAY))), null);
+		} else if (!here) {
+			long price = net.hqTier > 0 ? 0 : Network.charterPrice(1);
+			button(15, glow(icon(Items.WRITABLE_BOOK, t("Govern from this desk", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
+				t("Make this house your Headquarters: the colony", ChatFormatting.GRAY),
+				t("whose land it stands on becomes your capital.", ChatFormatting.GRAY),
+				t(price > 0 ? "The charter costs " + Bank.format(price) + "." : "Moving the charter here is free.", ChatFormatting.GOLD),
+				t("Break the desk and the charter waits for another.", ChatFormatting.DARK_GRAY)))), () -> {
+					String why = Network.charter(viewer.getUUID(), desk);
+					if (why == null) {
+						click();
+						Network.Seat now = Network.seat(viewer.getUUID());
+						viewer.sendSystemMessage(Component.literal("Sealed and signed: you govern from " + (now == null ? "this desk" : now.where()) + ".")
+							.withStyle(ChatFormatting.GOLD));
+					}
+					nope(why);
+				});
+		} else if (net.hqTier < 3) {
+			long price = Network.charterPrice(net.hqTier + 1);
+			button(15, icon(Items.WRITABLE_BOOK, t("Expand the chancery", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
+				t("Tier " + net.hqTier + " → " + (net.hqTier + 1) + ": runs " + Network.capacity(net.hqTier + 1) + " colonies.", ChatFormatting.GRAY),
+				t("Costs " + Bank.format(price) + ".", ChatFormatting.GOLD))), () -> {
+					String why = Network.expand(viewer.getUUID());
+					if (why == null) {
+						click();
+					}
+					nope(why);
+				});
+		} else {
+			button(15, glow(icon(Items.LECTERN, t("Your seat of government", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
+				t("The chancery is as big as it gets.", ChatFormatting.GRAY)))), null);
+		}
 	}
 
 	// ---------------------------------------------------------------- one colony
@@ -290,8 +346,8 @@ final class NetworkMenu extends ChestMenu {
 			colonies();
 			return;
 		}
-		Colony.Building hq = Network.hq(viewer.getUUID());
-		boolean home = hq != null && hq.colony == c;
+		Network.Seat seat = Network.seat(viewer.getUUID());
+		boolean home = seat != null && seat.home() == c;
 		boolean linked = Network.linked(c);
 		button(4, icon(home ? Items.FILLED_MAP : Items.BELL, t(c.name, ChatFormatting.GOLD, ChatFormatting.BOLD), summary(c)), null);
 		button(19, icon(Items.LECTERN, t("Open its Town Hall", ChatFormatting.AQUA, ChatFormatting.BOLD), List.of(
@@ -303,7 +359,7 @@ final class NetworkMenu extends ChestMenu {
 		if (!home) {
 			button(20, icon(linked ? Items.FILLED_MAP : Items.MAP, t(linked ? "Unlink it" : "Link it to the network", ChatFormatting.AQUA, ChatFormatting.BOLD),
 				List.of(t(linked ? "It leaves the network: no convoys, no role," : "Convoys, a role, and a mayor who governs.", ChatFormatting.GRAY),
-					t(linked ? "and its standing orders are cancelled." : "Your HQ runs " + (hq == null ? 0 : Network.capacity(hq.tier)) + " besides its own.",
+					t(linked ? "and its standing orders are cancelled." : "Your seat runs " + (seat == null ? 0 : Network.capacity(seat.tier())) + " colonies.",
 						ChatFormatting.GRAY))), () -> {
 					if (linked) {
 						Network.unlink(c);

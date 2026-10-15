@@ -103,6 +103,9 @@ final class Network {
 		List<String> report = new ArrayList<>();
 		/** Governor's Desks, by "dimension|x,y,z". */
 		List<String> desks = new ArrayList<>();
+		/** The desk you govern from (when there's no palace), and its chancery's tier (kept when the desk moves). */
+		String hqDesk = "";
+		int hqTier;
 		/** Each colony's books since its last payday: {earned, wages, convoy fees, rehiring}. */
 		Map<String, long[]> books = new HashMap<>();
 		/** The owner's balance at the last payday, and how much it moved over the day before (from everything they do). */
@@ -181,54 +184,144 @@ final class Network {
 		return null;
 	}
 
-	/** How many colonies besides its own an HQ can link: 3, 6, then 10. */
+	/**
+	 * Where you govern from: the Headquarters palace if you have one, otherwise a Governor's Desk you've given the
+	 * charter (in a house of your own, say). {@code home} is the colony it stands in (your capital), or null if it's
+	 * out in the wild; {@code where} is how the menus name it.
+	 */
+	record Seat(int tier, @Nullable Colony home, String dimension, String where, boolean palace) {
+	}
+
+	/** What the charter of a desk seat costs, then its two upgrades: the same as the palace. */
+	static long charterPrice(int toTier) {
+		double base = BuildingType.HEADQUARTERS.price;
+		return Bank.cents(toTier <= 1 ? base : toTier == 2 ? base * 1.5 : base * 3);
+	}
+
+	static @Nullable Seat seat(UUID owner) {
+		Colony.Building palace = hq(owner);
+		if (palace != null) {
+			return new Seat(palace.tier, palace.colony, palace.colony.dimension, "your palace in " + palace.colony.name, true);
+		}
+		Net n = ALL.get(owner.toString());
+		if (n == null || n.hqDesk.isEmpty() || n.hqTier <= 0 || !n.desks.contains(n.hqDesk)) {
+			return null;
+		}
+		String[] parts = n.hqDesk.split("\\|", 2);
+		String dim = parts[0];
+		String[] xyz = parts.length > 1 ? parts[1].split(",") : new String[0];
+		Colony home = null;
+		String where = "your desk";
+		if (xyz.length == 3) {
+			net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(Integer.parseInt(xyz[0]), Integer.parseInt(xyz[1]), Integer.parseInt(xyz[2]));
+			for (Colony c : Colonies.ownedBy(owner)) {
+				if (c.dimension.equals(dim) && c.claims(pos)) {
+					home = c;
+				}
+			}
+			where = home != null ? "your desk in " + home.name : "your house at " + pos.getX() + ", " + pos.getZ();
+		}
+		return new Seat(n.hqTier, home, dim, where, false);
+	}
+
+	/** How many colonies besides its own a seat of government can link: 3, 6, then 10. */
 	static int capacity(int tier) {
 		return tier <= 1 ? 3 : tier == 2 ? 6 : 10;
 	}
 
 	static int capacity(UUID owner) {
-		Colony.Building hq = hq(owner);
-		return hq == null ? 0 : capacity(hq.tier);
+		Seat seat = seat(owner);
+		return seat == null ? 0 : capacity(seat.tier());
 	}
 
-	/** Is this colony part of its owner's network (the HQ's own colony always is)? */
+	/** Is this colony part of its owner's network (the capital always is)? */
 	static boolean linked(Colony c) {
-		Colony.Building hq = hq(c.owner);
-		if (hq == null) {
+		Seat seat = seat(c.owner);
+		if (seat == null) {
 			return false;
 		}
-		if (hq.colony == c) {
+		if (seat.home() == c) {
 			return true;
 		}
 		Net n = ALL.get(c.owner.toString());
 		if (n == null || !n.linked.contains(c.id)) {
 			return false;
 		}
-		// over capacity (the HQ was demolished and rebuilt smaller, say): the first ones linked stay
+		// over capacity (the seat moved somewhere smaller, say): the first ones linked stay
 		int index = n.linked.indexOf(c.id);
-		return index < capacity(hq.tier);
+		return index < capacity(seat.tier());
 	}
 
 	static @Nullable String link(Colony c) {
-		Colony.Building hq = hq(c.owner);
-		if (hq == null) {
-			return "Build Headquarters first: a Town Hall sells the blueprint.";
+		Seat seat = seat(c.owner);
+		if (seat == null) {
+			return "You need a seat of government first: build Headquarters, or give a Governor's Desk the charter.";
 		}
-		if (hq.colony == c) {
-			return c.name + " is home to your Headquarters: it's always in the network.";
+		if (seat.home() == c) {
+			return c.name + " is your capital: it's always in the network.";
 		}
-		if (!c.dimension.equals(hq.colony.dimension)) {
-			return "No road reaches " + c.name + " from your Headquarters: it's in another dimension.";
+		if (!c.dimension.equals(seat.dimension())) {
+			return "No road reaches " + c.name + " from " + seat.where() + ": it's in another dimension.";
 		}
 		Net n = of(c.owner);
 		if (n.linked.contains(c.id)) {
 			return null;
 		}
-		if (n.linked.size() >= capacity(hq.tier)) {
-			return "Your Headquarters runs " + capacity(hq.tier) + " colonies besides its own. Upgrade it to run more.";
+		if (n.linked.size() >= capacity(seat.tier())) {
+			return "Your seat of government runs " + capacity(seat.tier()) + " colonies" + (seat.home() == null ? "" : " besides its own")
+				+ ". Upgrade it to run more.";
 		}
 		n.linked.add(c.id);
 		n.report(c.name + " joins the network.");
+		changed();
+		return null;
+	}
+
+	/**
+	 * Gives a Governor's Desk the charter: from now on you govern from there. The first charter costs what the palace
+	 * does; moving it to another desk later is free. Not while you have the palace (that's your seat).
+	 */
+	static @Nullable String charter(UUID owner, String desk) {
+		Colony.Building palace = hq(owner);
+		if (palace != null) {
+			return "Your palace in " + palace.colony.name + " is your seat of government. Demolish it first if you'd rather govern from here.";
+		}
+		Net n = of(owner);
+		if (!n.desks.contains(desk)) {
+			return "That desk isn't yours.";
+		}
+		if (desk.equals(n.hqDesk) && n.hqTier > 0) {
+			return null;
+		}
+		if (n.hqTier <= 0) {
+			if (!Bank.charge(owner, charterPrice(1))) {
+				return "The charter of government costs " + Bank.format(charterPrice(1)) + ".";
+			}
+			n.hqTier = 1;
+		}
+		n.hqDesk = desk;
+		Seat seat = seat(owner);
+		n.report("You now govern from " + (seat == null ? "your desk" : seat.where()) + ".");
+		changed();
+		return null;
+	}
+
+	/** Expands a desk seat's chancery: more colonies in the network. */
+	static @Nullable String expand(UUID owner) {
+		Net n = of(owner);
+		Seat seat = seat(owner);
+		if (seat == null || seat.palace()) {
+			return "Only a desk with the charter is expanded here; the palace is upgraded at its Town Hall.";
+		}
+		if (n.hqTier >= 3) {
+			return "Your chancery is as big as it gets.";
+		}
+		long price = charterPrice(n.hqTier + 1);
+		if (!Bank.charge(owner, price)) {
+			return "Expanding the chancery costs " + Bank.format(price) + ".";
+		}
+		n.hqTier++;
+		n.report("The chancery grows: it runs " + capacity(n.hqTier) + " colonies now.");
 		changed();
 		return null;
 	}
@@ -251,16 +344,22 @@ final class Network {
 		return null;
 	}
 
-	/** The player's colonies, the HQ's first, then the linked ones, then the rest. */
+	/** The player's colonies, the capital first, then the linked ones, then the rest. */
 	static List<Colony> colonies(UUID owner) {
 		List<Colony> out = new ArrayList<>(Colonies.ownedBy(owner));
-		Colony.Building hq = hq(owner);
-		out.sort((a, b) -> Integer.compare(rank(a, hq), rank(b, hq)));
+		Seat seat = seat(owner);
+		out.sort((a, b) -> Integer.compare(rank(a, seat), rank(b, seat)));
 		return out;
 	}
 
-	private static int rank(Colony c, @Nullable Colony.Building hq) {
-		return hq != null && hq.colony == c ? 0 : linked(c) ? 1 : 2;
+	private static int rank(Colony c, @Nullable Seat seat) {
+		return seat != null && seat.home() == c ? 0 : linked(c) ? 1 : 2;
+	}
+
+	/** The capital: the colony your seat of government stands in, or null. */
+	static @Nullable Colony capital(UUID owner) {
+		Seat seat = seat(owner);
+		return seat == null ? null : seat.home();
 	}
 
 	// ---------------------------------------------------------------- roles
@@ -852,6 +951,9 @@ final class Network {
 		}
 		if (n.desks == null) {
 			n.desks = new ArrayList<>();
+		}
+		if (n.hqDesk == null) {
+			n.hqDesk = "";
 		}
 		if (n.books == null) {
 			n.books = new HashMap<>();

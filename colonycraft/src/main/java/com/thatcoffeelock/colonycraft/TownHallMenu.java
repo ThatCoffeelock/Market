@@ -309,25 +309,26 @@ final class TownHallMenu extends ChestMenu {
 
 	/** This colony and the network: linked or not (click to link or unlink), and its role. */
 	private void networkButton(int slot) {
-		Colony.Building hq = Network.hq(viewer.getUUID());
+		Network.Seat seat = Network.seat(viewer.getUUID());
 		List<Component> lore = new ArrayList<>();
-		if (hq == null) {
-			lore.add(t("No Headquarters yet. Build one (it's", ChatFormatting.GRAY));
-			lore.add(t("for sale here) to run your colonies as one:", ChatFormatting.GRAY));
+		if (seat == null) {
+			lore.add(t("No Headquarters yet. Build one (it's for", ChatFormatting.GRAY));
+			lore.add(t("sale here), or give a Governor's Desk in your", ChatFormatting.GRAY));
+			lore.add(t("own house the charter, to run your colonies as one:", ChatFormatting.GRAY));
 			lore.add(t("convoys, roles, mayors who govern.", ChatFormatting.GRAY));
 			button(slot, icon(Items.MAP, t("The colony network", ChatFormatting.AQUA, ChatFormatting.BOLD), lore), null);
 			return;
 		}
-		boolean home = hq.colony == colony;
+		boolean home = seat.home() == colony;
 		boolean linked = Network.linked(colony);
-		lore.add(t(home ? colony.name + " is home to your Headquarters." : linked ? "Linked to your Headquarters in " + hq.colony.name + "."
-			: "Not linked to your Headquarters in " + hq.colony.name + ".", linked ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+		lore.add(t(home ? colony.name + " is your capital: you govern from " + seat.where() + "." : linked ? "Linked: you govern it from " + seat.where() + "."
+			: "Not linked to " + seat.where() + ".", linked ? ChatFormatting.GREEN : ChatFormatting.GRAY));
 		if (linked) {
 			Network.Role role = Network.role(colony);
 			lore.add(t("Role: " + role.title, ChatFormatting.AQUA));
 			lore.add(t("Governor: " + (Network.governs(colony) ? "the mayor rehires on their own" : "the mayor waits for orders"), ChatFormatting.GRAY));
 		}
-		lore.add(t("Run it all from the Governor's Table at the HQ.", ChatFormatting.DARK_GRAY));
+		lore.add(t("Run it all from the Governor's Table or Desk.", ChatFormatting.DARK_GRAY));
 		if (!home) {
 			lore.add(t(linked ? "Click to unlink this colony." : "Click to link this colony.", ChatFormatting.YELLOW));
 		}
