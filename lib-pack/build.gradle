@@ -35,6 +35,7 @@ def bundled = [
 	sellswords : '../sellswords',
 	proost     : '../proost',
 	compagnie  : '../compagnie',
+	hoogheheeren: '../hooghe-heeren',
 ]
 
 def here = projectDir
@@ -74,7 +75,7 @@ def writeModJson = tasks.register('writeModJson') {
 			id           : 'libpack',
 			version      : modVersion,
 			name         : 'LIB Pack',
-			description  : 'All of thatcoffeelock\'s mods in one jar: Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets & Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost and De Compagnie. Server-side: vanilla clients can join.',
+			description  : 'All of thatcoffeelock\'s mods in one jar: Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets & Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie and De Hooghe Heeren. Server-side: vanilla clients can join.',
 			authors      : ['thatcoffeelock'],
 			contact      : [sources: 'https://github.com/thatcoffeelock/market'],
 			environment  : '*',

@@ -134,6 +134,7 @@ final class Companies {
 		Ledger.dawn(c, day, random);
 		fillBoard(c, day, random);
 		Hiring.refresh(c, day, random);
+		CompagnieHooks.dawn(c, day, random);
 		c.buffs.entrySet().removeIf(e -> e.getValue() < day);
 		if (c.rank() != rank) {
 			c.news("★ The company is now a " + c.rank().title + "! More job slots, more agents, bigger jobs.");
@@ -261,6 +262,9 @@ final class Companies {
 		for (Agent a : c.agents) {
 			if (a.traits == null) {
 				a.traits = new ArrayList<>();
+			}
+			if (a.heldBy == null) {
+				a.heldBy = "";
 			}
 		}
 		for (Agent a : c.candidates) {

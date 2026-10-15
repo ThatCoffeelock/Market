@@ -24,6 +24,8 @@ final class Agent {
 	/** Per day, and to hire, in cents. */
 	long wage;
 	long hireCost;
+	/** Away on another mod's errand (its CompagnieHooks extension id), or "". */
+	String heldBy = "";
 
 	State state() {
 		try {

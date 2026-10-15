@@ -1,0 +1,23 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:bell",
+		"minecraft:gold_ingot",
+		"minecraft:paper"
+	],
+	"result": {
+		"id": "minecraft:bell",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"hoogheheeren_bell": true},
+			"minecraft:item_name": {"text": "Audience Bell", "color": "gold"},
+			"minecraft:lore": [
+				{"text": "Place it in your hall and right-click it:", "color": "gray", "italic": false},
+				{"text": "your guests from the rival houses arrive here.", "color": "gray", "italic": false},
+				{"text": "Mind the silverware.", "color": "dark_gray", "italic": false}
+			],
+			"minecraft:enchantment_glint_override": true
+		}
+	}
+}

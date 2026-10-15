@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "hoogheheeren",
+	"version": "${version}",
+	"name": "De Hooghe Heeren",
+	"description": "Rival houses for De Compagnie: lords and merchant princes with treasuries, regiments and long memories. Trade with them, sign pacts, feast them in your hall, spy on them, rob them, or go to war and ride out to lead your regiments in the field. They play by the same rules: no treasury, no army. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.hoogheheeren.HeerenMod"]
+	},
+	"mixins": ["hoogheheeren.mixins.json"],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*",
+		"market": ">=1.0.0",
+		"compagnie": ">=1.2.0"
+	}
+}

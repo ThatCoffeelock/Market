@@ -76,6 +76,33 @@ final class Jobs {
 		return bonus;
 	}
 
+	/** What an agent adds to the base odds, whatever the job: their stat, traits (not Navigator), the rank and Enterprise. */
+	static double edge(Company c, Agent agent, Approach a) {
+		double p = (agent.stat(a) - 5) * 0.04 + c.rank().ordinal() * 0.02;
+		if (agent.has(Trait.LUCKY)) {
+			p += 0.08;
+		}
+		if (agent.has(Trait.VETERAN)) {
+			p += 0.05;
+		}
+		if (agent.has(Trait.DRUNKARD)) {
+			p -= 0.06;
+		}
+		if (agent.has(Trait.COWARD) && a == Approach.FORCE) {
+			p -= 0.10;
+		}
+		if (agent.has(Trait.SILVER_TONGUED) && a == Approach.COIN) {
+			p += 0.10;
+		}
+		if (agent.has(Trait.BUTCHER) && a == Approach.FORCE) {
+			p += 0.10;
+		}
+		if (agent.has(Trait.SHADOW) && a == Approach.GUILE) {
+			p += 0.10;
+		}
+		return p + SkillsLink.bonus(c.uuid(), "enterprise/passive");
+	}
+
 	/** The chance of success, 5% to 95%. {@code job} adds its telegram answers, if it's under way. */
 	static double odds(Company c, JobType type, Approach a, Agent agent, int stake, long today, @Nullable Job job) {
 		double p = type.odds[a.ordinal()];
@@ -93,6 +120,7 @@ final class Jobs {
 			p -= 0.10;
 		}
 		p += SkillsLink.bonus(c.uuid(), "enterprise/passive");
+		p += CompagnieHooks.odds(c, type, today);
 		if (job != null) {
 			p += job.oddsMod;
 		}

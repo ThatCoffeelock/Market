@@ -1,0 +1,139 @@
+package com.thatcoffeelock.hoogheheeren;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemLore;
+import org.jetbrains.annotations.Nullable;
+
+/** A 6-row chest screen drawn on the server: icons with click actions. The desk menu builds on it. */
+abstract class Ui extends ChestMenu {
+	static final int SIZE = 54;
+
+	protected final ServerPlayer viewer;
+	protected final SimpleContainer box;
+	private final Map<Integer, Runnable> actions = new HashMap<>();
+	/** How the last click was made, for actions that do different things on shift- or right-click. */
+	protected boolean shift;
+	protected boolean right;
+
+	protected Ui(int syncId, ServerPlayer viewer, SimpleContainer box) {
+		super(MenuType.GENERIC_9x6, syncId, viewer.getInventory(), box, 6);
+		this.viewer = viewer;
+		this.box = box;
+	}
+
+	private static final Map<String, Item> ITEMS = new HashMap<>();
+
+	/** An item by id ("lime_stained_glass_pane"): the coloured ones aren't fields of Items any more. */
+	static Item item(String id, Item fallback) {
+		if (ITEMS.isEmpty()) {
+			for (Item item : BuiltInRegistries.ITEM) {
+				ITEMS.put(BuiltInRegistries.ITEM.getKey(item).getPath(), item);
+			}
+		}
+		Item item = ITEMS.get(id);
+		return item == null || item == Items.AIR ? fallback : item;
+	}
+
+	static MutableComponent t(String text, ChatFormatting... formats) {
+		return Component.literal(text).withStyle(style -> style.withItalic(false)).withStyle(formats);
+	}
+
+	static ItemStack icon(Item item, Component name, List<Component> lore) {
+		ItemStack stack = new ItemStack(item);
+		stack.set(DataComponents.ITEM_NAME, name);
+		stack.set(DataComponents.LORE, new ItemLore(lore));
+		return stack;
+	}
+
+	static ItemStack glow(ItemStack stack) {
+		stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+		return stack;
+	}
+
+	protected void button(int slot, ItemStack icon, @Nullable Runnable action) {
+		box.setItem(slot, icon);
+		if (action == null) {
+			actions.remove(slot);
+		} else {
+			actions.put(slot, action);
+		}
+	}
+
+	protected void render() {
+		actions.clear();
+		for (int i = 0; i < SIZE; i++) {
+			box.setItem(i, ItemStack.EMPTY);
+		}
+		draw();
+		for (int i = 0; i < SIZE; i++) {
+			if (box.getItem(i).isEmpty()) {
+				box.setItem(i, icon(item("black_stained_glass_pane", Items.GLASS_PANE), Component.literal(" "), List.of()));
+			}
+		}
+	}
+
+	protected abstract void draw();
+
+	protected void click() {
+		Cmd.sound((net.minecraft.server.level.ServerLevel) viewer.level(), "minecraft:ui.button.click", viewer.getX(), viewer.getY(), viewer.getZ(), 0.4f, 1f);
+	}
+
+	protected void close() {
+		HeerenMod.nextTick(viewer::closeContainer);
+	}
+
+	@Override
+	public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
+		if (slotId >= 0 && slotId < SIZE) {
+			Runnable action = actions.get(slotId);
+			if (action != null && (clickType == ContainerInput.PICKUP || clickType == ContainerInput.QUICK_MOVE)) {
+				shift = clickType == ContainerInput.QUICK_MOVE;
+				right = button == 1;
+				action.run();
+			}
+			render();
+			sendAllDataToRemote();
+			return;
+		}
+		super.clicked(slotId, button, clickType, player);
+	}
+
+	@Override
+	public ItemStack quickMoveStack(Player player, int index) {
+		return ItemStack.EMPTY;
+	}
+
+	@Override
+	public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
+		return slot.container != box && super.canTakeItemForPickAll(stack, slot);
+	}
+
+	@Override
+	public boolean canDragTo(Slot slot) {
+		return slot.container != box && super.canDragTo(slot);
+	}
+
+	@Override
+	public void removed(Player player) {
+		box.clearContent();
+		super.removed(player);
+	}
+}

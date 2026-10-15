@@ -149,7 +149,16 @@ final class DeskMenu extends Ui {
 		button(6, pending > 0 ? glow(telegrams) : telegrams, () -> go(Page.TELEGRAMS));
 		button(7, tab("chest", "Strongbox", Page.STRONGBOX, List.of(t(Strongbox.count(company) + " stacks of spoils", ChatFormatting.GRAY))),
 			() -> go(Page.STRONGBOX));
-		button(8, icon(Items.BARRIER, t("Close", ChatFormatting.RED), List.of()), this::close);
+		if (CompagnieHooks.extensions().isEmpty()) {
+			button(8, icon(Items.BARRIER, t("Close", ChatFormatting.RED), List.of()), this::close);
+		} else {
+			// another mod's page (De Hooghe Heeren): the tab in the corner
+			CompagnieHooks.Extension ext = CompagnieHooks.extensions().get(0);
+			button(8, ext.tab(company.uuid()), () -> {
+				click();
+				CompagnieMod.nextTick(() -> ext.open(viewer));
+			});
+		}
 	}
 
 	private void home() {
@@ -466,7 +475,7 @@ final class DeskMenu extends Ui {
 			switch (a.state()) {
 				case AWAY -> {
 					icon = "compass";
-					lore.add(t("Away on a job.", ChatFormatting.YELLOW));
+					lore.add(t(a.heldBy == null || a.heldBy.isEmpty() ? "Away on a job." : "Away on an errand for the Heeren.", ChatFormatting.YELLOW));
 				}
 				case WOUNDED -> {
 					icon = "golden_apple";
