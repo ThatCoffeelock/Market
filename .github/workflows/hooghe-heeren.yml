@@ -49,7 +49,7 @@ jobs:
           set -o pipefail
           ./gradlew build 2>&1 | tee build.log
 
-      - name: Smoke test (boot a server, run a court of rivals: diplomacy, errands, war, a seat, a garrison, a guest, save and load)
+      - name: Smoke test (boot a server, run a court of rivals with diplomacy, errands, war, a seat, a garrison, a guest, save and load)
         run: |
           mkdir -p run/smoke
           echo "eula=true" > run/smoke/eula.txt
