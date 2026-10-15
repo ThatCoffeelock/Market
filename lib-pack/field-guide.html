@@ -474,7 +474,8 @@ const MODS = [
     cmds: ["/compagnie", "/compagnie news", "/compagnie telegrams", ["/compagnie give desk", true], ["/compagnie dawn", true]] },
   { name: "De Hooghe Heeren", id: "hoogheheeren", colour: "#8a3fa0", tag: "Rival houses behind a tab on the Company Desk: trade, pacts, spies, feasts, treachery and war.",
     recipes: [{ name: "Audience Bell", shapeless: ["bell", "gold_ingot", "paper"], out: ["Bell", "#8a3fa0"] }],
-    how: ["Company Desk → the banner tab (top right): 3 to 5 rival houses, more as the company grows",
+    how: ["Optional: Company Desk → the banner tab (top right) → Take your seat. Leave again at peace",
+          "3 to 5 rival houses, more as the company grows",
           "Same rules as you: income pays regiments (₥500, then ₥25 a day). No treasury, no army",
           "Opinion: Blood Feud to Sworn Ally, built from what they remember. Betrayals never fade",
           "Honour wins pacts, Fear makes demands stick. Diplomat, Iron Ruler, Cutthroat, Snake",
@@ -484,7 +485,7 @@ const MODS = [
           "Their seat: talk to the lord in person (+15% on proposals). At war: beat the garrison, loot the treasury chest",
           "Audience Bell: invite a house to your hall. Feast them (food, spirits, cigars), see them off, or bar the doors",
           "Dispatches: pacts offered, tribute demanded, spies caught, calls to arms, peace terms. /heeren dispatches"],
-    cmds: ["/heeren", "/heeren court", "/heeren dispatches", "/heeren answer", ["/heeren give bell", true], ["/heeren intel", true]] },
+    cmds: ["/heeren", "/heeren join", "/heeren leave", "/heeren court", "/heeren dispatches", "/heeren answer", ["/heeren give bell", true], ["/heeren intel", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [
       { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },

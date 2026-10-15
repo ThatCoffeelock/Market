@@ -190,8 +190,9 @@ public final class HeerenMod implements ModInitializer {
 			Court c = Courts.get(owner);
 			List<Component> lore = new ArrayList<>();
 			if (c == null) {
-				lore.add(Ui.t("Rival houses: trade, pacts, feasts,", ChatFormatting.GRAY));
-				lore.add(Ui.t("spies, and war. Take your seat.", ChatFormatting.GRAY));
+				lore.add(Ui.t("Optional: rival houses to trade with,", ChatFormatting.GRAY));
+				lore.add(Ui.t("plot against and go to war with.", ChatFormatting.GRAY));
+				lore.add(Ui.t("Click to read the invitation.", ChatFormatting.DARK_GRAY));
 			} else {
 				lore.add(Ui.t(c.reputation(), ChatFormatting.LIGHT_PURPLE));
 				lore.add(Ui.t(c.rivals.size() + " houses · " + c.regiments + " regiments" + (c.atWar() ? " · AT WAR" : ""),
@@ -206,7 +207,11 @@ public final class HeerenMod implements ModInitializer {
 
 		@Override
 		public void open(ServerPlayer player) {
-			Court c = Courts.of(player.getUUID(), player.getName().getString());
+			Court c = Courts.get(player.getUUID());
+			if (c == null) {
+				JoinMenu.open(player); // rivals are optional: nobody is seated until they ask
+				return;
+			}
 			CourtMenu.open(player, c, c.dispatches.isEmpty() ? CourtMenu.Page.COURT : CourtMenu.Page.DISPATCHES);
 		}
 

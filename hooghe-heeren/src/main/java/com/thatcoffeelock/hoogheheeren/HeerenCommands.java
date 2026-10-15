@@ -5,6 +5,7 @@ import java.util.List;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -31,6 +32,34 @@ final class HeerenCommands {
 				return 1;
 			})
 			.then(literal("court").executes(ctx -> court(ctx.getSource())))
+			.then(literal("join").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				if (Courts.get(player.getUUID()) != null) {
+					ctx.getSource().sendFailure(Component.literal("You already have a seat at the table."));
+					return 0;
+				}
+				Court c = Courts.of(player.getUUID(), player.getName().getString());
+				Courts.tell(c, "You take your seat among the Hooghe Heeren. " + c.rivals.size() + " houses are already whispering about you.",
+					ChatFormatting.LIGHT_PURPLE);
+				return 1;
+			}))
+			.then(literal("leave")
+				.executes(ctx -> {
+					Court c = court(ctx.getSource().getPlayerOrException());
+					String why = Courts.leaveBlocker(c);
+					ctx.getSource().sendSystemMessage(Component.literal(why != null ? why
+						: "Leave the table? Your rivals are gone for good, your regiments go home and your agents come back. "
+						+ "Type /heeren leave confirm.").withStyle(why != null ? ChatFormatting.RED : ChatFormatting.YELLOW));
+					return why == null ? 1 : 0;
+				})
+				.then(literal("confirm").executes(ctx -> {
+					String why = Courts.leave(court(ctx.getSource().getPlayerOrException()));
+					if (why != null) {
+						ctx.getSource().sendFailure(Component.literal(why));
+						return 0;
+					}
+					return 1;
+				})))
 			.then(literal("dispatches").executes(ctx -> dispatches(ctx.getSource())))
 			.then(literal("answer")
 				.then(argument("dispatch", IntegerArgumentType.integer(1, 20))
@@ -70,8 +99,16 @@ final class HeerenCommands {
 				})));
 	}
 
-	private static Court court(ServerPlayer player) {
-		return Courts.of(player.getUUID(), player.getName().getString());
+	private static final SimpleCommandExceptionType NOT_SEATED = new SimpleCommandExceptionType(
+		Component.literal("You haven't taken a seat among the Hooghe Heeren. It's optional: open the banner tab on your Company Desk, or /heeren join."));
+
+	/** The player's court. Rivals are optional: without a seat at the table, the command fails. */
+	private static Court court(ServerPlayer player) throws CommandSyntaxException {
+		Court c = Courts.get(player.getUUID());
+		if (c == null) {
+			throw NOT_SEATED.create();
+		}
+		return c;
 	}
 
 	private static void help(CommandSourceStack source) {
@@ -83,6 +120,7 @@ final class HeerenCommands {
 			"Errands: spy, sabotage, rob, bribe, forge letters, assassinate, run by your Compagnie agents.",
 			"In person: visit their seat (ask for directions), or hang an Audience Bell (bell + gold ingot + paper) and invite them.",
 			"War: raise regiments, skirmish every dawn, and ride out at noon to lead your men in battle.",
+			"It's optional: nobody has rivals until they take a seat (/heeren join), and you can leave when you're at peace (/heeren leave).",
 			"/heeren court · /heeren dispatches · /heeren answer <n> <1-3>")) {
 			source.sendSystemMessage(Component.literal(line).withStyle(ChatFormatting.LIGHT_PURPLE));
 		}

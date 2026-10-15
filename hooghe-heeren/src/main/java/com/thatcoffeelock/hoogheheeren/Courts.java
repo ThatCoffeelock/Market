@@ -76,12 +76,51 @@ final class Courts {
 			c.ownerName = name;
 			ALL.put(c.owner, c);
 			fill(c, today(), RANDOM);
-			c.chronicle("You take your seat among the Hooghe Heeren. They are already whispering about you.");
 			changed();
 		} else if (!name.isEmpty()) {
 			c.ownerName = name;
 		}
 		return c;
+	}
+
+	/** Why you can't leave the table right now, or null if you can. */
+	static @Nullable String leaveBlocker(Court c) {
+		if (c.atWar()) {
+			return "You can't walk away from a war. Make peace first.";
+		}
+		if (c.guestHeld) {
+			return "There's a prisoner in your cellar. Deal with them first.";
+		}
+		return null;
+	}
+
+	/**
+	 * Leaves the Hooghe Heeren: the rival houses are gone for you (their seats stand empty), your agents come home,
+	 * your regiments are sent home, tribute stops. Joining again later draws up a new table.
+	 */
+	static @Nullable String leave(Court c) {
+		String why = leaveBlocker(c);
+		if (why != null) {
+			return why;
+		}
+		for (Rival r : new ArrayList<>(c.rivals)) {
+			Covert.forget(c, r);
+			Seats.forget(c, r);
+		}
+		Hall.sendGuestHome(c, false);
+		if (c.battle != null) {
+			Battles.cancel(c);
+		}
+		ALL.remove(c.owner);
+		CompagnieHooks.news(c.uuid(), "⚜ You've left the table of the Hooghe Heeren. Your regiments went home; the houses will find someone else to plot against.");
+		ServerPlayer player = player(c);
+		if (player != null) {
+			player.sendSystemMessage(Component.literal("[Heeren] ").withStyle(ChatFormatting.DARK_PURPLE)
+				.append(Component.literal("You've left the table. Your company carries on without rivals. (You can take a seat again from the banner tab: "
+					+ "a new table of houses.)").withStyle(ChatFormatting.GRAY)));
+		}
+		changed();
+		return null;
 	}
 
 	/** How many houses sit at your table: three for a Charter, four for a Compagnie, five for the VOC. */

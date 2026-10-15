@@ -73,7 +73,12 @@ public final class Hall {
 			if (!level.getBlockState(at).is(Blocks.BELL)) {
 				return;
 			}
-			Court c = Courts.of(sp.getUUID(), sp.getName().getString());
+			Court c = Courts.get(sp.getUUID());
+			if (c == null) {
+				sp.sendSystemMessage(Component.literal("Just a bell, for now. Take your seat among the Hooghe Heeren (the banner tab on your Company Desk), "
+					+ "then hang it again to make this your hall.").withStyle(ChatFormatting.GRAY));
+				return;
+			}
 			if (c.hall && !(c.hallDim.equals(Cmd.dimId(level)) && c.hallPos().equals(at))) {
 				sp.sendSystemMessage(Component.literal("Your hall moves here. (The old bell is just a bell now.)").withStyle(ChatFormatting.GRAY));
 			}

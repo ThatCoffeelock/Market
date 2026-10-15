@@ -77,9 +77,14 @@ final class SmokeTest {
 		long today = Courts.today();
 		Bank.credit(OWNER, "SmokeTest", Bank.cents(100000));
 
+		// rivals are optional: a company alone has none, whatever dawns pass
+		CompagnieHooks.found(OWNER, "SmokeTest");
+		Courts.dawn(OWNER, today, new Random(1));
+		check(Courts.get(OWNER) == null, "a company that hasn't taken a seat has no rivals");
+
 		// a court
 		Court c = Courts.of(OWNER, "SmokeTest");
-		check(CompagnieHooks.exists(OWNER), "taking a seat at court founds a company too");
+		check(CompagnieHooks.exists(OWNER), "taking a seat at court keeps the company");
 		check(c.rivals.size() == 3, "a Charter sits with three houses (" + c.rivals.size() + ")");
 		for (Rival r : c.rivals) {
 			check(!r.house.isEmpty() && !r.first.isEmpty() && !r.seatName.isEmpty(), "every house has a name: " + r.name() + " of " + r.seatName);
@@ -251,6 +256,22 @@ final class SmokeTest {
 		Court loaded = Courts.get(OWNER);
 		check(loaded != null && loaded.rivals.size() == 3 && loaded.rivals.get(1).memories.size() == memories, "the court survives a save and load");
 		check(loaded.rivals.get(2).built && loaded.honour == c.honour, "with its seats and its standing");
+
+		// leaving the table: not at war, then gone
+		Court back = Courts.get(OWNER);
+		Rival enemy = back.rivals.get(0);
+		if (!enemy.war) {
+			Wars.declare(back, enemy, true, today + 22);
+		}
+		check(Courts.leave(back) != null && Courts.get(OWNER) != null, "nobody walks away from a war");
+		for (Rival r : back.rivals) {
+			if (r.war) {
+				Wars.end(back, r, Wars.Outcome.WHITE, today + 22);
+			}
+		}
+		check(Courts.leave(back) == null && Courts.get(OWNER) == null, "at peace, you can leave the table");
+		Courts.dawn(OWNER, today + 23, new Random(2));
+		check(Courts.get(OWNER) == null, "and the houses don't come back on their own");
 
 		Cmd.run(level, "forceload remove 570 570 630 630");
 		Courts.forgetAll();

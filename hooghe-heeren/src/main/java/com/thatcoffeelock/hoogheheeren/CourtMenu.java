@@ -39,6 +39,7 @@ final class CourtMenu extends Ui {
 	private int approach = 2;
 	private @Nullable String agentId;
 	private String other = "";
+	private boolean confirmLeave;
 
 	static void open(ServerPlayer player, Court court, Page page) {
 		player.openMenu(new SimpleMenuProvider((id, inv, p) -> new CourtMenu(id, player, court, page, null, new SimpleContainer(SIZE)),
@@ -200,6 +201,25 @@ final class CourtMenu extends Ui {
 			t("Visit their seat, or feast them at your hall:", ChatFormatting.GRAY),
 			t("in person, everything goes better.", ChatFormatting.GRAY),
 			t("At war, ride out at noon and lead your regiments.", ChatFormatting.GRAY))), null);
+		String blocker = Courts.leaveBlocker(court);
+		button(53, icon(item("oak_door", Items.PAPER), t(confirmLeave ? "Really leave the table?" : "Leave the table", ChatFormatting.GRAY), List.of(
+			t("Rivals are optional. Leaving ends it all: the houses", ChatFormatting.DARK_GRAY),
+			t("are gone for you, your regiments go home, your", ChatFormatting.DARK_GRAY),
+			t("agents come back. Joining again: a new table.", ChatFormatting.DARK_GRAY),
+			blocker != null ? t(blocker, ChatFormatting.RED) : t(confirmLeave ? "Shift-click to leave." : "Click, then shift-click.", ChatFormatting.YELLOW))), () -> {
+			if (blocker != null) {
+				nope(blocker);
+			} else if (!confirmLeave) {
+				click();
+				confirmLeave = true;
+			} else if (shift) {
+				Courts.leave(court);
+				close();
+				HeerenMod.nextTick(() -> CompagnieHooks.openDesk(viewer));
+			} else {
+				nope("Shift-click to leave the table.");
+			}
+		});
 		Court.Battle b = court.battle;
 		if (b != null) {
 			Rival r = court.rival(b.rival);

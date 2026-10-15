@@ -4,6 +4,8 @@ A Fabric mod for Minecraft **26.3** that gives your [De Compagnie](../compagnie/
 
 They play by **the same rules you do**: their income pays their regiments, and **no treasury means no army**.
 
+It's **optional**, player by player: a Company Desk runs exactly as before until its owner chooses to take a seat among the Hooghe Heeren, and you can leave the table again whenever you're at peace.
+
 - **The houses**: randomized heads of house (mostly Dutch patricians, with the odd Englishman, Spaniard, Frenchman or Dane), each with a **temperament** and a **quirk**. Houses fall (old age, bankruptcy, your assassin) and new ones take their seat.
 - **Opinion**: what each house thinks of you, from Blood Feud to Sworn Ally, built from what they **remember** (and memories fade; betrayals don't). The houses think about each other, too, and trade and fight without you.
 - **Honour and Fear**: your standing at court. Honour wins you pacts; Fear makes demands stick. Play the Benevolent Diplomat, the Iron Ruler, the Cutthroat... or end up the Snake.
@@ -20,7 +22,10 @@ Put **Fabric API**, **`market-<version>.jar`**, **`compagnie-<version>.jar`** an
 
 ## The court
 
-Open your **Company Desk** and click the **banner tab** in the top-right corner. That's your seat among the Hooghe Heeren.
+Open your **Company Desk** and click the **banner tab** in the top-right corner.
+
+- **Not seated yet?** The tab shows an **invitation**: what rivals mean (including that they'll come for you), with **Take your seat at the table** or **Not now**. Until you accept, no rival houses exist for you: no dispatches, no raids, no wars. `/heeren join` does the same.
+- **Seated?** The tab is your court:
 
 | Tab | What's there |
 |---|---|
@@ -29,6 +34,8 @@ Open your **Company Desk** and click the **banner tab** in the top-right corner.
 | **Dispatches** | Letters that want an answer: offers, demands, caught spies, calls to arms, peace terms |
 | **Errands** | Your agents' covert errands under way |
 | **Your Army** | Your regiments, the wars you're in |
+
+**Leaving the table**: the **Leave the table** button on The Court page (click, then shift-click) or `/heeren leave confirm`. Not while you're at war or holding a prisoner. Your rivals are gone for you (their seats stand empty), your regiments go home, your agents come back from their errands, tribute stops. Take a seat again later and a new table of houses is drawn up.
 
 Everything runs on De Compagnie's clock: at every **dawn** (a Minecraft day) each house collects its income, pays its regiments, does the **one thing** it planned the day before, and plans the next. What happened goes in the chronicle and the Compagnie's news.
 
@@ -153,7 +160,7 @@ Walk into the great hall and right-click the lord, standing in front of their th
 
 ### Your hall
 
-Craft an **Audience Bell** from a **Bell + Gold Ingot + Paper** (any shape) and hang it in your hall. Right-click it to ring it (and see who's visiting).
+Craft an **Audience Bell** from a **Bell + Gold Ingot + Paper** (any shape) and hang it in your hall (once you've taken your seat; before that it's just a bell). Right-click it to ring it (and see who's visiting).
 
 **Invite** a house from its dossier (₥100, more as you grow): if they don't dislike you too much (the Paranoid need to like you) and you're not at war, their coach pulls up within the minute. The head of the house and two guards stand by your bell **until the second dawn**. Right-click your guest for an audience:
 
@@ -173,6 +180,8 @@ Raise regiments in the **Your Army** tab: **₥500** each, then **₥25 a day**,
 ## Commands
 
 - `/heeren`: how it works
+- `/heeren join`: take a seat at the table (rivals are optional)
+- `/heeren leave`, `/heeren leave confirm`: leave it again (at peace)
 - `/heeren court`: where you stand with every house
 - `/heeren dispatches`, `/heeren answer <n> <1-3>`: letters, from anywhere
 - `/heeren give bell` (op)
