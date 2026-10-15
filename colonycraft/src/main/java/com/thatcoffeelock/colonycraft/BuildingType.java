@@ -2540,12 +2540,12 @@ public enum BuildingType {
 	 */
 	private static void headquarters(Plan p) {
 		p.fill(-6, 0, -6, 6, 0, 6, PAVING);
-		p.fill(-5, 0, -4, 5, 0, 6, PLINTH);
-		p.fill(-4, 0, -3, 4, 0, 5, "minecraft:dark_oak_planks");
+		p.fill(-5, 0, -4, 5, 0, 5, PLINTH);
+		p.fill(-4, 0, -3, 4, 0, 4, "minecraft:dark_oak_planks");
 		for (int y = 1; y <= 12; y++) {
-			p.rect(-5, -4, 5, 6, y, y == 1 ? PLINTH : y == 6 ? BAND : y == 12 ? TRIM : BRICK);
+			p.rect(-5, -4, 5, 5, y, y == 1 ? PLINTH : y == 6 ? BAND : y == 12 ? TRIM : BRICK);
 		}
-		for (int[] c : new int[][] {{-5, -4}, {5, -4}, {-5, 6}, {5, 6}}) {
+		for (int[] c : new int[][] {{-5, -4}, {5, -4}, {-5, 5}, {5, 5}}) {
 			p.corner(c[0], c[1], 2, 11);
 		}
 		// the front: a door between sandstone pilasters under a pediment, tall windows either side
@@ -2560,36 +2560,36 @@ public enum BuildingType {
 		p.windowX(-4, -4, -3, 8, 10);
 		p.windowX(-4, -1, 1, 8, 10);
 		p.windowX(-4, 3, 4, 8, 10);
-		p.windowX(6, -3, -2, 8, 10);
-		p.windowX(6, 2, 3, 8, 10);
+		p.windowX(5, -3, -2, 8, 10);
+		p.windowX(5, 2, 3, 8, 10);
 		for (int x : new int[] {-5, 5}) {
 			p.windowZ(x, -2, -1, 2, 4);
-			p.windowZ(x, 3, 4, 2, 4);
+			p.windowZ(x, 2, 3, 2, 4);
 			p.windowZ(x, -2, -1, 8, 10);
-			p.windowZ(x, 3, 4, 8, 10);
+			p.windowZ(x, 2, 3, 8, 10);
 		}
 		for (int x : new int[] {-2, 2}) {
 			p.set(x, 1, -5, "minecraft:dark_oak_fence");
 			p.set(x, 2, -5, "minecraft:lantern[hanging=false]");
 		}
-		int top = p.roofAlongZ(-5, -4, 5, 6, 13, SLATE, SLATE_SLAB, BRICK);
+		int top = p.roofAlongZ(-5, -4, 5, 5, 13, SLATE, SLATE_SLAB, BRICK);
 		// the flag
 		p.fill(0, top + 1, 1, 0, top + 4, 1, "minecraft:dark_oak_fence");
 		p.set(0, top + 5, 1, "minecraft:orange_banner[rotation=0]");
 		// the hall: a map of the world on the floor, the Governor's Table in the middle of it
-		p.fill(-3, 1, -1, 3, 1, 5, "minecraft:blue_carpet");
-		for (int[] land : new int[][] {{-3, -1}, {-2, -1}, {-3, 0}, {-2, 0}, {-1, 0}, {2, 0}, {3, 0}, {3, 1}, {2, 1}, {-3, 3}, {-3, 4}, {-2, 4},
-			{-1, 4}, {1, 4}, {2, 4}, {3, 4}, {3, 5}, {2, 5}, {-3, 5}}) {
+		p.fill(-3, 1, -1, 3, 1, 3, "minecraft:blue_carpet");
+		for (int[] land : new int[][] {{-3, -1}, {-2, -1}, {-3, 0}, {-2, 0}, {-1, 0}, {2, 0}, {3, 0}, {3, 1}, {2, 1}, {-3, 2}, {-3, 3}, {-2, 3},
+			{1, 3}, {2, 3}, {3, 3}}) {
 			p.set(land[0], 1, land[1], "minecraft:green_carpet");
 		}
-		for (int[] colony : new int[][] {{-2, 0}, {3, 1}, {-2, 4}, {2, 5}}) {
+		for (int[] colony : new int[][] {{-2, 0}, {3, 1}, {-2, 3}, {2, 3}}) {
 			p.set(colony[0], 1, colony[1], "minecraft:orange_carpet");
 		}
 		p.set(HQ_TABLE.getX(), HQ_TABLE.getY(), HQ_TABLE.getZ(), "minecraft:lectern[facing=north,has_book=true]");
-		p.fill(-4, 1, 5, 4, 4, 5, "minecraft:bookshelf");
+		p.fill(-4, 1, 4, 4, 4, 4, "minecraft:bookshelf");
 		p.set(-4, 5, 0, "minecraft:orange_wall_banner[facing=east]");
 		p.set(4, 5, 0, "minecraft:orange_wall_banner[facing=west]");
-		for (int[] l : new int[][] {{0, 11, 2}, {-3, 11, -1}, {3, 11, -1}, {-3, 11, 4}, {3, 11, 4}}) {
+		for (int[] l : new int[][] {{0, 11, 1}, {-3, 11, -1}, {3, 11, -1}, {-3, 11, 3}, {3, 11, 3}}) {
 			p.set(l[0], l[1], l[2], "minecraft:lantern[hanging=true]");
 		}
 		if (p.tier >= 2) {
@@ -2602,7 +2602,7 @@ public enum BuildingType {
 		}
 		if (p.tier >= 3) {
 			p.fill(-1, 1, -3, 1, 1, -2, "minecraft:orange_carpet");
-			p.fill(-4, 5, 5, 4, 5, 5, "minecraft:gold_block");
+			p.fill(-4, 5, 4, 4, 5, 4, "minecraft:gold_block");
 			p.set(0, top + 1, 1, "minecraft:gold_block");
 		}
 	}
