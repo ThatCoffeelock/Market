@@ -24,6 +24,12 @@ final class Cmd {
 		server.getCommands().performPrefixedCommand(source, command);
 	}
 
+	/** The same, with the command's feedback (and errors) in the server log: for diagnosing a command that didn't work. */
+	static void loud(ServerLevel level, String command) {
+		MinecraftServer server = level.getServer();
+		server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withLevel(level), command);
+	}
+
 	static String f(double v) {
 		return String.format(Locale.ROOT, "%.4f", v);
 	}

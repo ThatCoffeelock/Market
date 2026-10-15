@@ -64,15 +64,15 @@ final class Figures {
 	static @Nullable LivingEntity summon(ServerLevel level, String mark, double x, double y, double z, float yaw, Look look, boolean gravity) {
 		UUID id = UUID.randomUUID();
 		String base = "summon minecraft:mannequin " + Cmd.pos(x, y, z) + " {" + Cmd.uuidNbt(id) + ",Tags:[\"hoogheheeren\"],CustomName:\""
-			+ esc(look.name()) + "\",CustomNameVisible:1b,Silent:1b,Invulnerable:1b,PersistenceRequired:1b,Rotation:[" + Cmd.f(yaw) + "f,0f]"
-			+ (gravity ? "" : ",NoGravity:1b");
+			+ esc(look.name()) + "\",CustomNameVisible:1b,Silent:1b" + (gravity ? "" : ",NoGravity:1b");
 		Cmd.run(level, base + ",immovable:1b,description:" + look.description() + ",profile:{texture:\"" + Names.texture(look.slim(), look.skin())
 			+ "\",model:\"" + (look.slim() ? "slim" : "wide") + "\"}}");
 		if (!(level.getEntity(id) instanceof LivingEntity)) {
 			Cmd.run(level, base + "}");
 		}
 		if (!(level.getEntity(id) instanceof LivingEntity body)) {
-			HeerenMod.LOG.warn("Could not summon a mannequin for {}", look.name());
+			HeerenMod.LOG.warn("Could not summon a mannequin for {}: {}", look.name(), base + "}");
+			Cmd.loud(level, base + "}");
 			return null;
 		}
 		body.setAttached(HeerenMod.MARK, mark);
