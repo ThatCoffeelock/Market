@@ -2,7 +2,9 @@ package com.thatcoffeelock.sellswords;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
@@ -52,7 +54,7 @@ public final class Combat {
 
 	/** Players, mercenaries, villagers, golems, tamed and named animals. */
 	static boolean friendly(@Nullable Entity e) {
-		if (e == null) {
+		if (e == null || foe(e)) {
 			return false;
 		}
 		if (e instanceof Player || Mercs.isMerc(e)) {
@@ -67,10 +69,30 @@ public final class Combat {
 		return !(e instanceof Enemy) && e.hasCustomName();
 	}
 
+	/**
+	 * Marked as an enemy by another mod: De Hooghe Heeren's rival soldiers in a field battle ({@code "hoogheheeren:foe"},
+	 * a Predicate over entities, through the ObjectShare). Your Sellswords join the fight.
+	 */
+	@SuppressWarnings("unchecked")
+	static boolean foe(Entity e) {
+		Object hook = FabricLoader.getInstance().getObjectShare().get("hoogheheeren:foe");
+		if (!(hook instanceof Predicate<?> predicate)) {
+			return false;
+		}
+		try {
+			return ((Predicate<Entity>) predicate).test(e);
+		} catch (RuntimeException ex) {
+			return false;
+		}
+	}
+
 	/** Something to fight: a monster, or anything at all that's going after a friend. */
 	static boolean hostile(Entity e) {
 		if (!(e instanceof LivingEntity living) || !living.isAlive() || friendly(e)) {
 			return false;
+		}
+		if (foe(e)) {
+			return true;
 		}
 		if (e instanceof Mob mob && mob.getTarget() != null && friendly(mob.getTarget())) {
 			return true;
@@ -141,7 +163,7 @@ public final class Combat {
 			if (Mercs.of(entity) == null || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
 				return true;
 			}
-			return attacker == null || !(attacker instanceof Player || Mercs.isMerc(attacker) || FRIENDS.contains(type(attacker)));
+			return attacker == null || !(attacker instanceof Player || Mercs.isMerc(attacker) || (FRIENDS.contains(type(attacker)) && !foe(attacker)));
 		}
 		return !(attacker != null && Mercs.isMerc(attacker) && friendly(entity));
 	}

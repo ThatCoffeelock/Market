@@ -230,6 +230,16 @@ final class Soldiers {
 				best = o.brain;
 			}
 		}
+		// whoever hits them (a Sellsword, a dog, a golem) gets it back
+		LivingEntity grudge = s.brain.getLastHurtByMob();
+		if (s.side.equals(THEIRS) && grudge != null && grudge.isAlive() && grudge.level() == level && of(grudge) == null
+			&& grudge.distanceToSqr(s.brain) < 16 * 16) {
+			double d = grudge.distanceToSqr(s.brain);
+			if (d < bestD) {
+				bestD = d;
+				best = grudge;
+			}
+		}
 		if (s.side.equals(THEIRS)) {
 			ServerPlayer owner = level.getServer().getPlayerList().getPlayer(s.owner);
 			if (owner != null && owner.level() == level && owner.isAlive() && !owner.isSpectator() && !owner.isCreative()) {
@@ -265,6 +275,12 @@ final class Soldiers {
 			}
 			Cmd.damage(level, target.getUUID(), s.damage, brain.getUUID());
 		}
+	}
+
+	/** The rival's men in a field battle: fair game for your Sellswords ({@code "hoogheheeren:foe"}). */
+	static boolean foe(@Nullable Entity e) {
+		Soldier s = of(e);
+		return s != null && s.side.equals(THEIRS);
 	}
 
 	// ---------------------------------------------------------------- damage

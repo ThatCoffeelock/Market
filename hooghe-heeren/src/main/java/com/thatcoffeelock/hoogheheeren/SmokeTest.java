@@ -224,6 +224,9 @@ final class SmokeTest {
 		check(garrison == 4, "the garrison turns out (" + garrison + ")");
 		Soldiers.Soldier one = Soldiers.in(Battles.seatKey(c, s), Soldiers.THEIRS).get(0);
 		check(one.body != null && one.brain.isInvisible(), "a soldier is an invisible brain with a mannequin body");
+		check(Soldiers.foe(one.body) && Soldiers.foe(one.brain)
+			&& net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare().get(HeerenApi.FOE) instanceof java.util.function.Predicate<?>,
+			"Sellswords see the rival's men as foes");
 		one.brain.hurtServer(level, level.damageSources().generic(), 1000f);
 		check(Battles.garrisonLeft(c, s) == garrison - 1, "and one of them falls");
 		Battles.endGarrison(c, s);
