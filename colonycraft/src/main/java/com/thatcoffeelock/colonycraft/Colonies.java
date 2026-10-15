@@ -588,6 +588,7 @@ public final class Colonies {
 			case DISTILLERY -> "Distiller";
 			case TAVERN -> "Barkeep";
 			case COMPANY_HOUSE -> "Clerk";
+			case HEADQUARTERS -> "Secretary";
 		};
 	}
 
