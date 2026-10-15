@@ -27,6 +27,16 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 
+## New in 2.0: one realm
+
+The mods play together:
+
+- **Govern from home.** A **Governor's Desk** (₥750 at any Town Hall) can take the charter (₥6,000), and then your own house is your Headquarters. The colony it stands in is your capital.
+- **One treasury.** The Governor's Table counts everything you have: your balance, your banks' vaults, Compagnie stakes, loans and strongbox. It shows a day's colony books next to Compagnie wages and the Heeren's upkeep, pacts and tribute, and adds up tomorrow's bills from all of it.
+- **Rivals at your gates.** The Heeren's riders raid your **convoys**, and at war their armies **besiege** your colonies: no work and no convoys until you win the battle at the walls or make peace. The new **Fortress** role holds out.
+- **Sellswords on the field.** Your mercenaries fight the Heeren's soldiers in pitched battles and seat garrisons.
+- **Statecraft**, the 23rd skill: pacts, errands, feasts and victories make you a better ruler.
+
 ## Install
 
 1. Install [Fabric Loader](https://fabricmc.net/use/server/) for Minecraft 26.3.

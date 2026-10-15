@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "1.26.0"
+VERSION = "2.0.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -61,7 +61,8 @@ MODS = [
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
         "Got a villager in a <b>Burlap Sack</b>? Give them an empty job for free. With Havana, buy a <b>Tobacco Farm</b>. With Sellswords, a <b>Guildhouse</b> hires mercenaries 20–50% cheaper.",
         "<b>Law and order:</b> buy Shackles (₥50), beat an illager under 40% health and shackle it. Jail it in a <b>Cellblock</b>, then ransom it or execute it on the <b>Scaffold</b> for 2–3× the bounty.",
-        "<b>Headquarters</b> (₥6,000, one per player): its <b>Governor's Table</b> shows every colony, opens any Town Hall by letter, sends <b>convoys</b> between storehouses (a fee, days on the road, once or daily), gives colonies an optional <b>role</b>, and lets their mayors rehire the dead.",
+        "<b>Headquarters</b> (₥6,000, one per player): its <b>Governor's Table</b> shows every colony, opens any Town Hall by letter, sends <b>convoys</b> between storehouses (a fee, days on the road, once or daily), gives colonies an optional <b>role</b>, and lets their mayors rehire the dead. No palace? Buy a <b>Governor's Desk</b> (₥750), put it in your own house and click <b>Govern from this desk</b>: same charter, your house is the HQ.",
+        "The table's <b>treasury</b> is the whole pack's: colonies, Compagnie wages and loans, the Heeren's upkeep, pacts and tribute, and tomorrow's bills. Playing the Heeren? Their armies <b>besiege</b> colonies at war; a <b>Fortress</b> role shrugs it off.",
         "Needs the Market mod (it's in the pack)."],
   cmds="/colonycraft · /colonycraft charter"),
  dict(name="Ahoy", colour="#3e8fc7", tag="A two-masted sailing ship in a bottle: captain + 8 passengers, two 54-slot holds and wind.",
@@ -181,7 +182,8 @@ MODS = [
   tips=["<b>Honour</b> (keeping your word) wins pacts; <b>Fear</b> makes demands stick. Diplomat, Iron Ruler, Cutthroat... or the Snake.",
         "Spy on a house to see its real purse, army, temperament and <b>plans</b>. Rumours leak anyway.",
         "Feast your guests with food, Proost spirits and Havana cigars (not the spirits for a Pious one). Or bar the doors: they never forget.",
-        "At war, storm their seat: break the garrison, then loot the treasury chest by the high table."],
+        "At war, storm their seat: break the garrison, then loot the treasury chest by the high table.",
+        "With Colonycraft, their riders take <b>convoys</b> and their armies <b>besiege</b> your colonies: win the battle at the walls to lift it. Bring your <b>Sellswords</b>: they fight the rival's men. Skills: <b>Statecraft</b>."],
   cmds="/heeren · /heeren join · /heeren court · /heeren dispatches"),
  dict(name="Warehouse", colour="#c07a2c", tag="Big, sorted storage: tens of thousands of items, fed by hand, hoppers, trains and ships.",
   recipes=[shaped("Warehouse Core", ["IBI","CTC","ICI"], dict(I="iron",B="book",C="chest",T="carto"), "Core"),
@@ -208,7 +210,7 @@ MODS = [
         "Blocks you placed yourself give no XP. No cheesing.",
         "Changed your mind? <b>Forget perks</b> on a skill page (costs 5 XP levels).",
         "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices.",
-        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana and Proost), <b>Piloteering</b> (Blimey), <b>Leadership</b> (Sellswords), <b>Enterprise</b> (De Compagnie) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
+        "Mod skills: <b>Wildcatting</b> (Fossil Fool), <b>Artillery</b> (Cannon), <b>Bounty Hunting</b> (Fuck Illagers), <b>Governance</b> (Colonycraft), <b>Connoisseur</b> (Havana and Proost), <b>Piloteering</b> (Blimey), <b>Leadership</b> (Sellswords), <b>Enterprise</b> (De Compagnie), <b>Statecraft</b> (De Hooghe Heeren) and <b>Treasure Hunting</b> (structure chests and Riches relics)."],
   cmds="/skills · /skills top"),
  dict(name="Hamlets & Horrors", colour="#4f6b3a", tag="Random cottages, castles and dungeons. Some lived in by villagers, some overrun by monsters.",
   recipes=[], getit="Nothing to craft: they generate in <b>new, unexplored terrain</b>.",
@@ -304,7 +306,7 @@ MODS = [
   tips=["Idle mercenaries patrol <b>50 blocks</b> around their station and protect it and its villagers. Hold-this-spot on a wall makes a fine archer post.",
         "They never hurt players, villagers, golems or pets, and their bolts fly straight past friends. They heal slowly. <b>Death is for good</b>.",
         "Log out and your followers guard where you left them. Die and they guard your things.",
-        "A Colonycraft <b>Guildhouse</b> hires 20/35/50% cheaper and has a Bounty Station too. Mercenary kills drop illager fingers. With Skills: <b>Leadership</b> (bigger squad, cheaper promotions, harder hits, thicker skin)."],
+        "A Colonycraft <b>Guildhouse</b> hires 20/35/50% cheaper and has a Bounty Station too. Mercenary kills drop illager fingers. With Skills: <b>Leadership</b> (bigger squad, cheaper promotions, harder hits, thicker skin). They join De Hooghe Heeren's battles too."],
   cmds="/sellswords · /sellswords list · /sellswords rally · /sellswords charge"),
 ]
 
