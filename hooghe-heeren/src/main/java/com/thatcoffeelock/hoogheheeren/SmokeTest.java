@@ -54,11 +54,21 @@ final class SmokeTest {
 		HeerenMod.later(60, () -> {
 			try {
 				test(server.overworld());
-				HeerenMod.LOG.info("HOOGHE HEEREN SMOKE TEST PASSED");
 			} catch (Throwable t) {
 				HeerenMod.LOG.error("HOOGHE HEEREN SMOKE TEST FAILED", t);
+				server.halt(false);
+				return;
 			}
-			server.halt(false);
+			// the seat's chunks were only just force-loaded: give their entities a few seconds to become reachable
+			HeerenMod.later(100, () -> {
+				try {
+					inTheWorld(server.overworld());
+					HeerenMod.LOG.info("HOOGHE HEEREN SMOKE TEST PASSED");
+				} catch (Throwable t) {
+					HeerenMod.LOG.error("HOOGHE HEEREN SMOKE TEST FAILED", t);
+				}
+				server.halt(false);
+			});
 		});
 	}
 
@@ -184,6 +194,16 @@ final class SmokeTest {
 		check(s.built && level.getBlockState(chest).is(Blocks.CHEST), s.seatName + " is built, with its treasury chest");
 		check(level.getBlockState(Builder.at(s, new BlockPos(-Builder.R, 2, 0))).is(Blocks.STONE_BRICKS), "and walls");
 		check(s.dressed.equals(s.colour), "in the house's colours");
+	}
+
+	/** Lords, soldiers and guests, once the seat's chunks are fully loaded; then saving and loading. */
+	private static void inTheWorld(ServerLevel level) {
+		MinecraftServer server = level.getServer();
+		long today = Courts.today();
+		Court c = Courts.get(OWNER);
+		check(c != null, "the court is still there");
+		Rival s = c.rivals.get(2);
+		int honour;
 		BlockPos lordAt = Builder.at(s, Builder.LORD);
 		LivingEntity lord = Figures.ensure(level, Seats.lordMark(c, s), lordAt.getX() + 0.5, lordAt.getY(), lordAt.getZ() + 0.5, 0, Seats.lordLook(c, s));
 		check(lord != null && Seats.lordMark(c, s).equals(Figures.mark(lord)), "the lord is at home in the great hall");

@@ -88,7 +88,7 @@ jobs:
             !**/*-sources.jar
 
       # De Hooghe Heeren needs De Compagnie and the Market mod, so the release carries all three jars.
-      - name: Publish jars to the "compagnie-latest" release
+      - name: Publish jars to the "hooghe-heeren-latest" release
         if: success() && github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
