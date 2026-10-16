@@ -208,6 +208,7 @@ MODS = [
          "Every 10 levels you earn a <b>perk point</b> for that skill. Open <code>/skills</code>, click the skill, click a perk.",
          "Each skill has 3 perks × 5 ranks but only 10 points, so choose."],
   tips=["Vein Miner and Timber only work while you <b>sneak</b>.",
+        "<b>Shield</b>: block hits to learn it. <b>Shield Bash</b> knocks them back, <b>Riposte</b> hits harder right after, <b>Second Wind</b> heals from what you block.",
         "Blocks you placed yourself give no XP. No cheesing.",
         "Changed your mind? <b>Forget perks</b> on a skill page (costs 5 XP levels).",
         "<code>/skills top &lt;skill&gt;</code> shows the leaderboard. Mercantile raises your Market prices.",
