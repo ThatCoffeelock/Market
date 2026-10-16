@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "2.0.1"
+VERSION = "2.0.2"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {

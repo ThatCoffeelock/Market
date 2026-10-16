@@ -60,6 +60,11 @@ public final class Fighting {
 				if (attacker.getVehicle() instanceof LivingEntity) {
 					bonus += Skills.perk(attacker, Perk.CAVALRY);
 				}
+				// Riposte: hit back right after a block
+				Long blockedAt = LAST_BLOCK.remove(attacker.getUUID());
+				if (blockedAt != null && attacker.level().getGameTime() - blockedAt <= RIPOSTE_TICKS) {
+					bonus += Skills.perk(attacker, Perk.RIPOSTE);
+				}
 			}
 			if (isIllager(victim)) {
 				bonus += Skills.passive(attacker, Skill.BOUNTY_HUNTING);
@@ -68,6 +73,14 @@ public final class Fighting {
 		}
 
 		double reduction = 0;
+		if (victim instanceof ServerPlayer player && player.isBlocking() && !source.is(DamageTypeTags.BYPASSES_SHIELD)) {
+			if (facing(player, source)) {
+				block(player, source, amount);
+				return result; // the shield takes it (vanilla does the blocking)
+			}
+			// it came round the side: the shield arm still takes some of it
+			reduction += Skills.passive(player, Skill.SHIELD);
+		}
 		if (victim instanceof ServerPlayer player) {
 			if (source.getEntity() instanceof Mob) {
 				reduction += Skills.perk(player, Perk.THICK_SKIN);
@@ -88,6 +101,36 @@ public final class Fighting {
 			result *= (float) (1.0 - Math.min(0.6, reduction));
 		}
 		return result;
+	}
+
+	/** How long after a block Riposte still counts: 3 seconds. */
+	static final long RIPOSTE_TICKS = 60;
+	/** When each player last blocked a hit (game time), for Riposte. */
+	static final java.util.Map<java.util.UUID, Long> LAST_BLOCK = new java.util.HashMap<>();
+
+	/** Does the hit come from in front, where a raised shield catches it (vanilla's rule)? */
+	static boolean facing(ServerPlayer player, DamageSource source) {
+		Vec3 from = source.getSourcePosition();
+		if (from == null) {
+			return false;
+		}
+		Vec3 to = from.subtract(player.position()).multiply(1, 0, 1);
+		Vec3 view = player.getViewVector(1.0f).multiply(1, 0, 1);
+		return to.lengthSqr() > 1.0e-6 && view.lengthSqr() > 1.0e-6 && to.normalize().dot(view.normalize()) > 0;
+	}
+
+	/** A hit caught on the shield: Shield XP, and the perks (a bash, a riposte to come, a second wind). */
+	static void block(ServerPlayer player, DamageSource source, float amount) {
+		Skills.award(player, Skill.SHIELD, Math.min(amount, 20.0));
+		LAST_BLOCK.put(player.getUUID(), player.level().getGameTime());
+		double heal = Skills.perk(player, Perk.SECOND_WIND);
+		if (heal > 0) {
+			player.heal((float) (amount * heal));
+		}
+		if (source.getDirectEntity() instanceof LivingEntity attacker && attacker != player && Math.random() < Skills.perk(player, Perk.SHIELD_BASH)) {
+			attacker.knockback(0.9, player.getX() - attacker.getX(), player.getZ() - attacker.getZ());
+			attacker.hurtMarked = true;
+		}
 	}
 
 	private static Entity rider(LivingEntity mount) {

@@ -35,6 +35,7 @@ The mods play together:
 - **One treasury.** The Governor's Table counts everything you have: your balance, your banks' vaults, Compagnie stakes, loans and strongbox. It shows a day's colony books next to Compagnie wages and the Heeren's upkeep, pacts and tribute, and adds up tomorrow's bills from all of it.
 - **Rivals at your gates.** The Heeren's riders raid your **convoys**, and at war their armies **besiege** your colonies: no work and no convoys until you win the battle at the walls or make peace. The new **Fortress** role holds out.
 - **Sellswords on the field.** Your mercenaries fight the Heeren's soldiers in pitched battles and seat garrisons.
+- **Shield**, the 24th skill: block hits to learn it; bash, riposte and catch your breath.
 - **Statecraft**, the 23rd skill: pacts, errands, feasts and victories make you a better ruler.
 
 ## Install

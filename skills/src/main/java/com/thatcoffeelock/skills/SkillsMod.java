@@ -83,6 +83,7 @@ public final class SkillsMod implements ModInitializer {
 			Boosts.forget(player);
 			Tracker.forget(player.getUUID());
 			Skills.forget(player.getUUID());
+			Fighting.LAST_BLOCK.remove(player.getUUID());
 		});
 
 		PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {

@@ -2,7 +2,7 @@
 
 A Fabric mod for Minecraft **26.3** that adds an **Elder Scrolls style skill system**: you get better at things by doing them.
 
-- **23 skills**, from Combat and Mining to Sailing, Mercantile, Governance, Treasure Hunting, Piloteering, Leadership, Enterprise and Statecraft. Each levels **0 to 100** as you use it.
+- **24 skills**, from Combat, Shield and Mining to Sailing, Mercantile, Governance, Treasure Hunting, Piloteering, Leadership, Enterprise and Statecraft. Each levels **0 to 100** as you use it.
 - **Every level gives a small passive bonus.** Level 100 makes you about **twice as good** at that thing as a beginner. Demigod tier, not "the server blows up" tier.
 - **Every 10 levels you earn a perk point** for that skill. Each skill has **3 perks with 5 ranks each**: 15 ranks, but only 10 points. Pick what suits you.
 - **A long road.** Early levels come fast, then each level costs 4.5% more than the last. Level 50 is about 10% of the way to 100.
@@ -58,6 +58,7 @@ Admin commands (op level 2): `/skills admin setlevel <player> <skill> <level>`, 
 | **Leadership** | Sellswords: hiring a mercenary (10), promoting one (20 per rank), every kill your mercenaries make (3, more for big mobs) | +25% mercenary health, and room for one more mercenary per 25 levels (up to +4) | **Quartermaster** -6% gold for promotions · **Drillmaster** +5% mercenary damage · **Shield Wall** -4% damage taken by your mercenaries |
 | **Enterprise** | De Compagnie: a job brought home (15 for a triumph, 10 for a success, 4 for a partial), a loan repaid (5), a debt collected (8) | +15% odds on Compagnie jobs | **Broker** -5% agent wages and hiring fees · **Chartered** +5% Marks and spoils from jobs · **Iron Ledger** 8% chance a defaulting borrower pays after all |
 | **Statecraft** | De Hooghe Heeren: a pact signed (10, 15 in person; an alliance 20/25), tribute forced (12), an errand run against them (12 for a triumph, 8 a success, 3 a partial), a gift (2/4), a feast (5), a battle won (15), a war won (40) | +15% odds on every proposal to the Heeren | **Envoy** +6% goodwill from gifts and feasts · **Spymaster** +3% odds on errands against them · **Iron Hand** +4% odds when you demand tribute |
+| **Shield** | Blocking hits with a shield: XP for the damage it caught (up to 20 a hit) | -25% damage from hits that get past your raised shield (from the side or behind) | **Shield Bash** 8% chance to knock back whoever you block · **Riposte** +8% damage on your next melee hit within 3 seconds of a block · **Second Wind** heal 5% of the damage you block |
 
 Damage reductions from all perks together are capped at 60%. Market buy prices never drop below 1.25x what the market pays, so even a maxed merchant can't print money.
 

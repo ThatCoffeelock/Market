@@ -125,7 +125,12 @@ public enum Perk {
 	// Statecraft
 	ENVOY(Skill.STATECRAFT, "Envoy", "cake", 0.06, "+%s goodwill from gifts and feasts"),
 	SPYMASTER(Skill.STATECRAFT, "Spymaster", "ender_eye", 0.03, "+%s odds on errands against the Heeren"),
-	IRON_HAND(Skill.STATECRAFT, "Iron Hand", "iron_bars", 0.04, "+%s odds when you demand tribute");
+	IRON_HAND(Skill.STATECRAFT, "Iron Hand", "iron_bars", 0.04, "+%s odds when you demand tribute"),
+
+	// Shield
+	SHIELD_BASH(Skill.SHIELD, "Shield Bash", "iron_door", 0.08, "%s chance to knock back whoever you block"),
+	RIPOSTE(Skill.SHIELD, "Riposte", "iron_sword", 0.08, "+%s damage on your next melee hit within 3 seconds of a block"),
+	SECOND_WIND(Skill.SHIELD, "Second Wind", "golden_apple", 0.05, "Heal %s of the damage you block");
 
 	public static final int MAX_RANK = 5;
 
