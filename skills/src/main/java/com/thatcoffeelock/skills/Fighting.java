@@ -128,8 +128,14 @@ public final class Fighting {
 			player.heal((float) (amount * heal));
 		}
 		if (source.getDirectEntity() instanceof LivingEntity attacker && attacker != player && Math.random() < Skills.perk(player, Perk.SHIELD_BASH)) {
-			attacker.knockback(0.9, player.getX() - attacker.getX(), player.getZ() - attacker.getZ());
-			attacker.hurtMarked = true;
+			// shoved away from you: mobs move on the server; a player's client is told about the shove
+			Vec3 away = new Vec3(attacker.getX() - player.getX(), 0, attacker.getZ() - player.getZ());
+			away = away.lengthSqr() < 1.0e-6 ? player.getViewVector(1.0f).multiply(1, 0, 1) : away;
+			Vec3 shove = away.normalize().scale(0.9 * (1 - attacker.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.KNOCKBACK_RESISTANCE)));
+			attacker.setDeltaMovement(attacker.getDeltaMovement().add(shove.x, 0.35, shove.z));
+			if (attacker instanceof ServerPlayer target) {
+				target.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket(target));
+			}
 		}
 	}
 
