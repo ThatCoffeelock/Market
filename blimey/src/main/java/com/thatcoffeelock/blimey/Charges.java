@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  * another bomb going off nearby. Then it's an ordinary bomb on a short fuse. Punch it to pick it back up.
  *
  * It's an item display (the look) plus an interaction entity (something to click and punch). Charges are saved, so a
- * booby trap survives a restart; their entities are tagged so strays left behind get cleaned up.
+ * booby trap survives a restart; their entities carry an attachment so strays left behind get cleaned up.
  */
 final class Charges {
 	static final String TAG = "blimey_charge";
@@ -130,11 +130,15 @@ final class Charges {
 		float w = Math.max(0.6f, Math.min(1.0f, s));
 		Cmd.run(level, "summon minecraft:interaction " + Cmd.pos(x, y, z) + " {" + Cmd.uuidNbt(hitboxId) + ",Tags:[\"" + TAG
 			+ "\"],width:" + Cmd.f(w) + "f,height:" + Cmd.f(Math.max(0.6f, s)) + "f,response:1b}");
-		if (level.getEntity(displayId) == null || level.getEntity(hitboxId) == null) {
+		Entity look = level.getEntity(displayId);
+		Entity hitbox = level.getEntity(hitboxId);
+		if (look == null || hitbox == null) {
 			discard(level, displayId.toString());
 			discard(level, hitboxId.toString());
 			return "The charge wouldn't sit there.";
 		}
+		look.setAttached(BlimeyMod.CHARGE, true);
+		hitbox.setAttached(BlimeyMod.CHARGE, true);
 		Charge c = new Charge();
 		c.dimension = dim(level);
 		c.x = spot.getX();
@@ -303,7 +307,7 @@ final class Charges {
 
 	/** A tagged entity loaded in: if no charge owns it, it's left over from one that's gone. */
 	static boolean isStray(Entity entity) {
-		return entity.getTags().contains(TAG) && of(entity) == null;
+		return entity.hasAttached(BlimeyMod.CHARGE) && of(entity) == null;
 	}
 
 	static void changed() {

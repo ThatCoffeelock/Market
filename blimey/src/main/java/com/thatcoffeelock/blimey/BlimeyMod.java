@@ -39,6 +39,9 @@ public final class BlimeyMod implements ModInitializer {
 	/** Marks falling bombs, which aren't saved: one found on load is a leftover and gets removed. */
 	public static final AttachmentType<Boolean> BOMB = AttachmentRegistry.create(
 		Identifier.fromNamespaceAndPath(MOD_ID, "bomb"), builder -> builder.persistent(Codec.BOOL));
+	/** On a planted charge's look and hitbox, so leftovers of one that's gone get cleaned up. */
+	public static final AttachmentType<Boolean> CHARGE = AttachmentRegistry.create(
+		Identifier.fromNamespaceAndPath(MOD_ID, "charge"), builder -> builder.persistent(Codec.BOOL));
 
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();
