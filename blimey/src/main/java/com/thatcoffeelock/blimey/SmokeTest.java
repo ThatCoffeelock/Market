@@ -6,6 +6,8 @@ import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Interaction;
@@ -200,7 +202,52 @@ final class SmokeTest {
 				check(bomb.isDone() && Bomb.live().isEmpty(), "then it goes off");
 				check(level.getBlockState(new BlockPos(-31, FLOOR, 30)).isAir(), "and takes the floor under it with it");
 				check(holes(level) > holesBefore + 4, "it blew a hole of its own (" + holesBefore + " → " + holes(level) + ")");
-				dry(level);
+				charges(level);
+			});
+		});
+	}
+
+	/** Planted charges: set down unlit, picked back up, set off by redstone, by flint and steel, and by each other. */
+	private static void charges(ServerLevel level) {
+		int y = (int) KEEL;
+		int before = count(level);
+		BlockPos a = new BlockPos(20, y, -40);
+		check(Charges.plant(level, a, BlimeyItems.BombKind.SMALL, null) == null && Charges.ALL.size() == 1 && count(level) == before + 2,
+			"a small bomb is planted unlit (a look and a hitbox)");
+		check(Charges.plant(level, a, BlimeyItems.BombKind.SMALL, null) != null, "one charge per spot");
+		check(Charges.plant(level, new BlockPos(20, y + 5, -40), BlimeyItems.BombKind.SMALL, null) != null, "and not in mid-air");
+		Charges.disarm(level, Charges.ALL.get(0));
+		check(Charges.ALL.isEmpty() && count(level) == before && Bomb.live().isEmpty(), "punched, it comes back as an item, unlit");
+		Cmd.run(level, "kill @e[type=item,x=20,y=" + y + ",z=-40,distance=..3]");
+		// redstone
+		check(Charges.plant(level, a, BlimeyItems.BombKind.SMALL, null) == null, "planted again");
+		Cmd.run(level, "setblock 21 " + y + " -40 minecraft:redstone_block");
+		later(level, 10, () -> {
+			check(Charges.ALL.isEmpty() && Bomb.live().size() == 1, "a redstone block next to it lights the fuse");
+			later(level, 40, () -> {
+				check(Bomb.live().isEmpty(), "and it goes off");
+				// flint and steel
+				BlockPos e = new BlockPos(-20, y, -40);
+				check(Charges.plant(level, e, BlimeyItems.BombKind.SMALL, null) == null, "another charge, for the flint and steel");
+				FakePlayer player = FakePlayer.get(level);
+				player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.FLINT_AND_STEEL));
+				Entity hitbox = level.getEntity(java.util.UUID.fromString(Charges.ALL.get(0).hitbox));
+				check(hitbox != null && Charges.useEntity(player, InteractionHand.MAIN_HAND, hitbox) == InteractionResult.SUCCESS
+					&& Charges.ALL.isEmpty() && Bomb.live().size() == 1 && player.getMainHandItem().getDamageValue() == 1,
+					"flint and steel lights it (and wears the flint)");
+				player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+				later(level, 100, () -> {
+					check(Bomb.live().isEmpty(), "four seconds later: boom");
+					// a chain
+					check(Charges.plant(level, new BlockPos(30, y, -40), BlimeyItems.BombKind.SMALL, null) == null
+						&& Charges.plant(level, new BlockPos(34, y, -40), BlimeyItems.BombKind.SMALL, null) == null, "two charges, four blocks apart");
+					Charges.ignite(level, Charges.ALL.get(0), 5);
+					later(level, 60, () -> {
+						check(Charges.ALL.isEmpty() && Bomb.live().isEmpty(), "one goes off and takes the other with it");
+						check(count(level) == before, "no charge entities left behind");
+						dry(level);
+					});
+				});
 			});
 		});
 	}

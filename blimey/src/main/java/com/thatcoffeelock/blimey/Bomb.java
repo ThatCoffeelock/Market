@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * blows holes in buildings (config bombsBreakBlocks).
  *
  * Two ways to go off: dropped from an airship it goes off on the first block, mob or water it hits; set on the
- * ground by hand it sits there with a lit fuse. Bombs aren't saved: on a restart, anything still falling is gone.
+ * ground by hand it sits there with a lit fuse (a planted {@link Charges charge} waits unlit until something sets it off). Bombs aren't saved: on a restart, anything still falling is gone.
  */
 final class Bomb {
 	static final double GRAVITY = 0.04;
@@ -252,6 +252,7 @@ final class Bomb {
 			SkillsLink.xp(dropper, "piloteering", base + 6.0 * caught);
 		}
 		level.explode(null, at.x, at.y, at.z, power, interaction);
+		Charges.chain(level, at, power);
 		if (kind != BlimeyItems.BombKind.SMALL) {
 			Cmd.particles(level, "minecraft:explosion_emitter", at.x, at.y + 1, at.z, kind.power() / 3.0, 0.0, kind == BlimeyItems.BombKind.HUGE ? 6 : 2);
 			Cmd.sound(level, "minecraft:entity.generic.explode", at.x, at.y, at.z, 4.0f, kind == BlimeyItems.BombKind.HUGE ? 0.5f : 0.7f);

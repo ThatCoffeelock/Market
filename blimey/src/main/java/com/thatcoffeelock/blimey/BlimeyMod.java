@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
@@ -46,6 +47,8 @@ public final class BlimeyMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		BlimeyConfig.load();
+		// before the spawn chunks load their entities, so planted charges aren't mistaken for strays
+		ServerLifecycleEvents.SERVER_STARTING.register(Charges::load);
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			if (Boolean.getBoolean("blimey.smokeTest")) {
 				SmokeTest.run(server);
@@ -54,12 +57,14 @@ public final class BlimeyMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			Airships.shutdown();
 			Bomb.clear();
+			Charges.stop();
 			NEXT_TICK.clear();
 			LATER.clear();
 		});
 		ServerTickEvents.START_SERVER_TICK.register(server -> {
 			Airships.tick();
 			Bomb.tickAll();
+			Charges.tick(server);
 		});
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			Runnable task;
@@ -95,7 +100,14 @@ public final class BlimeyMod implements ModInitializer {
 			if (!(player instanceof ServerPlayer sp) || player.isSpectator()) {
 				return InteractionResult.PASS;
 			}
-			return Airships.useEntity(sp, hand, entity);
+			InteractionResult charge = Charges.useEntity(sp, hand, entity);
+			return charge != InteractionResult.PASS ? charge : Airships.useEntity(sp, hand, entity);
+		});
+		AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!(player instanceof ServerPlayer sp) || player.isSpectator()) {
+				return InteractionResult.PASS;
+			}
+			return Charges.attackEntity(sp, entity);
 		});
 
 		CommandRegistrationCallback.EVENT.register(BlimeyCommands::register);

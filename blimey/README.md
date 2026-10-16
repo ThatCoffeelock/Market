@@ -80,7 +80,7 @@ Faster engines burn more at full throttle; the economy refits cut everything, ho
 | **Bombardier** | 6% chance per rank that a dropped bomb isn't used up |
 | **Payload** | +5% bomb blast per rank |
 
-The captain's skill counts for flying; whoever drops the bomb gets the bombing XP and perks. Bombs lit on foot give no XP.
+The captain's skill counts for flying; whoever drops the bomb gets the bombing XP and perks. Bombs lit on foot give no XP; a planted charge counts for whoever planted it.
 
 ## Bombs
 
@@ -92,6 +92,12 @@ The captain's skill counts for flying; whoever drops the bomb gets the bombing X
 
 - **From an airship:** hold a bomb and right-click while aboard (any seat). It drops out of the hatch under the gondola and goes off on the first block, mob or water it hits. It keeps the airship's speed, so it lands ahead of where you let go: lead your target. No bombing while parked.
 - **On foot:** right-click a block to set one down with a lit fuse (4 seconds). Then run.
+- **Planted charges:** **sneak** and right-click a block to set a bomb down **unlit**. It waits until something sets it off:
+  - a **redstone signal** into its spot or the block under it (button, lever, pressure plate, tripwire, daylight sensor, a whole contraption),
+  - **flint and steel** or a **fire charge** on it,
+  - **fire or lava** touching it,
+  - another bomb or charge **going off nearby** (lay a chain for proper demolition).
+  Then it burns a short fuse (1 second; 4 with flint and steel) and goes off with its usual blast. **Punch** an unlit charge to pick it back up. Charges are saved, so a booby trap survives a restart, and the one who planted it gets the Piloteering XP.
 - Crew aboard don't take blast, fall or fire damage. Everyone and everything underneath does.
 
 ## Commands
@@ -122,6 +128,6 @@ The captain's skill counts for flying; whoever drops the bomb gets the bombing X
 ## Notes
 
 - **Sellswords**: mercenaries following you climb aboard when you do, each taking a free passenger seat (never the controls), and get off when you do. Rangers shoot from their seats.
-- Bombs in flight aren't saved: one still falling when the server stops is gone.
+- Planted charges are in `blimey_charges.json` in the world folder. Bombs in flight aren't saved: one still falling when the server stops is gone.
 - Airships stop at the edge of loaded chunks rather than flying off into nothing.
 - CI (`.github/workflows/blimey.yml`) builds the mod, then boots a real dedicated server and runs a smoke test that flies an airship, runs it dry, bombs a stone floor from the air and with a fuse, buys refits and folds it up.

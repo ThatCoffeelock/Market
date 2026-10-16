@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "2.0.2"
+VERSION = "2.0.3"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -296,6 +296,7 @@ MODS = [
   tips=["One bucket of diesel is about <b>5 minutes cruising</b>, 14 hovering. Climbing and racing burn more. Run dry and it sinks gently to the ground.",
         "Menu → <b>Engineer</b>: Engines (up to +80% speed), Fuel economy (up to −50% diesel), Cargo holds (two 54-slot holds to start, up to five). With Skills, <b>Piloteering</b> levels as you fly and bomb, and steering a happy ghast counts too. Paid in netherite, diamonds, blaze rods and ghast tears.",
         "Bombs: small 4 (TNT), big 7, huge 12. On foot, right-click a block to set one with a 4-second fuse. Unlike cannonballs, they break blocks.",
+        "<b>Sneak</b> + right-click to <b>plant</b> a bomb unlit: <b>redstone</b>, <b>flint and steel</b>, fire or a nearby blast sets it off. Booby traps, demolition chains. Punch it to take it back.",
         "Crew aboard take no blast, fall or fire damage. Menu → <b>Lower the rope</b>: passengers climb down to put boots on the ground while you fly; people below right-click its end to be hauled up. Land, then menu → <b>Fold it up</b> to carry it."],
   cmds="/blimey · /blimey menu · /blimey tank"),
  dict(name="Sellswords", colour="#e07a1f", tag="Hire Dutch mercenaries with crossbows and swords. They follow you, hold a spot, hunt with you, guard your walls and villagers, and die for good.",

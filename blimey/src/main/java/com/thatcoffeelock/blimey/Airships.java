@@ -112,7 +112,7 @@ public final class Airships {
 		if (entity.hasAttached(BlimeyMod.DATA)) {
 			PENDING.add(entity);
 		} else if ((entity.hasAttached(BlimeyMod.MARKER) && !BY_MARKER.containsKey(entity.getUUID()))
-			|| (entity.hasAttached(BlimeyMod.BOMB) && !Bomb.isLive(entity))) {
+			|| (entity.hasAttached(BlimeyMod.BOMB) && !Bomb.isLive(entity)) || Charges.isStray(entity)) {
 			STRAYS.add(entity);
 		}
 	}
@@ -141,7 +141,7 @@ public final class Airships {
 			List<Entity> strays = new ArrayList<>(STRAYS);
 			STRAYS.clear();
 			for (Entity stray : strays) {
-				if (!stray.isRemoved() && !BY_MARKER.containsKey(stray.getUUID()) && !Bomb.isLive(stray)) {
+				if (!stray.isRemoved() && !BY_MARKER.containsKey(stray.getUUID()) && !Bomb.isLive(stray) && Charges.of(stray) == null) {
 					stray.ejectPassengers();
 					stray.discard();
 				}
@@ -314,6 +314,20 @@ public final class Airships {
 		BlockPos spot = hit.getBlockPos().relative(hit.getDirection());
 		if (!level.getBlockState(spot).getCollisionShape(level, spot).isEmpty()) {
 			return InteractionResult.FAIL;
+		}
+		if (player.isShiftKeyDown()) {
+			// sneaking: plant it unlit, for redstone or flint and steel to set off later
+			String why = Charges.plant(level, spot, kind, player.getUUID());
+			if (why != null) {
+				player.sendSystemMessage(Component.literal(why).withStyle(ChatFormatting.RED));
+				return InteractionResult.FAIL;
+			}
+			if (!player.isCreative()) {
+				held.shrink(1);
+			}
+			player.sendSystemMessage(Component.literal("Charge planted. Redstone, flint and steel or fire sets it off; punch it to take it back.")
+				.withStyle(ChatFormatting.GOLD));
+			return InteractionResult.SUCCESS;
 		}
 		int fuse = (int) Math.round(BlimeyConfig.get().fuseSeconds * 20);
 		if (Bomb.launch(level, kind, new Vec3(spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5), Vec3.ZERO, fuse, null) == null) {
