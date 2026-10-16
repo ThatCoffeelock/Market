@@ -203,7 +203,7 @@ MODS = [
   cmds="/warehouse · /warehouse list"),
  dict(name="Skills", colour="#6a4fb3", tag="Elder Scrolls style skills: you get better at things by doing them.",
   recipes=[], getit="No recipe: just play. Type <code>/skills</code> to open the menu.",
-  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 21 skills, levels 0–100.",
+  steps=["Do things. Mining levels Mining, fighting levels Combat, sailing levels Sailing, and so on. 24 skills, levels 0–100.",
          "Every level gives a small passive bonus. Level 100 is about twice as good as a beginner.",
          "Every 10 levels you earn a <b>perk point</b> for that skill. Open <code>/skills</code>, click the skill, click a perk.",
          "Each skill has 3 perks × 5 ranks but only 10 points, so choose."],
