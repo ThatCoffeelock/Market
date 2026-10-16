@@ -34,6 +34,8 @@ final class Street {
 			case BANK -> new double[] {25, 50, 90}[t];
 			case MUSEUM -> new double[] {20, 40, 75}[t];
 			case TAVERN -> new double[] {8, 15, 25}[t];
+			// rent: the better the house, the more the tenants pay (nothing for the plain one)
+			case RESIDENCE -> new double[] {0, 15, 40}[t];
 			default -> 0;
 		};
 	}
@@ -55,7 +57,7 @@ final class Street {
 
 	/** A building's earnings today, in cents: nothing without staff. */
 	static long earnings(@Nullable ServerLevel level, Colony.Building b) {
-		if (b.alive() == 0) {
+		if (b.alive() == 0 && b.type != BuildingType.RESIDENCE) {
 			return 0;
 		}
 		long cents = Bank.cents(income(b.type, b.tier));

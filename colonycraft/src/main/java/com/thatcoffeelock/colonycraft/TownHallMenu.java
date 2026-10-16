@@ -638,7 +638,12 @@ final class TownHallMenu extends ChestMenu {
 			default -> {
 			}
 		}
-		if (Street.income(b.type, b.tier) > 0) {
+		if (b.type == BuildingType.RESIDENCE) {
+			if (Street.income(b.type, b.tier) > 0) {
+				button(42, icon(Items.SUNFLOWER, t("Rent", ChatFormatting.GOLD, ChatFormatting.BOLD),
+					List.of(money("A day: ", earns), t("The tenants pay every morning.", ChatFormatting.DARK_GRAY))), null);
+			}
+		} else if (Street.income(b.type, b.tier) > 0) {
 			button(42, icon(Items.SUNFLOWER, t("Earnings", ChatFormatting.GOLD, ChatFormatting.BOLD),
 				List.of(money("Today: ", earns), money("Wages: ", Bank.cents(b.type.wage) * b.alive()),
 					t(b.alive() == 0 ? "Nobody's at work: hire a replacement." : "Paid every morning.", b.alive() == 0 ? ChatFormatting.RED : ChatFormatting.DARK_GRAY))), null);
@@ -655,7 +660,8 @@ final class TownHallMenu extends ChestMenu {
 			case BARRACKS -> b.type.workers(next) + " iron golems.";
 			case HARBOR_OFFICE -> b.type.workers(next) + " clerks: auto-sales pay +" + 5 * next + "%.";
 			case TRAIN_STATION -> (next == 2 ? "A second track" : "A third track") + ", with its own Pickup and Drop-off Station.";
-			case RESIDENCE -> "Beds for " + b.type.housing(next) + " workers (rebuilt with two more beds upstairs).";
+			case RESIDENCE -> "Beds for " + b.type.housing(next) + " workers (rebuilt with two more beds upstairs), and the tenants pay "
+				+ Bank.format(Bank.cents(Street.income(b.type, next))) + " rent a day.";
 			case TOBACCO_FARM -> b.type.workers(next) + " planters, and the barn " + (next == 2 ? "cures some leaves." : "ages some tobacco too.");
 			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + stone(next);
 			case WALL, WALL_STAIRS, WALL_TOWER, GATEHOUSE -> "Rebuilt in " + stone(next);

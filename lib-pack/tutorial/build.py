@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -57,6 +57,7 @@ MODS = [
          "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems.",
          "Build a <b>town street</b>: a Trading Post with master traders (emeralds), a Bank with a shared vault, a Museum for your relics, a Chapel, a Library with a maxed enchanting table, a Ranch, an Apiary and a Fuel Depot. The shop, bank and museum earn marks every day. With Proost: a <b>Distillery</b> and a <b>Tavern</b>. With De Compagnie: a <b>Company House</b>."],
   tips=["Every worker needs a bed, so build Residences first.",
+        "Upgrade a <b>Residence</b> and its tenants pay rent: <b>₥15</b> a day at tier 2, <b>₥40</b> at tier 3.",
         "Turn on <b>autosell</b> at a Storehouse to sell its goods to the Market automatically. A staffed <b>Harbor Office</b> adds 5% per tier.",
         "Storehouses are <b>warehouses</b>: link them to your home warehouse and the harvest comes home. The harbor's pier is a <b>Loading Dock</b>, the <b>Train Station</b> loads Cargo Trains.",
         "Got a villager in a <b>Burlap Sack</b>? Give them an empty job for free. With Havana, buy a <b>Tobacco Farm</b>. With Sellswords, a <b>Guildhouse</b> hires mercenaries 20–50% cheaper.",

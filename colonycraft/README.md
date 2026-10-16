@@ -25,7 +25,7 @@ Put **Fabric API**, **`market-<version>.jar`** and **`colonycraft-<version>.jar`
 | Building | Price | Crew (tier 1/2/3) | Does |
 |---|---|---|---|
 | Town Hall | ₥2,500 | 1 mayor | The counter. Upgrades give more land and more building slots (8/14/20) |
-| Residence | ₥400 | – | Beds: 4/6/8 (upgrading rebuilds it with two more beds upstairs). Every worker needs a bed |
+| Residence | ₥400 | – | Beds: 4/6/8 (upgrading rebuilds it with two more beds upstairs). Every worker needs a bed. **Rent**: ₥15 a day at tier 2, ₥40 at tier 3, paid every morning |
 | Farm | ₥800 | 2/3/4 | Wheat, carrots, potatoes, beetroot, pumpkins, melons |
 | Lumber Camp | ₥900 | 2/3/4 | Oak, spruce and birch logs, sticks, saplings, apples |
 | Mine | ₥2,500 | 3/4/5 | Cobble, coal, iron, copper, gold, redstone, lapis, the odd diamond or emerald |

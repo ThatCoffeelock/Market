@@ -913,6 +913,20 @@ final class SmokeTest {
 			earnings += earns;
 		}
 		check(Street.earnings(level, shop) == Bank.cents(100) && Street.earnings(level, museum) == Bank.cents(75), "earnings go up with the tier");
+		Colony.Building house = find(BuildingType.RESIDENCE);
+		int houseTier = house.tier;
+		house.tier = 1;
+		check(Street.earnings(level, house) == 0, "a plain residence pays no rent");
+		house.tier = 2;
+		check(Street.earnings(level, house) == Bank.cents(15), "a tier 2 residence pays ₥15 rent a day");
+		house.tier = 3;
+		check(Street.earnings(level, house) == Bank.cents(40), "a tier 3 residence pays ₥40");
+		house.tier = houseTier;
+		for (Colony.Building b : colony.buildings) {
+			if (b.type == BuildingType.RESIDENCE) {
+				earnings += Street.earnings(level, b); // the rent comes in on payday too
+			}
+		}
 		Bank.credit(OWNER, "SmokeTest", Bank.cents(10_000));
 		long wages = colony.dailyWages();
 		before = Bank.balance(OWNER);
