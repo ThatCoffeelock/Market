@@ -103,6 +103,13 @@ final class SmokeTest {
 
 		// a telegram
 		check(Jobs.maybeTelegram(c, offer, today + 1, new Fixed(0.0)) && offer.pendingTelegram(), "a telegram comes in on the road");
+		boolean reads = true;
+		for (Telegram t : Telegram.values()) {
+			for (int a = 0; a < 3; a++) {
+				reads &= !t.answer(a, offer).contains("%s") && !t.text(offer).contains("%s");
+			}
+		}
+		check(reads, "every telegram and its answers read without a hitch");
 		before = Bank.balance(OWNER);
 		double oddsBefore = Jobs.odds(c, escort, Approach.FORCE, agent, 1, today, offer);
 		check(Jobs.answer(c, offer, 0) == null && !offer.pendingTelegram() && Bank.balance(OWNER) == before - offer.telegramCost

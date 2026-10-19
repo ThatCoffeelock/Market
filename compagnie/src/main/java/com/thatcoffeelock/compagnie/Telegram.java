@@ -76,10 +76,11 @@ enum Telegram {
 	}
 
 	String text(Job job) {
-		return String.format(text, job.ship);
+		return text.replace("%s", job.ship);
 	}
 
+	/** Not String.format: the answers have bare percent signs in them ("+10%)"). */
 	String answer(int i, Job job) {
-		return i == 0 ? String.format(answers[0], Bank.format(job.telegramCost)) : answers[i];
+		return i == 0 ? answers[0].replace("%s", Bank.format(job.telegramCost)) : answers[i];
 	}
 }
