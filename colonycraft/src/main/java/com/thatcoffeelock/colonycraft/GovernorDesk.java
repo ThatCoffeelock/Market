@@ -86,7 +86,7 @@ final class GovernorDesk {
 			}
 			if (hand == InteractionHand.MAIN_HAND) {
 				if (owner.owner.equals(player.getUUID().toString())) {
-					NetworkMenu.open(player);
+					NetworkMenu.open(player, key(level, clicked));
 				} else {
 					player.sendSystemMessage(Component.literal("Somebody else's Governor's Desk. Not your papers.").withStyle(ChatFormatting.YELLOW));
 				}
