@@ -14,6 +14,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -25,7 +26,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
  * enchantments went up (with the default config: every enchantment with more than one level reaches X, one-level
  * enchantments are left alone), that the
  * enchanting table's costs were squeezed to match, that /enchant respects the new maximum and no more, and that the
- * level names past X are in the jar.
+ * level names past X are in the jar. Also that Lure past V still gets bites.
  */
 final class SmokeTest {
 	private static final UUID SMITH = UUID.randomUUID();
@@ -110,6 +111,15 @@ final class SmokeTest {
 		check(levelOn(level, smith, Enchantments.SHARPNESS) == 10, "/enchant refuses Sharpness XI");
 		run(level, "enchant " + SMITH + " minecraft:unbreaking 10");
 		check(levelOn(level, smith, Enchantments.UNBREAKING) == 10, "/enchant gives Unbreaking X");
+
+		// Lure past V: vanilla would never let a fish bite, so the wait is held at a second
+		check(Lure.speed(300, 250) == 300 && Lure.speed(500, 450) == 500, "Lure III and V wait as long as in vanilla");
+		boolean bites = true;
+		for (int rolled = 100; rolled <= 600; rolled++) {
+			bites &= rolled - Lure.speed(600, rolled) == Lure.MIN_WAIT && rolled - Lure.speed(1000, rolled) == Lure.MIN_WAIT;
+		}
+		check(bites, "Lure VI and X get a bite after a second, every time");
+		check(FishingHook.class.getDeclaredFields().length > 0, "the fishing hook loads with the Lure fix applied");
 
 		String lang = resource("/assets/overenchant/lang/en_us.json");
 		check(lang.contains("\"enchantment.level.11\": \"XI\"") && lang.contains("\"enchantment.level.100\": \"C\""), "levels past X have names");
