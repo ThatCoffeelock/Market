@@ -113,6 +113,8 @@ final class Network {
 		/** The desk you govern from (when there's no palace), and its chancery's tier (kept when the desk moves). */
 		String hqDesk = "";
 		int hqTier;
+		/** Chancery wings added to the palace from the table, past its tier 3: each runs 5 more colonies. */
+		int annex;
 		/** Colony id -> the siege it's under. */
 		Map<String, Siege> sieges = new HashMap<>();
 		/** Each colony's books since its last payday: {earned, wages, convoy fees, rehiring}. */
@@ -201,16 +203,20 @@ final class Network {
 	record Seat(int tier, @Nullable Colony home, String dimension, String where, boolean palace) {
 	}
 
-	/** What the charter of a desk seat costs, then its two upgrades: the same as the palace. */
+	/**
+	 * What the charter of a desk seat costs, then its upgrades: the first two the same as the palace's, and past tier 3
+	 * the chancery keeps growing for as long as you pay, each tier a bit dearer (tier 4 twice tier 3, then +1x a tier).
+	 */
 	static long charterPrice(int toTier) {
 		double base = BuildingType.HEADQUARTERS.price;
-		return Bank.cents(toTier <= 1 ? base : toTier == 2 ? base * 1.5 : base * 3);
+		return Bank.cents(toTier <= 1 ? base : toTier == 2 ? base * 1.5 : base * 3 * (toTier - 2));
 	}
 
 	static @Nullable Seat seat(UUID owner) {
 		Colony.Building palace = hq(owner);
 		if (palace != null) {
-			return new Seat(palace.tier, palace.colony, palace.colony.dimension, "your palace in " + palace.colony.name, true);
+			Net wings = ALL.get(owner.toString());
+			return new Seat(palace.tier + (palace.tier >= 3 && wings != null ? wings.annex : 0), palace.colony, palace.colony.dimension, "your palace in " + palace.colony.name, true);
 		}
 		Net n = ALL.get(owner.toString());
 		if (n == null || n.hqDesk.isEmpty() || n.hqTier <= 0 || !n.desks.contains(n.hqDesk)) {
@@ -233,9 +239,9 @@ final class Network {
 		return new Seat(n.hqTier, home, dim, where, false);
 	}
 
-	/** How many colonies besides its own a seat of government can link: 3, 6, then 10. */
+	/** How many colonies besides its own a seat of government can link: 3, 6, 10, then 5 more every tier, no end. */
 	static int capacity(int tier) {
-		return tier <= 1 ? 3 : tier == 2 ? 6 : 10;
+		return tier <= 1 ? 3 : tier == 2 ? 6 : 10 + 5 * (tier - 3);
 	}
 
 	static int capacity(UUID owner) {
@@ -315,22 +321,31 @@ final class Network {
 		return null;
 	}
 
-	/** Expands a desk seat's chancery: more colonies in the network. */
+	/** Can the table expand this seat's chancery? A desk always can; the palace once its Town Hall has it at tier 3. */
+	static boolean expandable(@Nullable Seat seat) {
+		return seat != null && (!seat.palace() || seat.tier() >= 3);
+	}
+
+	/** Expands the seat's chancery by a tier: more colonies in the network. There's no top. */
 	static @Nullable String expand(UUID owner) {
 		Net n = of(owner);
 		Seat seat = seat(owner);
-		if (seat == null || seat.palace()) {
-			return "Only a desk with the charter is expanded here; the palace is upgraded at its Town Hall.";
+		if (seat == null) {
+			return "You need a seat of government first.";
 		}
-		if (n.hqTier >= 3) {
-			return "Your chancery is as big as it gets.";
+		if (!expandable(seat)) {
+			return "Upgrade the palace at its Town Hall first. Past tier 3 its chancery grows from the Governor's Table.";
 		}
-		long price = charterPrice(n.hqTier + 1);
+		long price = charterPrice(seat.tier() + 1);
 		if (!Bank.charge(owner, price)) {
 			return "Expanding the chancery costs " + Bank.format(price) + ".";
 		}
-		n.hqTier++;
-		n.report("The chancery grows: it runs " + capacity(n.hqTier) + " colonies now.");
+		if (seat.palace()) {
+			n.annex++;
+		} else {
+			n.hqTier++;
+		}
+		n.report("The chancery grows: it runs " + capacity(seat.tier() + 1) + " colonies now.");
 		changed();
 		return null;
 	}

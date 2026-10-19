@@ -418,7 +418,7 @@ final class TownHallMenu extends ChestMenu {
 			case COMPANY_HOUSE -> "A canal house with a Company Desk inside: your Compagnie runs one more job at once, keeps more agents and pays 10% less wages per tier.";
 			case HEADQUARTERS -> "The seat of your colonial network (one per governor-general): every colony on one table, convoys between "
 				+ "their storehouses, roles, and mayors who rehire on their own. Runs " + Network.capacity(1) + " colonies besides its own, "
-				+ Network.capacity(3) + " at tier 3.";
+				+ Network.capacity(3) + " at tier 3, and 5 more for every tier you add at the Governor's Table after that.";
 		};
 	}
 
@@ -682,7 +682,7 @@ final class TownHallMenu extends ChestMenu {
 			case COMPANY_HOUSE -> "Your Compagnie keeps " + next + " more agents and pays " + 10 * next + "% less wages"
 				+ (next == 3 ? ", and a trophy fit for the VOC." : ", and a map room.");
 			case HEADQUARTERS -> "Runs " + Network.capacity(next) + " colonies besides its own"
-				+ (next == 3 ? ", in a gilded hall." : ", with map tables and a gallery of banners.");
+				+ (next == 3 ? ", in a gilded hall. Past that, the chancery grows from the Governor's Table." : ", with map tables and a gallery of banners.");
 			default -> b.type.workers(next) + " workers, and each one works harder.";
 		};
 	}

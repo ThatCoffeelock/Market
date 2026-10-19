@@ -72,11 +72,11 @@ Any Town Hall also sells a **Governor's Desk** (₥750, bottom right): a lectern
 
 Without Headquarters, the table still shows **every colony** and its money, the treasury, and **opens any Town Hall by letter**. Linking, convoys, roles and governors need a seat of government.
 
-**Your own house as HQ.** Don't fancy the palace? Open a desk and click **Govern from this desk** (₥6,000, the same as the palace): that desk is now your seat of government. If it stands on a colony's land, that colony is your **capital** (always in the network, like the palace's). Out in the wild it's fine too: you just link every colony. **Expand the chancery** from the same button (₥9,000, then ₥18,000) for 6, then 10 colonies. Break the desk and the seat is gone until you give another desk the charter. Moving it is free and keeps the tier. If you have the palace, it is the seat, and desks are just windows onto the same table.
+**Your own house as HQ.** Don't fancy the palace? Open a desk and click **Govern from this desk** (₥6,000, the same as the palace): that desk is now your seat of government. If it stands on a colony's land, that colony is your **capital** (always in the network, like the palace's). Out in the wild it's fine too: you just link every colony. **Expand the chancery** from the same button (₥9,000, then ₥18,000) for 6, then 10 colonies, and then **as far as you like**: every tier after that runs 5 more colonies (tier 4 runs 15 for ₥36,000, tier 5 runs 20 for ₥54,000, each ₥18,000 dearer than the last). Break the desk and the seat is gone until you give another desk the charter. Moving it is free and keeps the tier. If you have the palace, it is the seat, and desks are just windows onto the same table.
 
 ### Linking colonies
 
-The HQ's colony is always in the network. Link others from the **Governor's Table** (a colony's page → *Link it to the network*) or from the colony's own Town Hall (the **colony network** tile, bottom row). Your HQ runs **3 colonies besides its own, 6 at tier 2, 10 at tier 3**. Colonies in another dimension can't be linked: no road goes there. Unlinked colonies work exactly as before.
+The HQ's colony is always in the network. Link others from the **Governor's Table** (a colony's page → *Link it to the network*) or from the colony's own Town Hall (the **colony network** tile, bottom row). Your HQ runs **3 colonies besides its own, 6 at tier 2, 10 at tier 3**, and there's no top: past tier 3, **Expand the chancery** on the Governor's Table (the palace's too) adds 5 colonies a tier. Colonies in another dimension can't be linked: no road goes there. Unlinked colonies work exactly as before.
 
 ### The Governor's Table
 

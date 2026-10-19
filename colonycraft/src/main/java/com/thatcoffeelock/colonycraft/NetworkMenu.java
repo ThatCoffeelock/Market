@@ -298,13 +298,30 @@ final class NetworkMenu extends ChestMenu {
 		charterButton(seat);
 	}
 
-	/** At a Governor's Desk: give it the charter (govern from here), or expand its chancery. */
+	/**
+	 * Expand the chancery (a chartered desk, or the palace past tier 3: there's no top), or at a Governor's Desk give it
+	 * the charter (govern from here).
+	 */
 	private void charterButton(@Nullable Network.Seat seat) {
+		Network.Net net = Network.of(viewer.getUUID());
+		boolean here = seat != null && !seat.palace() && desk.equals(net.hqDesk);
+		if (Network.expandable(seat) && (here || seat.palace())) {
+			int next = seat.tier() + 1;
+			button(15, icon(Items.WRITABLE_BOOK, t("Expand the chancery", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
+				t("Tier " + seat.tier() + " → " + next + ": runs " + Network.capacity(next) + " colonies.", ChatFormatting.GRAY),
+				t("Costs " + Bank.format(Network.charterPrice(next)) + ".", ChatFormatting.GOLD),
+				t("There's no top: every tier runs 5 more.", ChatFormatting.DARK_GRAY))), () -> {
+					String why = Network.expand(viewer.getUUID());
+					if (why == null) {
+						click();
+					}
+					nope(why);
+				});
+			return;
+		}
 		if (desk.isEmpty()) {
 			return;
 		}
-		Network.Net net = Network.of(viewer.getUUID());
-		boolean here = seat != null && !seat.palace() && desk.equals(net.hqDesk);
 		if (seat != null && seat.palace()) {
 			button(15, icon(Items.LECTERN, t("A desk, not the seat", ChatFormatting.GRAY, ChatFormatting.BOLD), List.of(
 				t("You govern from " + seat.where() + ".", ChatFormatting.GRAY),
@@ -325,20 +342,6 @@ final class NetworkMenu extends ChestMenu {
 					}
 					nope(why);
 				});
-		} else if (net.hqTier < 3) {
-			long price = Network.charterPrice(net.hqTier + 1);
-			button(15, icon(Items.WRITABLE_BOOK, t("Expand the chancery", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
-				t("Tier " + net.hqTier + " → " + (net.hqTier + 1) + ": runs " + Network.capacity(net.hqTier + 1) + " colonies.", ChatFormatting.GRAY),
-				t("Costs " + Bank.format(price) + ".", ChatFormatting.GOLD))), () -> {
-					String why = Network.expand(viewer.getUUID());
-					if (why == null) {
-						click();
-					}
-					nope(why);
-				});
-		} else {
-			button(15, glow(icon(Items.LECTERN, t("Your seat of government", ChatFormatting.GOLD, ChatFormatting.BOLD), List.of(
-				t("The chancery is as big as it gets.", ChatFormatting.GRAY)))), null);
 		}
 	}
 

@@ -738,11 +738,17 @@ final class SmokeTest {
 			"the desk stands in " + outpost.name + ": that's the capital now");
 		check(Network.link(capital) == null && Network.linked(capital), "and " + capital.name + " joins from there");
 		check(Network.expand(OWNER) == null && Network.capacity(OWNER) == 6, "the chancery expands to run 6");
+		Bank.credit(OWNER, "smoke", Network.charterPrice(3) + Network.charterPrice(4) + Network.charterPrice(5));
+		check(Network.expand(OWNER) == null && Network.expand(OWNER) == null && Network.capacity(OWNER) == 15,
+			"past tier 3 it keeps going: tier 4 runs 15");
+		check(Network.expand(OWNER) == null && Network.capacity(OWNER) == 20 && Network.charterPrice(6) > Network.charterPrice(5),
+			"tier 5 runs 20, and each tier costs more than the last");
+		check(Network.capacity(100) == 495, "there's no top: tier 100 runs 495");
 		GovernorDesk.forget(Network.of(OWNER), desk);
-		check(Network.seat(OWNER) == null && Network.of(OWNER).hqTier == 2, "a broken desk drops the seat, but the charter keeps its tier");
+		check(Network.seat(OWNER) == null && Network.of(OWNER).hqTier == 5, "a broken desk drops the seat, but the charter keeps its tier");
 		Network.of(OWNER).desks.add(desk);
 		before = Bank.balance(OWNER);
-		check(Network.charter(OWNER, desk) == null && Bank.balance(OWNER) == before && Network.capacity(OWNER) == 6,
+		check(Network.charter(OWNER, desk) == null && Bank.balance(OWNER) == before && Network.capacity(OWNER) == 20,
 			"and moves to the next desk for free");
 		GovernorDesk.forget(Network.of(OWNER), desk);
 
