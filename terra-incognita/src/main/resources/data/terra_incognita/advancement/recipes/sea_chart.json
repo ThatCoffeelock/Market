@@ -1,0 +1,11 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_map": {
+			"trigger": "minecraft:inventory_changed",
+			"conditions": {"items": [{"items": "minecraft:map"}]}
+		}
+	},
+	"requirements": [["has_map"]],
+	"rewards": {"recipes": ["terra_incognita:sea_chart"]}
+}

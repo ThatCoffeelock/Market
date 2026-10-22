@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "terra_incognita",
+	"version": "${version}",
+	"name": "Terra Incognita",
+	"description": "The unknown southland: a new dimension of tropical islands and mountains, crawling with illagers and bursting with loot. Reached by sea, with a chart. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.terraincognita.TerraMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

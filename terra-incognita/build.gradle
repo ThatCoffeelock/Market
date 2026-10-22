@@ -1,0 +1,105 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import java.util.zip.ZipFile
+
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = "${project.mod_version}+mc${project.minecraft_version}"
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+loom {
+	runs {
+		// Boots a real dedicated server with the mod, runs Terra Incognita's self-checks, then shuts down.
+		smoke {
+			server()
+			name = "Terra Incognita Smoke Test"
+			vmArg "-Dterraincognita.smokeTest=true"
+			programArg "nogui"
+			runDir = "run/smoke"
+		}
+	}
+}
+
+// Terra Incognita's terrain is the Overworld's own, from this exact Minecraft version, with the sea level raised:
+// the lowlands drown, the hills become islands and the mountains rise straight out of the sea. Copying the vanilla
+// file at build time (instead of keeping a hand-made copy in the repo) means it always matches the game it runs on.
+def worldgenDir = layout.buildDirectory.dir('generated/worldgen')
+def generateWorldgen = tasks.register('generateWorldgen') {
+	def seaLevel = (project.terra_sea_level as String).toInteger()
+	inputs.property 'seaLevel', seaLevel
+	inputs.property 'minecraft', project.minecraft_version
+	outputs.dir worldgenDir
+	doLast {
+		def entry = 'data/minecraft/worldgen/noise_settings/overworld.json'
+		def roots = [new File(gradle.gradleUserHomeDir, 'caches/fabric-loom'), new File(rootDir, '.gradle/loom-cache')]
+		File jar = null
+		def seen = []
+		roots.findAll { it.isDirectory() }.each { root ->
+			root.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+				if (jar == null && f.name.endsWith('.jar') && f.name.contains('minecraft') && !f.name.contains('sources')) {
+					seen << f.name
+					def zip = new ZipFile(f)
+					try {
+						if (zip.getEntry(entry) != null) {
+							jar = f
+						}
+					} finally {
+						zip.close()
+					}
+				}
+			}
+		}
+		if (jar == null) {
+			throw new GradleException("Couldn't find the vanilla Overworld noise settings in any Minecraft jar (looked at ${seen})")
+		}
+		def zip = new ZipFile(jar)
+		def settings
+		try {
+			settings = new JsonSlurper().parse(zip.getInputStream(zip.getEntry(entry)))
+		} finally {
+			zip.close()
+		}
+		logger.lifecycle("Terra Incognita: terrain from ${jar.name}, sea level ${settings.sea_level} -> ${seaLevel}")
+		settings.sea_level = seaLevel
+		def out = worldgenDir.get().file('data/terra_incognita/worldgen/noise_settings/terra.json').asFile
+		out.parentFile.mkdirs()
+		out.text = JsonOutput.toJson(settings)
+	}
+}
+
+processResources {
+	inputs.property "version", project.mod_version
+	inputs.property "minecraft_version", project.minecraft_version
+	inputs.property "loader_version", project.loader_version
+	inputs.property "sea_level", project.terra_sea_level
+
+	from(generateWorldgen)
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.mod_version,
+			"minecraft_version": project.minecraft_version,
+			"loader_version": project.loader_version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}

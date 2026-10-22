@@ -1,0 +1,27 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:map",
+		"minecraft:compass",
+		"minecraft:gold_ingot",
+		"minecraft:emerald"
+	],
+	"result": {
+		"id": "minecraft:paper",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {"terra_incognita": "chart"},
+			"minecraft:item_model": "minecraft:filled_map",
+			"minecraft:item_name": {"text": "Sea Chart of the Southland", "color": "gold", "italic": false},
+			"minecraft:enchantment_glint_override": true,
+			"minecraft:max_stack_size": 1,
+			"minecraft:lore": [
+				{"text": "Half of it is blank. The blank half is where the gold is.", "color": "gray", "italic": false},
+				{"text": "Take it to sea in a boat (or aboard a ship) and right-click.", "color": "dark_gray", "italic": false},
+				{"text": "Hold your course and Terra Incognita rises out of the fog.", "color": "dark_gray", "italic": false},
+				{"text": "Over there, it brings you home the same way.", "color": "dark_gray", "italic": false}
+			]
+		}
+	}
+}
