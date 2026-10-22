@@ -161,12 +161,20 @@ final class SmokeTest {
 		Cmd.run(home, "forceload add 0 0");
 		// a player keeps their own chunks loaded; an armor stand needs help
 		Cmd.run(terra, "forceload add " + sea.getX() + " " + sea.getZ());
-		Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b}");
+		Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b,CustomName:\"Traveller\"}");
 		Cmd.run(home, "execute in " + Terra.DIMENSION + " run tp " + TRAVELLER + " " + Cmd.pos(sea.getX() + 0.5, sea.getY() + 0.2, sea.getZ() + 0.5));
 		TerraMod.later(5, () -> step(server, () -> {
-			Entity traveller = terra.getEntity(TRAVELLER);
-			check(traveller != null, "an entity crosses into Terra Incognita");
-			traveller.discard();
+			// crossing over can hand a non-player a fresh entity, so look for it by name where it should be
+			net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(sea.getX() - 4, sea.getY() - 4, sea.getZ() - 4,
+				sea.getX() + 5, sea.getY() + 5, sea.getZ() + 5);
+			var arrived = terra.getEntitiesOfClass(Entity.class, box,
+				e -> e.hasCustomName() && e.getCustomName().getString().equals("Traveller"));
+			if (arrived.isEmpty()) {
+				Entity left = home.getEntity(TRAVELLER);
+				TerraMod.LOG.info("[smoke] the traveller didn't arrive; at home it's {}", left == null ? "gone" : "still at " + left.blockPosition().toShortString());
+			}
+			check(!arrived.isEmpty(), "an entity crosses into Terra Incognita");
+			arrived.forEach(Entity::discard);
 
 			// a platform high above any mountain: a band of illagers turns up on dry land near it
 			Cmd.run(terra, "forceload add -64 -64 64 64");
