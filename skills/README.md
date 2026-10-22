@@ -82,6 +82,7 @@ Skill progress is saved in `<world>/skills.json`. Player-placed blocks are remem
 ## Works with
 
 - **Market**: Mercantile raises your sell prices and lowers your buy prices, and selling and buying gives Mercantile XP. Neither mod needs the other.
+- **Specerij**: picking ripe spice plants gives Farming XP (and a bit more for finding a wild cutting), and **Green Thumb** sometimes adds one to the pick.
 - **Tulpengekte**: lifting tulips in flower and breaking rare varieties gives Farming XP, and **Green Thumb** sometimes adds an offset. Selling to a Bloemist gives Mercantile XP, and Mercantile's passive and Haggler raise what he pays.
 - **Flintlock**: gun damage levels Marksmanship and gets its bonuses. The Marksmanship passive also shortens reloads (stacking with Quick Charge), and Recovery can make a reload free.
 - **Ahoy**: sailing the ship levels Sailing.

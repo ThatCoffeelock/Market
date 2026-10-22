@@ -129,7 +129,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · 2.0</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Twenty-one mods in one jar, and since 2.0 they play as one realm. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, breed tulips worth a canal house, run a shady trading company, outwit rival houses, level 24 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Twenty-two mods in one jar, and since 2.0 they play as one realm. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, breed tulips worth a canal house, grow pepper in the jungle and tea under glass, run a shady trading company, outwit rival houses, level 24 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
@@ -205,6 +205,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
             <tr><th>Storehouse</th><td class="num money">₥500</td><td>1 / 1 / 2</td><td>A warehouse: core + 2 / 6 / 12 racks, optional autosell</td></tr>
             <tr><th>Fishery</th><td class="num money">₥1,000</td><td>2 / 3 / 4</td><td>Cod, salmon, ink sacs, kelp, the odd nautilus shell</td></tr>
             <tr><th>Tobacco Farm</th><td class="num money">₥1,200</td><td>2 / 3 / 4</td><td>Havana tobacco; cures and ages some from tier 2</td></tr>
+            <tr><th>Spice Plantation</th><td class="num money">₥1,500</td><td>2 / 3 / 4</td><td>Specerij: the local spice, only where spices grow; up to double far from Headquarters</td></tr>
             <tr><th>Harbor Office</th><td class="num money">₥2,500</td><td>1 / 2 / 3</td><td>Pier with a Loading Dock; +5 / 10 / 15% on auto-sales</td></tr>
             <tr><th>Train Station</th><td class="num money">₥1,500</td><td>1</td><td>1 / 2 / 3 tracks, each with a Pickup + Drop-off Station</td></tr>
             <tr><th>Workshop</th><td class="num money">₥1,500</td><td>2 / 3 / 4</td><td>Ore to ingots, logs to planks</td></tr>
@@ -329,7 +330,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 2.1.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie, De Hooghe Heeren, Tulpengekte</span>
+    <span>LIB Pack 2.2.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie, De Hooghe Heeren, Tulpengekte, Specerij</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -506,6 +507,16 @@ const MODS = [
           "Sells at the Market: common ₥1, fine ₥20, broken ₥75, Semper Augustus ₥300",
           "With Skills: Farming and Mercantile. With Colonycraft: farms dig up the odd bulb"],
     cmds: ["/tulpengekte", "/tulpengekte wants", ["/tulpengekte give", true]] },
+  { name: "Specerij", id: "specerij", colour: "#b5651d", tag: "Spices that only grow where they grow, a Hortus to cheat the climate, a Drying Rack to finish them.",
+    recipes: [{ name: "Drying Rack", shapeless: ["barrel", "string"], out: ["Dry", "#8d6236"] }],
+    how: ["Pepper: jungle · Nutmeg: mangrove swamp · Cloves: bamboo jungle · Cinnamon: savanna · Tea: cherry grove, windswept hills · Saffron: meadow, flower forest",
+          "Cuttings: break grass there (about 1 in 25). /specerij here says what grows where you stand",
+          "Plant in its home biome, or a Hortus: glass roof overhead + a fire within 4 blocks. Half speed",
+          "Ripe in a day. Right-click to pick, it grows back. Break to dig it up. No bone meal",
+          "Drying Rack: fresh → dried in a day (×4 the price). Green tea → black in two more",
+          "Market, dried: pepper ₥3, cloves ₥3.50, cinnamon ₥4, nutmeg ₥6, tea ₥1.50 / ₥3, saffron ₥15",
+          "Colonycraft: Spice Plantation, only where spices grow, up to double yield 5,000 blocks from your Headquarters"],
+    cmds: ["/specerij", "/specerij here", ["/specerij give", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [
       { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },

@@ -25,8 +25,14 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [De Compagnie](../compagnie/README.md) | Run a shady VOC trading company from a Company Desk: hire agents, bankroll 36 trade, raid, explore and smuggling jobs three ways, answer telegrams from the road, lend money to dubious borrowers and send collectors after them, grow from a Charter to the VOC |
 | [De Hooghe Heeren](../hooghe-heeren/README.md) | Optional rival houses behind a tab on the Company Desk (each player chooses to take a seat): lords with treasuries, regiments and long memories who play by your rules. Gifts, pacts, alliances and tribute; spies, saboteurs, forged letters and assassins run by your agents; wars with pitched battles at noon you can ride out to and fight in; seats in the world to visit (or storm), and an Audience Bell hall to feast your guests in (or bar the doors) |
 | [Tulpengekte](../tulpengekte/README.md) | Tulip mania, balanced: plant bulbs, breed rare broken varieties (1 in 1,000 is the Semper Augustus), and sell them to a Bloemist who wants three varieties a day |
+| [Specerij](../specerij/README.md) | Spices that only grow where they grow: pepper, nutmeg, cloves, cinnamon, tea and saffron in their home biomes, a glass-roofed Hortus to cheat the climate at home, a Drying Rack, and Colonycraft Spice Plantations that pay more the farther from home they are |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
+
+## New in 2.2: Specerij
+
+- **[Specerij](../specerij/README.md)**, mod number 22: six spices that only grow in their home biomes (jungle pepper, mangrove nutmeg, bamboo-jungle cloves, savanna cinnamon, cherry-grove tea, meadow saffron). Bring a cutting home and grow it in a **Hortus** (a glass roof and a fire going) at half speed, then dry it in a **Drying Rack**.
+- **Colonycraft Spice Plantations**: only where spices grow wild, and they bring in more the farther the colony is from your Headquarters (up to double at 5,000 blocks). Faraway colonies finally pay.
 
 ## New in 2.1: Tulpengekte
 
@@ -60,4 +66,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all twenty-one mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twenty-one mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all twenty-two mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twenty-two mods load and the server starts.

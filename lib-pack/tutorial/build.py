@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -324,6 +324,19 @@ MODS = [
         "Every Bloemist wants the same thing on the same day, and only a few per player. <code>/tulpengekte wants</code> shows today's list.",
         "With Skills: lifting trains <b>Farming</b> (Green Thumb adds offsets), selling to the Bloemist trains <b>Mercantile</b>. Colonycraft farms dig up the odd bulb."],
   cmds="/tulpengekte · /tulpengekte wants"),
+
+ dict(name="Specerij", colour="#b5651d", tag="Spices that only grow where they grow: pepper, nutmeg, cloves, cinnamon, tea and saffron. A Hortus to cheat the climate, a Drying Rack to finish them.",
+  recipes=[shapeless("Drying Rack", ["barrel","string"], "Dry")],
+  steps=["Go where the spice grows: <b>jungle</b> (pepper), <b>mangrove swamp</b> (nutmeg), <b>bamboo jungle</b> (cloves), <b>savanna</b> (cinnamon), <b>cherry grove</b> (tea), <b>meadow</b> (saffron).",
+         "Break grass and ferns there. About 1 in 25 gives a <b>cutting</b>. <code>/specerij here</code> tells you what grows where you stand.",
+         "Plant it in its home biome. Anywhere else only in a <b>Hortus</b>: a <b>glass roof</b> overhead and a <b>fire</b> going within 4 blocks. Half speed.",
+         "A day later it's ripe. <b>Right-click</b> to pick it; it grows back. Breaking it digs it up (you keep the cutting).",
+         "Put the fresh spice in a <b>Drying Rack</b>. A day later it's dried and worth about four times as much. Green tea left in two more days turns black."],
+  tips=["No bone meal. Ripe pepper is a sweet berry bush: it pricks.",
+        "Market, dried: pepper ₥3, cloves ₥3.50, cinnamon ₥4, nutmeg ₥6, green / black tea ₥1.50 / ₥3, saffron ₥15.",
+        "With Colonycraft: a <b>Spice Plantation</b> (top left of the Town Hall) grows the local spice. Double the yield at 5,000 blocks from your Headquarters.",
+        "With Skills: picking trains <b>Farming</b>, and Green Thumb adds to the pick."],
+  cmds="/specerij · /specerij here"),
 ]
 
 def item(k, big=False):
@@ -416,7 +429,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Twenty-one mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Twenty-two mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

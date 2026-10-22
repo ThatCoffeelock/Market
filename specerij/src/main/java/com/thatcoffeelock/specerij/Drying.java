@@ -20,7 +20,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A Drying Rack is any rack or chest whose name has "drying" or "spice rack" in it. Craft one, or rename one in an
+ * A Drying Rack is any barrel or chest whose name has "drying" or "spice rack" in it. Craft one, or rename one in an
  * anvil. Fresh spice in it dries after {@link SpiceConfig#dryTicks}; green tea left in it turns black after
  * {@link SpiceConfig#blackTeaTicks} more. The same way as Havana's Curing Barrel, on purpose.
  *
@@ -38,7 +38,7 @@ final class Drying {
 	}
 
 	private static boolean isRackBlock(String id) {
-		return id.equals("rack") || id.equals("chest") || id.equals("trapped_chest");
+		return id.equals("barrel") || id.equals("chest") || id.equals("trapped_chest");
 	}
 
 	/** The drying rack at pos, or null. Never loads a chunk. */
