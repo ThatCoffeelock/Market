@@ -1,0 +1,20 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:barrel",
+		"minecraft:string"
+	],
+	"result": {
+		"id": "minecraft:barrel",
+		"count": 1,
+		"components": {
+			"minecraft:custom_name": {"text": "Drying Rack", "color": "gold", "italic": false},
+			"minecraft:lore": [
+				{"text": "Fresh spices dry in here (about one day).", "color": "gray", "italic": false},
+				{"text": "Leave green tea in two more days and it turns black.", "color": "gray", "italic": false},
+				{"text": "Keeps working while you're away.", "color": "dark_gray", "italic": false}
+			]
+		}
+	}
+}

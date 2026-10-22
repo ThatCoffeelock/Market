@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "specerij",
+	"version": "${version}",
+	"name": "Specerij",
+	"description": "Spices that only grow where they grow: pepper, nutmeg, cloves, cinnamon, tea and saffron, a glasshouse Hortus to cheat the climate, and a drying rack. Server-side: vanilla clients can join.",
+	"authors": ["thatcoffeelock"],
+	"contact": {
+		"sources": "https://github.com/thatcoffeelock/market"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.thatcoffeelock.specerij.SpiceMod"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
