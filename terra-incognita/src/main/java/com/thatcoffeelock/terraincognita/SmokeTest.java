@@ -162,8 +162,10 @@ final class SmokeTest {
 		// a player keeps their own chunks loaded; an armor stand needs help
 		Cmd.run(terra, "forceload add " + sea.getX() + " " + sea.getZ());
 		Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b,CustomName:\"Traveller\"}");
+		Entity summoned = home.getEntity(TRAVELLER);
+		TerraMod.LOG.info("[smoke] the traveller was summoned at home: {}", summoned == null ? "no" : summoned.blockPosition().toShortString());
 		Cmd.run(home, "execute in " + Terra.DIMENSION + " run tp " + TRAVELLER + " " + Cmd.pos(sea.getX() + 0.5, sea.getY() + 0.2, sea.getZ() + 0.5));
-		TerraMod.later(5, () -> step(server, () -> {
+		TerraMod.later(20, () -> step(server, () -> {
 			// crossing over can hand a non-player a fresh entity, so look for it by name where it should be
 			net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(sea.getX() - 4, sea.getY() - 4, sea.getZ() - 4,
 				sea.getX() + 5, sea.getY() + 5, sea.getZ() + 5);
@@ -171,7 +173,12 @@ final class SmokeTest {
 				e -> e.hasCustomName() && e.getCustomName().getString().equals("Traveller"));
 			if (arrived.isEmpty()) {
 				Entity left = home.getEntity(TRAVELLER);
-				TerraMod.LOG.info("[smoke] the traveller didn't arrive; at home it's {}", left == null ? "gone" : "still at " + left.blockPosition().toShortString());
+				Entity there = terra.getEntity(TRAVELLER);
+				TerraMod.LOG.info("[smoke] the traveller didn't arrive; at home it's {}, in Terra it's {}", left == null ? "gone" : "still at " + left.blockPosition().toShortString(),
+					there == null ? "not found by UUID" : "at " + there.blockPosition().toShortString());
+				for (Entity e : terra.getAllEntities()) {
+					TerraMod.LOG.info("[smoke]   in Terra: {} at {}", e.getType(), e.blockPosition().toShortString());
+				}
 			}
 			check(!arrived.isEmpty(), "an entity crosses into Terra Incognita");
 			arrived.forEach(Entity::discard);
