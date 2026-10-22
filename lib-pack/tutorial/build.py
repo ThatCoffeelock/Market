@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "2.3.0"
+VERSION = "2.3.1"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -344,7 +344,8 @@ MODS = [
   steps=["Craft a <b>Sea Chart of the Southland</b>: Map + Compass + Gold Ingot + Emerald.",
          "Take it to sea in a <b>boat</b> (or aboard an Ahoy ship) and right-click it.",
          "<b>Hold your course for 30 seconds</b>: stay aboard, on the water, with the chart. Halfway, the fog comes in.",
-         "You arrive in <b>Terra Incognita</b> in a fresh boat, with your crew (anyone aboard something within 12 blocks). Your ship stays moored at home.",
+         "You arrive in <b>Terra Incognita</b> with your crew (anyone aboard something within 12 blocks), each in a fresh boat.",
+         "<b>Sail your own Ahoy ship across</b>, cargo, guns and all, once the Shipwright has fitted <b>Copper sheathing</b> (rigging II). Bring the plunder home in her holds.",
          "Coming home works the same way: out to sea, right-click the chart, hold your course."],
   tips=["An archipelago of jungle, savanna, desert, badlands and cherry islands, with peaks over 150 blocks high.",
         "Everything the Overworld spawns spawns there too: villages, temples, outposts, mansions, wrecks, and your structure mods.",

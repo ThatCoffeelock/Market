@@ -100,6 +100,7 @@ public final class AhoyMod implements ModInitializer {
 
 		CommandRegistrationCallback.EVENT.register(AhoyCommands::register);
 		Ships.offerSeatsToMercenaries();
+		Voyages.share();
 		LOG.info("Ahoy loaded. All hands on deck.");
 	}
 

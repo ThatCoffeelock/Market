@@ -30,6 +30,10 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
 
+## New in 2.3.1: sail your own ship to Terra Incognita
+
+- **Terra Incognita 1.1 + Ahoy 1.8**: set a course from the deck of your Ahoy ship and the ship makes the crossing too, with her holds, refits, guns and bunks, and the whole crew back in their seats on the other side. Fill the holds with plunder and sail her home. The hull needs **Copper sheathing** (rigging II) from the Shipwright first.
+
 ## New in 2.3: Terra Incognita
 
 - **[Terra Incognita](../terra-incognita/README.md)**, mod number 23: a whole new dimension. Craft a **Sea Chart of the Southland**, take it to sea and hold your course: the fog takes you and your crew to an archipelago of jungle, savanna, desert and badlands islands with mountains rising out of a warm sea. Everything the Overworld spawns spawns there too, your structure mods included. It's crawling with illagers, and every unopened chest holds extra plunder. High risk, high reward.

@@ -2,6 +2,7 @@ package com.thatcoffeelock.terraincognita;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.ChatFormatting;
@@ -9,12 +10,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * Crossing over: the captain and every crew member aboard something nearby are carried through the fog to the same
- * spot on the other side (or the nearest open water to it), each in a fresh boat. Whatever they sailed in stays
- * where it was, moored at home (an Ahoy ship included), so nothing is lost on the way.
+ * spot on the other side (or the nearest open water to it). An Ahoy ship with Copper sheathing comes along, cargo and
+ * all; anyone else arrives in a fresh boat, and whatever they sailed in stays moored at home.
  */
 final class Crossing {
 	/** How far (in chunks) to look for open water to arrive in. */
@@ -58,7 +61,11 @@ final class Crossing {
 		return crew;
 	}
 
-	/** Carries the captain and crew across. Returns false if there's nowhere to go from here. */
+	/**
+	 * Carries the captain and crew across. An Ahoy ship the captain is aboard goes too, bottled up on this side and
+	 * launched on the other with everyone back in their seats; if there's no room for it over there, the captain gets
+	 * the bottle and the crew a boat each. Returns false if there's nowhere to go from here.
+	 */
 	static boolean cross(ServerPlayer captain) {
 		ServerLevel from = (ServerLevel) captain.level();
 		ServerLevel to = Terra.across(from);
@@ -68,6 +75,16 @@ final class Crossing {
 		boolean outward = Terra.isTerra(to);
 		BlockPos at = arrival(to, captain.getBlockX(), captain.getBlockZ());
 		List<ServerPlayer> crew = crew(captain);
+		Map<String, Object> ship = AhoyLink.aboard(captain);
+		ItemStack bottle = ItemStack.EMPTY;
+		if (ship != null && AhoyLink.refusal(ship) == null) {
+			for (ServerPlayer sailor : AhoyLink.crew(ship)) {
+				if (!crew.contains(sailor)) {
+					crew.add(sailor);
+				}
+			}
+			bottle = AhoyLink.pack(captain);
+		}
 		for (int i = 0; i < crew.size(); i++) {
 			ServerPlayer sailor = crew.get(i);
 			double x = at.getX() + 0.5 + (i % 3) * 2.5;
@@ -75,22 +92,37 @@ final class Crossing {
 			double y = at.getY() + 0.2;
 			sailor.stopRiding();
 			Cmd.run(from, "execute in " + Terra.id(to) + " run tp " + sailor.getUUID() + " " + Cmd.pos(x, y, z));
-			UUID boat = UUID.randomUUID();
-			UUID who = sailor.getUUID();
-			TerraMod.later(3, () -> {
-				Cmd.run(to, "summon minecraft:oak_boat " + Cmd.pos(x, y, z) + " {" + Cmd.uuidNbt(boat) + "}");
-				Cmd.run(to, "ride " + who + " mount " + boat);
-			});
-			Cmd.effect(to, who.toString(), "darkness", 3, 0);
-			SkillsLink.xp(who, "sailing", outward ? 40 : 15);
+			Cmd.effect(to, sailor.getUUID().toString(), "darkness", 3, 0);
+			SkillsLink.xp(sailor.getUUID(), "sailing", outward ? 40 : 15);
 			sailor.sendSystemMessage(outward
 				? Component.literal("The fog lifts over islands nobody has charted. Terra Incognita. Something on the shore is watching you.")
 					.withStyle(ChatFormatting.GOLD)
 				: Component.literal("The fog thins, and the stars are the ones you know. Home waters.").withStyle(ChatFormatting.AQUA));
 		}
+		ItemStack shipBottle = bottle;
+		TerraMod.later(3, () -> {
+			if (!shipBottle.isEmpty()) {
+				if (AhoyLink.launch(shipBottle, crew)) {
+					return;
+				}
+				// no room for the hull: the ship stays safe in its bottle, the crew rows
+				captain.getInventory().placeItemBackInInventory(shipBottle, Prediction.SERVER_ONLY);
+				captain.sendSystemMessage(Component.literal("No water roomy enough for the " + AhoyLink.name(ship)
+					+ " here. She's safe in her bottle in your pack; launch her on open water.").withStyle(ChatFormatting.YELLOW));
+			}
+			for (ServerPlayer sailor : crew) {
+				if (sailor.level() != to) {
+					continue;
+				}
+				UUID boat = UUID.randomUUID();
+				Cmd.run(to, "summon minecraft:oak_boat " + Cmd.pos(sailor.getX(), sailor.getY(), sailor.getZ()) + " {" + Cmd.uuidNbt(boat) + "}");
+				Cmd.run(to, "ride " + sailor.getUUID() + " mount " + boat);
+			}
+		});
 		Cmd.sound(to, "minecraft:ambient.underwater.exit", at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, 1f, 0.6f);
 		if (outward) {
-			TerraMod.LOG.info("{} sailed into Terra Incognita at {} with {} aboard", captain.getName().getString(), at.toShortString(), crew.size());
+			TerraMod.LOG.info("{} sailed into Terra Incognita at {} with {} aboard{}", captain.getName().getString(), at.toShortString(), crew.size(),
+				bottle.isEmpty() ? "" : " the " + AhoyLink.name(ship));
 		}
 		return true;
 	}

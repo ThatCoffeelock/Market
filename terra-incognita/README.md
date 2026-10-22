@@ -20,12 +20,21 @@ Get the jar from this repo's **Releases** page (the `terra-incognita-latest` pre
 | Step | How |
 |---|---|
 | **1. Chart** | Craft a **Sea Chart of the Southland**: Map + Compass + Gold Ingot + Emerald (any shape) |
-| **2. Put to sea** | Get in a boat (or aboard an Ahoy ship) out on the water |
+| **2. Put to sea** | Get in a boat, or aboard your Ahoy ship, out on the water |
 | **3. Set a course** | Right-click the chart. Hold your course for **30 seconds**: stay aboard, stay on the water, keep the chart. Halfway, the fog comes in |
-| **4. Arrive** | You come out of the fog in Terra Incognita, at sea near the same spot, in a fresh boat |
+| **4. Arrive** | You come out of the fog in Terra Incognita, at sea near the same spot: in your own ship (see below), or in a fresh boat |
 | **5. Come home** | The same chart, the same way: out to sea, right-click, hold your course |
 
-Everyone aboard something within 12 blocks of whoever holds the chart comes along. That's your crew. Whatever you sailed in (an Ahoy ship included) stays moored at home, so nothing gets lost in the fog. Step ashore or lose the chart and the voyage is off.
+Everyone aboard something within 12 blocks of whoever holds the chart comes along. That's your crew. A plain boat stays moored at home, and you each arrive in a fresh one. Step ashore or lose the chart and the voyage is off.
+
+### Taking your own ship
+
+Set the course from the deck of your **[Ahoy](../ahoy/README.md)** ship and **the ship comes along**: her name, holds and cargo, refits, guns and bunk beds. On the other side she comes out on the nearest open water with room for her hull, with the captain at the wheel and everyone who was aboard back in a seat. Fill the holds with plunder and sail her home the same way.
+
+- **The hull needs Copper sheathing** (rigging II, from the Shipwright) for those waters. Without it the chart tells you so and nothing happens.
+- Only someone who may sail her (her owner, or anyone if she isn't locked) can take her across.
+- Everyone aboard comes along, even past the 12 blocks. Mercenaries stay ashore at home.
+- If there's no water roomy enough near where you come out of the fog, she stays safe in her **Ship in a Bottle**, in the captain's pack, and the crew rows. Launch her on open water.
 
 ## What's over there
 
@@ -40,7 +49,7 @@ Everyone aboard something within 12 blocks of whoever holds the chart comes alon
 
 - **[Specerij](../specerij/README.md)**: spices grow wild over there, and chests hold cuttings. A Colonycraft Spice Plantation in Terra Incognita counts as being as far from home as it gets: double yield.
 - **[Skills](../skills/README.md)**: the crossing trains **Sailing**, and opening a chest of plunder trains **Treasure Hunting**.
-- **[Ahoy](../ahoy/README.md)**: set a course from the deck of your ship. It waits for you at home.
+- **[Ahoy](../ahoy/README.md)**: your ship makes the crossing too, cargo and all, once she has Copper sheathing.
 - **Riches**, **Fuck Illagers** and the rest: their relics, bounties and loot work over there as they do at home.
 
 ## Commands
@@ -56,6 +65,7 @@ Everyone aboard something within 12 blocks of whoever holds the chart comes alon
 |---|---|---|
 | `voyageSeconds` | `30` | How long to hold your course |
 | `crewRadius` | `12` | How far the crew may be from the chart-holder |
+| `shipRigging` | `2` | The rigging refit an Ahoy ship needs to cross (2 is Copper sheathing, 0 lets any ship go) |
 | `raidIntervalSeconds`, `raidChance` | `20`, `0.5` | How often a band may find each player, and the odds |
 | `maxIllagersNearby`, `maxBandSize` | `12`, `5` | No new bands past this many around you; band size from 2 to this |
 | `chestBounty`, `illagerBounty` | `1.0`, `1.0` | Multiply the extra plunder (0 turns it off) |
@@ -69,4 +79,4 @@ v1 is the land. Next come the people and their gold: Terra Incognita's own tribe
 ## Notes
 
 - To a vanilla client Terra Incognita is a world with an Overworld sky. Nothing to install.
-- CI (`.github/workflows/terra-incognita.yml`) builds the mod and boots a real server. It checks that the dimension loaded with its raised sea, and prints a **text map of 4,096 × 4,096 blocks** of the islands (to judge the shapes by). It also looks for vanilla villages, outposts, temples and wrecks over there, sends an entity across, finds open water to arrive in, calls down a band of illagers and checks they turned up, and fills a chest with plunder.
+- CI (`.github/workflows/terra-incognita.yml`) builds the mod and boots a real server. It checks that the dimension loaded with its raised sea, and prints a **text map of 4,096 × 4,096 blocks** of the islands (to judge the shapes by). It also looks for vanilla villages, outposts, temples and wrecks over there, checks which ships may cross, sends an entity across, finds open water to arrive in, calls down a band of illagers and checks they turned up, and fills a chest with plunder.

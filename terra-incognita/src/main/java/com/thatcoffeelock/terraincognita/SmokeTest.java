@@ -157,55 +157,56 @@ final class SmokeTest {
 		BlockPos sea = Crossing.arrival(terra, 0, 0);
 		check(!terra.getBlockState(sea.below()).getFluidState().isEmpty(), "open water to arrive in, near 0,0: " + sea.toShortString());
 
+		// an Ahoy ship only comes along with Copper sheathing, and only for whoever may sail her
+		check(AhoyLink.refusal(Map.of("name", "Duyfken", "rigging", 2, "mayUse", true)) == null
+			&& AhoyLink.refusal(Map.of("name", "Duyfken", "rigging", 1, "mayUse", true)) != null
+			&& AhoyLink.refusal(Map.of("name", "Duyfken", "rigging", 3, "mayUse", false)) != null,
+			"a ship needs Copper sheathing, and her captain, to cross");
+
 		ServerLevel home = server.overworld();
+		// there are no spawn chunks any more and forceloading takes a moment: a player brings their own chunks, but an
+		// armor stand can only be summoned once its chunk is there
 		Cmd.run(home, "forceload add 0 0");
-		// a player keeps their own chunks loaded; an armor stand needs help
 		Cmd.run(terra, "forceload add " + sea.getX() + " " + sea.getZ());
-		Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b,CustomName:\"Traveller\"}");
-		Entity summoned = home.getEntity(TRAVELLER);
-		TerraMod.LOG.info("[smoke] the traveller was summoned at home: {}", summoned == null ? "no" : summoned.blockPosition().toShortString());
-		Cmd.run(home, "execute in " + Terra.DIMENSION + " run tp " + TRAVELLER + " " + Cmd.pos(sea.getX() + 0.5, sea.getY() + 0.2, sea.getZ() + 0.5));
 		TerraMod.later(20, () -> step(server, () -> {
-			// crossing over can hand a non-player a fresh entity, so look for it by name where it should be
-			net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(sea.getX() - 4, sea.getY() - 4, sea.getZ() - 4,
-				sea.getX() + 5, sea.getY() + 5, sea.getZ() + 5);
-			var arrived = terra.getEntitiesOfClass(Entity.class, box,
-				e -> e.hasCustomName() && e.getCustomName().getString().equals("Traveller"));
-			if (arrived.isEmpty()) {
-				Entity left = home.getEntity(TRAVELLER);
-				Entity there = terra.getEntity(TRAVELLER);
-				TerraMod.LOG.info("[smoke] the traveller didn't arrive; at home it's {}, in Terra it's {}", left == null ? "gone" : "still at " + left.blockPosition().toShortString(),
-					there == null ? "not found by UUID" : "at " + there.blockPosition().toShortString());
-				for (Entity e : terra.getAllEntities()) {
-					TerraMod.LOG.info("[smoke]   in Terra: {} at {}", e.getType(), e.blockPosition().toShortString());
-				}
-			}
-			check(!arrived.isEmpty(), "an entity crosses into Terra Incognita");
-			arrived.forEach(Entity::discard);
+			Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b,CustomName:\"Traveller\"}");
+			check(home.getEntity(TRAVELLER) != null, "a traveller sets out from home");
+			Cmd.run(home, "execute in " + Terra.DIMENSION + " run tp " + TRAVELLER + " " + Cmd.pos(sea.getX() + 0.5, sea.getY() + 0.2, sea.getZ() + 0.5));
+			TerraMod.later(20, () -> step(server, () -> arrived(server, terra, home, sea)));
+		}));
+	}
 
-			// a platform high above any mountain: a band of illagers turns up on dry land near it
-			Cmd.run(terra, "forceload add -64 -64 64 64");
-			Cmd.run(terra, "fill -60 300 -60 60 300 60 minecraft:stone");
-			BlockPos camp = Raiders.band(terra, new BlockPos(0, 301, 0), 4);
-			check(camp != null && camp.getY() == 301, "a band of illagers finds dry land to stand on (" + camp + ")");
-			TerraMod.later(5, () -> step(server, () -> {
-				int illagers = Raiders.nearby(terra, camp);
-				check(illagers >= 4, "and turns up: " + illagers + " illagers");
-				Cmd.run(terra, "kill @e[type=#minecraft:illager]");
-				Cmd.run(terra, "kill @e[type=minecraft:ravager]");
-				Cmd.run(terra, "fill -60 300 -60 60 300 60 minecraft:air");
+	private static void arrived(MinecraftServer server, ServerLevel terra, ServerLevel home, BlockPos sea) {
+		// crossing over can hand a non-player a fresh entity, so look for it by name where it should be
+		net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(sea.getX() - 4, sea.getY() - 4, sea.getZ() - 4,
+			sea.getX() + 5, sea.getY() + 5, sea.getZ() + 5);
+		var arrived = terra.getEntitiesOfClass(Entity.class, box,
+			e -> e.hasCustomName() && e.getCustomName().getString().equals("Traveller"));
+		check(!arrived.isEmpty() && home.getEntity(TRAVELLER) == null, "the traveller crosses into Terra Incognita");
+		arrived.forEach(Entity::discard);
 
-				SimpleContainer chest = new SimpleContainer(27);
-				int added = Bounty.fill(chest, Bounty.plunder(1.0, new Random(1605)));
-				check(added >= 2 && chest.countItem(net.minecraft.world.item.Items.GOLD_INGOT) > 0 && chest.countItem(net.minecraft.world.item.Items.EMERALD) > 0,
-					"an unopened chest over there gets extra plunder (" + added + " stacks)");
-				check(Bounty.plunder(0, new Random(1)).isEmpty() || Bounty.plunder(0, new Random(1)).stream().allMatch(s -> !s.is(net.minecraft.world.item.Items.GOLD_INGOT)),
-					"a chest bounty of 0 adds no gold");
+		// a platform high above any mountain: a band of illagers turns up on dry land near it
+		Cmd.run(terra, "forceload add -64 -64 64 64");
+		Cmd.run(terra, "fill -60 300 -60 60 300 60 minecraft:stone");
+		BlockPos camp = Raiders.band(terra, new BlockPos(0, 301, 0), 4);
+		check(camp != null && camp.getY() == 301, "a band of illagers finds dry land to stand on (" + camp + ")");
+		TerraMod.later(5, () -> step(server, () -> {
+			int illagers = Raiders.nearby(terra, camp);
+			check(illagers >= 4, "and turns up: " + illagers + " illagers");
+			Cmd.run(terra, "kill @e[type=#minecraft:illager]");
+			Cmd.run(terra, "kill @e[type=minecraft:ravager]");
+			Cmd.run(terra, "fill -60 300 -60 60 300 60 minecraft:air");
 
-				TerraMod.later(20, () -> step(server, () -> {
-					TerraMod.LOG.info("TERRA INCOGNITA SMOKE TEST PASSED");
-					server.halt(false);
-				}));
+			SimpleContainer chest = new SimpleContainer(27);
+			int added = Bounty.fill(chest, Bounty.plunder(1.0, new Random(1605)));
+			check(added >= 2 && chest.countItem(net.minecraft.world.item.Items.GOLD_INGOT) > 0 && chest.countItem(net.minecraft.world.item.Items.EMERALD) > 0,
+				"an unopened chest over there gets extra plunder (" + added + " stacks)");
+			check(Bounty.plunder(0, new Random(1)).isEmpty() || Bounty.plunder(0, new Random(1)).stream().allMatch(s -> !s.is(net.minecraft.world.item.Items.GOLD_INGOT)),
+				"a chest bounty of 0 adds no gold");
+
+			TerraMod.later(20, () -> step(server, () -> {
+				TerraMod.LOG.info("TERRA INCOGNITA SMOKE TEST PASSED");
+				server.halt(false);
 			}));
 		}));
 	}

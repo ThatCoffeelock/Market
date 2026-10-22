@@ -22,6 +22,8 @@ public final class TerraConfig {
 	public int voyageSeconds = 30;
 	/** How far (in blocks) the rest of the crew may be from the captain and still come along. They must be aboard something. */
 	public int crewRadius = 12;
+	/** An Ahoy ship needs at least this rigging refit to make the crossing (2 is Copper sheathing; 0 lets any ship go). */
+	public int shipRigging = 2;
 
 	/** Every this many seconds, each player over there may be found by a band of illagers. */
 	public int raidIntervalSeconds = 20;
@@ -54,6 +56,7 @@ public final class TerraConfig {
 		TerraConfig cfg = loaded != null ? loaded : new TerraConfig();
 		cfg.voyageSeconds = Math.max(1, cfg.voyageSeconds);
 		cfg.crewRadius = Math.max(0, cfg.crewRadius);
+		cfg.shipRigging = Math.max(0, cfg.shipRigging);
 		cfg.raidIntervalSeconds = Math.max(1, cfg.raidIntervalSeconds);
 		cfg.raidChance = Math.max(0, Math.min(1, cfg.raidChance));
 		cfg.maxIllagersNearby = Math.max(0, cfg.maxIllagersNearby);

@@ -87,6 +87,10 @@ With the [Warehouse](../warehouse/README.md) mod installed, moor within 16 block
 
 Other mods can find ships, reach their holds and add buttons to the captain's menu through `AhoyApi`.
 
+## Terra Incognita
+
+With [Terra Incognita](../terra-incognita/README.md), set a course with a Sea Chart from your ship and she makes the crossing with you: bottled up on this side, launched on the nearest roomy water on the other, cargo, refits, guns, bunks and crew included. She needs **Copper sheathing** (rigging II) first.
+
 ## Notes
 
 - **Sellswords**: mercenaries following you climb aboard when you do, each taking a free passenger seat (never the wheel), and get off when you do. Rangers shoot from their seats.

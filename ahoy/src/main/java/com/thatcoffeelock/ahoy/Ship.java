@@ -428,6 +428,22 @@ public final class Ship implements AhoyApi.ShipView {
 		return seat.getFirstPassenger() instanceof ServerPlayer player ? player : null;
 	}
 
+	/** Everyone aboard: in a seat, at a gun or in a bunk. */
+	List<ServerPlayer> players() {
+		List<ServerPlayer> aboard = new ArrayList<>();
+		for (int i = 0; i < seats.length; i++) {
+			ServerPlayer p = rider(i);
+			if (p != null) {
+				aboard.add(p);
+			}
+		}
+		if (gunDeck != null) {
+			aboard.addAll(gunDeck.gunners());
+		}
+		aboard.addAll(bunkDeck.sleepers());
+		return aboard;
+	}
+
 	boolean seatFree(int index) {
 		Entity seat = seats[index];
 		return seat == null || seat.isRemoved() || seat.getPassengers().isEmpty();

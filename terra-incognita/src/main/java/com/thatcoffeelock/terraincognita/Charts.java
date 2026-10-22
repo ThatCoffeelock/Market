@@ -111,6 +111,12 @@ final class Charts {
 			actionBar(player, "Take it to sea first: aboard a boat or a ship, out on the water.", ChatFormatting.YELLOW);
 			return InteractionResult.SUCCESS;
 		}
+		Map<String, Object> ship = AhoyLink.aboard(player);
+		String refused = ship == null ? null : AhoyLink.refusal(ship);
+		if (refused != null) {
+			player.sendSystemMessage(Component.literal(refused).withStyle(ChatFormatting.YELLOW));
+			return InteractionResult.SUCCESS;
+		}
 		Integer sailed = VOYAGES.get(player.getUUID());
 		if (sailed != null) {
 			actionBar(player, "Hold your course... (" + (TerraConfig.get().voyageSeconds - sailed) + "s)", ChatFormatting.GOLD);
@@ -121,6 +127,9 @@ final class Charts {
 			? "You unfold the chart and set a course south, into the blank half. Hold it for " + TerraConfig.get().voyageSeconds + " seconds."
 			: "You turn the chart over and set a course for home. Hold it for " + TerraConfig.get().voyageSeconds + " seconds.")
 			.withStyle(ChatFormatting.GOLD));
+		if (ship != null) {
+			player.sendSystemMessage(Component.literal("The " + AhoyLink.name(ship) + " comes along, holds and all.").withStyle(ChatFormatting.GRAY));
+		}
 		Cmd.sound(level, "minecraft:item.book.page_turn", player.getX(), player.getY(), player.getZ(), 1f, 0.8f);
 		return InteractionResult.SUCCESS;
 	}

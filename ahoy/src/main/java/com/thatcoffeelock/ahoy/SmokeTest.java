@@ -300,6 +300,18 @@ final class SmokeTest {
 		check(back.speedLevel == 1, "the rigging upgrade survives the bottle (level " + back.speedLevel + ")");
 		check(back.cargoLevel == 1 && back.cargoC.getItem(5).is(Items.EMERALD) && back.cargoC.getItem(5).getCount() == 7, "the extra hold and its cargo survive the bottle");
 		check(back.drillLevel == 1 && !back.drillOn, "the drill survives the bottle, switched off");
+
+		// a voyage to another world (Terra Incognita): the bottle goes across and the ship comes out on open water nearby
+		var share = net.fabricmc.loader.api.FabricLoader.getInstance().getObjectShare();
+		check(share.get("ahoy:ship_aboard") instanceof java.util.function.Function && share.get("ahoy:pack_ship") instanceof java.util.function.Function
+			&& share.get("ahoy:launch_ship") instanceof java.util.function.BiFunction, "the voyage hooks for Terra Incognita are registered");
+		check(Voyages.launchNear(level, Bottle.savedData(bottle, level), 0.5, 160, 0.5, 0) == null, "no launching where there's no water");
+		Ship again = Voyages.launchNear(level, Bottle.savedData(bottle, level), 0.5, 99, 40, 90);
+		check(again != null && Math.abs(again.root.getZ()) < 26 && Math.abs(again.root.getX()) < 16,
+			"from the shore, the ship comes out in the nearest water with room for it" + (again == null ? "" : " (" + again.root.blockPosition().toShortString() + ")"));
+		check(again.data.cargoA.getItem(0).is(Items.DIAMOND) && again.data.speedLevel == 1 && CannonItems.isCannon(again.data.guns.getItem(0)),
+			"with its cargo, rigging and guns");
+		again.bottleUp();
 		AhoyMod.later(5, () -> step(level.getServer(), () -> cleanup(level)));
 	}
 
