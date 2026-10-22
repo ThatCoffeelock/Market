@@ -67,8 +67,14 @@ final class SmokeTest {
 		plantation();
 		climate(level);
 		gardens(level);
-		drying(level);
-		persistence(level);
+		Cmd.setblock(level, RACK, "minecraft:barrel");
+		check(Drying.at(level, RACK) == null, "a plain barrel isn't a drying rack");
+		Cmd.run(level, "data merge block " + Cmd.block(RACK) + " {CustomName:{text:\"Drying Rack\",color:\"gold\",italic:false}}");
+		// like Havana's barrel: look again a few ticks later, once the name has settled
+		SpiceMod.later(5, () -> step(level.getServer(), () -> {
+			drying(level);
+			persistence(level);
+		}));
 	}
 
 	// ---------------------------------------------------------------- items
@@ -218,11 +224,9 @@ final class SmokeTest {
 
 	private static void drying(ServerLevel level) {
 		SpiceConfig c = SpiceConfig.get();
-		Cmd.setblock(level, RACK, "minecraft:barrel");
-		check(Drying.at(level, RACK) == null, "a plain barrel isn't a drying rack");
-		Cmd.run(level, "data merge block " + Cmd.block(RACK) + " {CustomName:{text:\"Drying Rack\",color:\"gold\",italic:false}}");
 		Container box = Drying.at(level, RACK);
-		check(box != null, "a barrel named Drying Rack is one");
+		check(box != null, "a barrel named Drying Rack is one (" + Gardens.blockId(level.getBlockState(RACK)) + ", "
+			+ (level.getBlockEntity(RACK) instanceof net.minecraft.world.Nameable n && n.getCustomName() != null ? n.getCustomName().getString() : "no name") + ")");
 		check(Drying.isRackName("my SPICE RACK") && !Drying.isRackName("Barrel of Fun"), "drying rack names");
 		SpiceStore.Rack rack = SpiceStore.addRack(level, RACK);
 		box.setItem(0, SpiceItems.fresh(Spice.PEPPER, 10));
