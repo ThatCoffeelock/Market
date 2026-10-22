@@ -33,7 +33,7 @@ Set the course from the deck of your **[Ahoy](../ahoy/README.md)** ship and **th
 
 - **The hull needs Copper sheathing** (rigging II, from the Shipwright) for those waters. Without it the chart tells you so and nothing happens.
 - Only someone who may sail her (her owner, or anyone if she isn't locked) can take her across.
-- Everyone aboard comes along, even past the 12 blocks. Mercenaries stay ashore at home.
+- Everyone aboard comes along, even past the 12 blocks. [Sellswords](../sellswords/README.md) mercenaries on **Follow** catch up a moment later, the way they follow you through a portal, and climb back aboard.
 - If there's no water roomy enough near where you come out of the fog, she stays safe in her **Ship in a Bottle**, in the captain's pack, and the crew rows. Launch her on open water.
 
 ## What's over there
