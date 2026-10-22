@@ -35,7 +35,7 @@ Ops can also use `/cannon give cannon` and `/cannon give cannonballs [count]`.
 
 While you're manning it, the action bar shows the elevation, the estimated range over flat ground, how many cannonballs you have left, and the reload bar. Reloading takes 2 seconds.
 
-**Ballistics**: the ball leaves the barrel at 48 blocks per second and drops under gravity. At 45° it flies about 80 blocks. It explodes on the first block or mob it touches, with the power of a creeper (3). The blast hurts and knocks back mobs and players, but **never breaks blocks**, so no craters in your base. If it lands in water it splashes and sinks. If it flies into unloaded chunks it vanishes quietly instead of loading them.
+**Ballistics**: the ball leaves the barrel at 48 blocks per second and drops under gravity. At 45° it flies about 80 blocks. It explodes on the first block or mob it touches, with the power of a creeper (3). The blast hurts and knocks back mobs and players. By default it **doesn't break blocks**, so no craters in your base. Ops can switch block damage on with `/cannon blockdamage on` (and `off` again), or set `cannonballsBreakBlocks` in `config/cannon.json`. If it lands in water it splashes and sinks. If it flies into unloaded chunks it vanishes quietly instead of loading them.
 
 **Friendly fire is on.** If you fire at the wall right in front of you, you'll be standing in the explosion. That's between you and your respawn point.
 

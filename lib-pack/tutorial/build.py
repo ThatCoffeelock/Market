@@ -101,7 +101,7 @@ MODS = [
          "Look around to aim; the action bar shows elevation, range and ammo.",
          "Press <b>Space</b> to fire. Reloading takes 2 seconds. <b>Shift</b> to get off."],
   tips=["At 45° a ball flies about 80 blocks.",
-        "The blast is creeper-sized and hurts mobs and players, but never breaks blocks.",
+        "The blast is creeper-sized and hurts mobs and players. It doesn't break blocks, unless an op turns that on: <code>/cannon blockdamage on</code>.",
         "Friendly fire is on. Don't shoot the wall in front of you.",
         "Sneak + right-click to pick the cannon up again (owner only)."],
   cmds="/cannon"),

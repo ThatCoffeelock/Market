@@ -199,7 +199,9 @@ final class Cannonball {
 			SkillsLink.xp(shooter, "artillery", 6.0 * caught);
 		}
 		float power = (float) (POWER * (1.0 + SkillsLink.bonus(shooter, "artillery/big_bore")));
-		level.explode(null, at.x, at.y, at.z, power, Level.ExplosionInteraction.NONE);
+		// breaking blocks is a server's choice: /cannon blockdamage on|off, or config/cannon.json
+		Level.ExplosionInteraction interaction = CannonConfig.get().cannonballsBreakBlocks ? Level.ExplosionInteraction.TNT : Level.ExplosionInteraction.NONE;
+		level.explode(null, at.x, at.y, at.z, power, interaction);
 	}
 
 	private void splash(Vec3 at) {

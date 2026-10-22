@@ -54,6 +54,7 @@ public final class CannonMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		CannonConfig.load();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			if (Boolean.getBoolean("cannon.smokeTest")) {
 				SmokeTest.run(server);
