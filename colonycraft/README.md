@@ -187,6 +187,10 @@ The station's tracks run from one end of the building to the other; carry your l
 
 Tobacco farms grow real Havana tobacco: leaves, the odd seed, and from tier 2 cured (and at tier 3 aged) tobacco out of the curing barn. Without Havana there are no tobacco farms for sale.
 
+### Tulpengekte: tulip bulbs from the farms
+
+With [Tulpengekte](../tulpengekte/README.md), farmers dig up the odd tulip bulb: up to one common bulb per farmer a day, and at tier 3 a fine one now and then. Plant them, or sell them to a Bloemist. The broken varieties you'll have to breed yourself.
+
 ### Riches: the bank's vault and the museum
 
 With [Riches](../riches/README.md), the bank's vault money piles up in gold around the Vault Ledger in the middle of the vault, and the vault door is a Riches Vault Door that swings shut by itself (and opens for anyone: it's a public vault). The museum's cases and pedestals are Riches display cases: relics on show there count towards the Royal Society's collections, and each one adds ₥10 a day to the museum's takings. Without Riches the bank still banks (no gold pile), and there's no museum for sale.

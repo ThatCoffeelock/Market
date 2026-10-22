@@ -165,6 +165,31 @@ final class Production {
 				count -= n;
 			}
 		}
+		if (type == BuildingType.FARM) {
+			out.addAll(bulbs(tier, workers, random));
+		}
+		return out;
+	}
+
+	/**
+	 * Tulip bulbs a farm digs up in a day (with the Tulpengekte mod): one common bulb per farmer at most, and from
+	 * tier 3 a fine one one day in ten. Never the broken ones: those you breed yourself.
+	 */
+	static List<ItemStack> bulbs(int tier, int workers, Random random) {
+		List<ItemStack> out = new ArrayList<>();
+		if (workers <= 0 || !TulpLink.present()) {
+			return out;
+		}
+		ItemStack common = TulpLink.bulbs("common", random.nextInt(workers + 1));
+		if (!common.isEmpty()) {
+			out.add(common);
+		}
+		if (tier >= 3 && random.nextInt(10) == 0) {
+			ItemStack fine = TulpLink.bulbs("fine", 1);
+			if (!fine.isEmpty()) {
+				out.add(fine);
+			}
+		}
 		return out;
 	}
 }

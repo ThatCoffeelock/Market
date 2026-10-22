@@ -383,7 +383,8 @@ final class TownHallMenu extends ChestMenu {
 		return switch (type) {
 			case TOWN_HALL -> "Found another colony somewhere else.";
 			case RESIDENCE -> "Beds for your workers. Every worker needs one.";
-			case FARM -> "Wheat, carrots, potatoes, beetroot, pumpkins, melons.";
+			case FARM -> TulpLink.present() ? "Wheat, carrots, potatoes, beetroot, pumpkins, melons, and the odd tulip bulb."
+				: "Wheat, carrots, potatoes, beetroot, pumpkins, melons.";
 			case LUMBER_CAMP -> "Oak, spruce and birch logs, sticks, saplings, apples.";
 			case MINE -> "Cobblestone, coal, iron, copper, gold, redstone, lapis, the odd diamond.";
 			case WORKSHOP -> "Turns logs, ores, cobble and wheat into planks, ingots, stone and bread.";

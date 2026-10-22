@@ -347,6 +347,15 @@ final class SmokeTest {
 				+ crop.size() + " stacks)");
 			check(crop.get(0).is(Items.PAPER) && crop.get(0).getCount() > 0, "and it's Havana's tobacco");
 		}
+		if (!TulpLink.present()) {
+			check(Production.bulbs(3, 4, new Random(7)).isEmpty(), "without Tulpengekte, farms dig up no tulip bulbs");
+		} else {
+			int bulbs = 0;
+			for (int seed = 0; seed < 20; seed++) {
+				bulbs += Production.bulbs(3, 4, new Random(seed)).stream().mapToInt(ItemStack::getCount).sum();
+			}
+			check(bulbs > 0, "with Tulpengekte, farms dig up the odd tulip bulb (" + bulbs + " in 20 days)");
+		}
 
 		Colony.Building wallTower = Colonies.construct(level, colony, BuildingType.WALL_TOWER, new BlockPos(-8, 99, 52), 0,
 			Bank.cents(BuildingType.WALL_TOWER.price), true);
