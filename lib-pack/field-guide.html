@@ -129,7 +129,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · 2.0</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Twenty-two mods in one jar, and since 2.0 they play as one realm. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, breed tulips worth a canal house, grow pepper in the jungle and tea under glass, run a shady trading company, outwit rival houses, level 24 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Twenty-three mods in one jar, and since 2.0 they play as one realm. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, breed tulips worth a canal house, grow pepper in the jungle and tea under glass, sail off the map into Terra Incognita, run a shady trading company, outwit rival houses, level 24 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
@@ -330,7 +330,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 2.2.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie, De Hooghe Heeren, Tulpengekte, Specerij</span>
+    <span>LIB Pack 2.3.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie, De Hooghe Heeren, Tulpengekte, Specerij, Terra Incognita</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -340,7 +340,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
 const I = {
   gold_ingot: ["Au", "#e8b923"], obsidian: ["Obs", "#2a1b3d"], emerald: ["Em", "#17b85c"],
   wool: ["Wool", "#e9e9e9"], glass_bottle: ["Btl", "#9fd3e6"], chest: ["Chst", "#a8742f"], boat: ["Boat", "#9b7340"], planks: ["Plk", "#b8925a"],
-  string: ["Str", "#d9d9d9"], leather: ["Lea", "#8b4f2b"],
+  string: ["Str", "#d9d9d9"], map: ["Map", "#d9c58c"], compass: ["Cmp", "#9a9aa0"], leather: ["Lea", "#8b4f2b"],
   iron_block: ["FeB", "#c9c9c9"], log: ["Log", "#6b4f2a"], dispenser: ["Disp", "#6f6f6f"], iron_ingot: ["Fe", "#bdbdbd"], gunpowder: ["Gun", "#5a5a5a"],
   furnace_minecart: ["FMc", "#585858"], chest_minecart: ["CMc", "#8a6a3a"], redstone_block: ["RsB", "#b51d12"], rail: ["Rail", "#7d6a52"],
   barrel: ["Brl", "#8d6236"], hay_block: ["Hay", "#c9a82b"],
@@ -353,7 +353,7 @@ const I = {
 };
 const names = {
   gold_ingot: "Gold Ingot", obsidian: "Obsidian", emerald: "Emerald", wool: "Any Wool", glass_bottle: "Glass Bottle", chest: "Chest",
-  boat: "Any Boat", planks: "Any Planks", string: "String", leather: "Leather", iron_block: "Block of Iron", log: "Any Log",
+  boat: "Any Boat", planks: "Any Planks", string: "String", map: "Empty Map", compass: "Compass", leather: "Leather", iron_block: "Block of Iron", log: "Any Log",
   dispenser: "Dispenser", iron_ingot: "Iron Ingot", gunpowder: "Gunpowder", furnace_minecart: "Minecart with Furnace",
   chest_minecart: "Minecart with Chest", redstone_block: "Block of Redstone", rail: "Rail", barrel: "Barrel", hay_block: "Hay Bale",
   glass: "Glass", minecart: "Minecart", furnace: "Furnace",
@@ -364,7 +364,7 @@ const names = {
   crossbow: "Crossbow", iron_sword: "Iron Sword", target: "Target", water_bucket: "Water Bucket",
 };
 // Lighter swatches need dark text.
-const lightInk = new Set(["wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget", "phantom_membrane", "diamond_block", "iron_sword"]);
+const lightInk = new Set(["map", "compass", "wool", "glass_bottle", "string", "iron_block", "iron_ingot", "glass", "hay_block", "gold_ingot", "paper", "iron_nugget", "phantom_membrane", "diamond_block", "iron_sword"]);
 
 const MODS = [
   { name: "Market", id: "market", colour: "#e8b923", tag: "Sell anything for Marks, buy it back at a markup, flex with pallets of cash.",
@@ -517,6 +517,15 @@ const MODS = [
           "Market, dried: pepper ₥3, cloves ₥3.50, cinnamon ₥4, nutmeg ₥6, tea ₥1.50 / ₥3, saffron ₥15",
           "Colonycraft: Spice Plantation, only where spices grow, up to double yield 5,000 blocks from your Headquarters"],
     cmds: ["/specerij", "/specerij here", ["/specerij give", true]] },
+  { name: "Terra Incognita", id: "terra_incognita", colour: "#2e7d6b", tag: "A new dimension reached by sea: islands, mountains, illagers everywhere, plunder in every chest.",
+    recipes: [{ name: "Sea Chart", shapeless: ["map", "compass", "gold_ingot", "emerald"], out: ["Chrt", "#2e7d6b"] }],
+    how: ["At sea in a boat (or on an Ahoy ship): right-click the chart, hold your course 30 s",
+          "Your crew comes along (anyone aboard something within 12 blocks). Your ship stays home",
+          "Islands of jungle, savanna, desert, badlands and cherry; peaks over y=150",
+          "Everything the Overworld spawns spawns there too, structure mods included",
+          "Illager bands hunt you day and night. Unopened chests hold extra gold, emeralds, diamonds",
+          "Home: the same chart, the same way"],
+    cmds: ["/terra", ["/terra chart", true], ["/terra go", true], ["/terra home", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [
       { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },

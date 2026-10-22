@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -30,6 +30,7 @@ I = {
  "smoker": ("Smk", "#5b4a3a", "Smoker", False), "bell": ("Bell", "#e6b93a", "Bell", True),
  "waterbucket": ("Wtr", "#3f76e4", "Water Bucket", False),
  "crossbow": ("Xbow", "#6b4a2b", "Crossbow", False), "sword": ("Swd", "#cfcfcf", "Iron Sword", True), "target": ("Tgt", "#d23a3a", "Target", False),
+ "map": ("Map", "#d9c58c", "Empty Map", True), "compass": ("Cmp", "#9a9aa0", "Compass", True),
 }
 
 def shaped(name, rows, key, out, count=None): return dict(name=name, rows=rows, key=key, out=out, count=count)
@@ -337,6 +338,19 @@ MODS = [
         "With Colonycraft: a <b>Spice Plantation</b> (Town Hall shop, <i>Homes and harvests</i>) grows the local spice. Double the yield at 5,000 blocks from your Headquarters.",
         "With Skills: picking trains <b>Farming</b>, and Green Thumb adds to the pick."],
   cmds="/specerij · /specerij here"),
+
+ dict(name="Terra Incognita", colour="#2e7d6b", tag="A new dimension, reached by sea: islands, mountains, illagers everywhere, and plunder in every chest. High risk, high reward.",
+  recipes=[shapeless("Sea Chart", ["map","compass","gold","emerald"], "Chrt")],
+  steps=["Craft a <b>Sea Chart of the Southland</b>: Map + Compass + Gold Ingot + Emerald.",
+         "Take it to sea in a <b>boat</b> (or aboard an Ahoy ship) and right-click it.",
+         "<b>Hold your course for 30 seconds</b>: stay aboard, on the water, with the chart. Halfway, the fog comes in.",
+         "You arrive in <b>Terra Incognita</b> in a fresh boat, with your crew (anyone aboard something within 12 blocks). Your ship stays moored at home.",
+         "Coming home works the same way: out to sea, right-click the chart, hold your course."],
+  tips=["An archipelago of jungle, savanna, desert, badlands and cherry islands, with peaks over 150 blocks high.",
+        "Everything the Overworld spawns spawns there too: villages, temples, outposts, mansions, wrecks, and your structure mods.",
+        "<b>Illagers everywhere</b>: bands find you day and night. Every unopened chest holds extra gold, emeralds and sometimes diamonds; illagers drop purses.",
+        "With Specerij, every spice grows wild over there, and a Spice Plantation there counts double."],
+  cmds="/terra"),
 ]
 
 def item(k, big=False):
@@ -429,7 +443,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Twenty-two mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Twenty-three mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

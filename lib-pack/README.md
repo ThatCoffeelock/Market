@@ -26,8 +26,15 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [De Hooghe Heeren](../hooghe-heeren/README.md) | Optional rival houses behind a tab on the Company Desk (each player chooses to take a seat): lords with treasuries, regiments and long memories who play by your rules. Gifts, pacts, alliances and tribute; spies, saboteurs, forged letters and assassins run by your agents; wars with pitched battles at noon you can ride out to and fight in; seats in the world to visit (or storm), and an Audience Bell hall to feast your guests in (or bar the doors) |
 | [Tulpengekte](../tulpengekte/README.md) | Tulip mania, balanced: plant bulbs, breed rare broken varieties (1 in 1,000 is the Semper Augustus), and sell them to a Bloemist who wants three varieties a day |
 | [Specerij](../specerij/README.md) | Spices that only grow where they grow: pepper, nutmeg, cloves, cinnamon, tea and saffron in their home biomes, a glass-roofed Hortus to cheat the climate at home, a Drying Rack, and Colonycraft Spice Plantations that pay more the farther from home they are |
+| [Terra Incognita](../terra-incognita/README.md) | A new dimension, reached by sea with a chart: an archipelago of jungle, savanna, desert and badlands islands with mountains rising out of a warm sea, everything the Overworld spawns (and more), crawling with illagers, every chest stuffed with extra plunder |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
+
+## New in 2.3: Terra Incognita
+
+- **[Terra Incognita](../terra-incognita/README.md)**, mod number 23: a whole new dimension. Craft a **Sea Chart of the Southland**, take it to sea and hold your course: the fog takes you and your crew to an archipelago of jungle, savanna, desert and badlands islands with mountains rising out of a warm sea. Everything the Overworld spawns spawns there too, your structure mods included. It's crawling with illagers, and every unopened chest holds extra plunder. High risk, high reward.
+- **Cannon**: cannonball block damage is a switch now. Ops run `/cannon blockdamage on` (or `off`); it's off by default.
+- **Colonycraft**: the Town Hall has two tabs, **Buy blueprints** (by kind) and **Your buildings**.
 
 ## New in 2.2: Specerij
 
@@ -66,4 +73,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all twenty-two mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twenty-two mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all twenty-three mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twenty-three mods load and the server starts.
