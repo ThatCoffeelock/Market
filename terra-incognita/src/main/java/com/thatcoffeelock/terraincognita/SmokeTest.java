@@ -166,13 +166,22 @@ final class SmokeTest {
 
 		ServerLevel home = server.overworld();
 		// there are no spawn chunks any more: a player brings their own, an armor stand needs them loaded for it
-		Cmd.run(home, "forceload add 0 0");
+		Cmd.run(home, "forceload add -16 -16 16 16");
 		Cmd.run(terra, "forceload add " + sea.getX() + " " + sea.getZ());
-		TerraMod.later(20, () -> step(server, () -> {
-			// the same summon Ahoy's smoke test uses; the name goes on afterwards (a name in the summon gets it refused)
+		setOut(server, terra, home, sea, 0);
+	}
+
+	/** Summons the traveller once its chunk is there (a fresh world can take a few seconds), then sends it across. */
+	private static void setOut(MinecraftServer server, ServerLevel terra, ServerLevel home, BlockPos sea, int tries) {
+		TerraMod.later(10, () -> step(server, () -> {
+			// the same summon Ahoy's smoke test uses; the name goes on afterwards
 			Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b}");
 			Entity traveller = home.getEntity(TRAVELLER);
-			check(traveller != null, "a traveller sets out from home");
+			if (traveller == null && tries < 40) {
+				setOut(server, terra, home, sea, tries + 1);
+				return;
+			}
+			check(traveller != null, "a traveller sets out from home (after " + (tries + 1) + " tries)");
 			traveller.setCustomName(Component.literal("Traveller"));
 			Cmd.run(home, "execute in " + Terra.DIMENSION + " run tp " + TRAVELLER + " " + Cmd.pos(sea.getX() + 0.5, sea.getY() + 0.2, sea.getZ() + 0.5));
 			TerraMod.later(20, () -> step(server, () -> arrived(server, terra, home, sea)));
