@@ -18,8 +18,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
@@ -170,15 +168,12 @@ final class SmokeTest {
 		// there are no spawn chunks any more: a player brings their own, an armor stand needs them loaded for it
 		Cmd.run(home, "forceload add 0 0");
 		Cmd.run(terra, "forceload add " + sea.getX() + " " + sea.getZ());
-		home.getChunk(0, 0);
 		TerraMod.later(20, () -> step(server, () -> {
-			Entity traveller = EntityType.ARMOR_STAND.create(home, EntitySpawnReason.COMMAND);
-			check(traveller != null, "an armor stand can be made");
-			traveller.setUUID(TRAVELLER);
-			traveller.setNoGravity(true);
+			// the same summon Ahoy's smoke test uses; the name goes on afterwards (a name in the summon gets it refused)
+			Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b}");
+			Entity traveller = home.getEntity(TRAVELLER);
+			check(traveller != null, "a traveller sets out from home");
 			traveller.setCustomName(Component.literal("Traveller"));
-			traveller.setPos(0.5, 120, 0.5);
-			check(home.addFreshEntity(traveller) && home.getEntity(TRAVELLER) != null, "a traveller sets out from home");
 			Cmd.run(home, "execute in " + Terra.DIMENSION + " run tp " + TRAVELLER + " " + Cmd.pos(sea.getX() + 0.5, sea.getY() + 0.2, sea.getZ() + 0.5));
 			TerraMod.later(20, () -> step(server, () -> arrived(server, terra, home, sea)));
 		}));
