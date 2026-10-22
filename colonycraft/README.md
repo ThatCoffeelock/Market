@@ -11,7 +11,7 @@ Put **Fabric API**, **`market-<version>.jar`** and **`colonycraft-<version>.jar`
 ## How it works
 
 1. **Found a colony.** Buy a **Colony Charter** with `/colonycraft charter` (₥2,500), or at any Town Hall you already have. Rename it in an anvil to name the colony. Right-click the ground and a **Town Hall** gets built. The colony claims the land around it (65 × 65 blocks to start).
-2. **Shop at the counter.** Right-click the Town Hall's **lectern**. It sells blueprints, upgrades and replacement workers, and lists your buildings.
+2. **Shop at the counter.** Right-click the Town Hall's **lectern**. It has two tabs along the top: **Buy blueprints** (a sub-tab per kind of building: homes and harvests, trade and transport, town and culture, defence and law, government) and **Your buildings** (click one to upgrade it, replace its workers, open its storage or demolish it; ones with empty jobs glint).
 3. **Place a blueprint.** Right-click the ground inside your colony. The first click shows the outline, and the door faces you. Click the same spot again to build. The building goes up layer by layer and its villagers move in.
 4. **Every morning** (every 20 minutes, one Minecraft day):
    - Wages are paid from your balance: ₥3 per worker, more for guards (see Defences). **If you can't pay, nobody gathers** until you can.
@@ -62,7 +62,7 @@ Only the owner can break blocks of colony buildings. Colony villagers don't trad
 
 ## Headquarters: the colony network
 
-Every colony runs on its own until you build **Headquarters** (₥6,000, at any Town Hall, bottom row next to the tavern). There's **one per player**: it's the seat of your colonial government, and its colony becomes your capital.
+Every colony runs on its own until you build **Headquarters** (₥6,000, at any Town Hall, under *Buy blueprints → Government*). There's **one per player**: it's the seat of your colonial government, and its colony becomes your capital.
 
 It's a broad brick palace with your orange flag on the roof. Inside, a map of the world is laid out on the floor in carpet, and in the middle of it stands the **Governor's Table** (a lectern): right-click it. Its own building page at the Town Hall has a button for it too.
 
@@ -76,7 +76,7 @@ Without Headquarters, the table still shows **every colony** and its money, the 
 
 ### Linking colonies
 
-The HQ's colony is always in the network. Link others from the **Governor's Table** (a colony's page → *Link it to the network*) or from the colony's own Town Hall (the **colony network** tile, bottom row). Your HQ runs **3 colonies besides its own, 6 at tier 2, 10 at tier 3**. Colonies in another dimension can't be linked: no road goes there. Unlinked colonies work exactly as before.
+The HQ's colony is always in the network. Link others from the **Governor's Table** (a colony's page → *Link it to the network*) or from the colony's own Town Hall (the **colony network** tile, top right). Your HQ runs **3 colonies besides its own, 6 at tier 2, 10 at tier 3**. Colonies in another dimension can't be linked: no road goes there. Unlinked colonies work exactly as before.
 
 ### The Governor's Table
 
@@ -193,7 +193,7 @@ With [Tulpengekte](../tulpengekte/README.md), farmers dig up the odd tulip bulb:
 
 ### Specerij: spice plantations in faraway colonies
 
-With [Specerij](../specerij/README.md) installed, the Town Hall sells a **Spice Plantation** (₥1,500, top left of the Town Hall, where the "Trade and transport" sign was; 2 / 3 / 4 planters at ₥3 a day): rows of spice bushes behind a bamboo fence and an open drying shed. It only goes up **where spices grow wild**, and it grows the local one: pepper in a jungle, nutmeg in a mangrove swamp, cloves in a bamboo jungle, cinnamon in a savanna, tea in a cherry grove or the windswept hills, saffron in a meadow or a flower forest.
+With [Specerij](../specerij/README.md) installed, the Town Hall sells a **Spice Plantation** (₥1,500, under *Homes and harvests*; 2 / 3 / 4 planters at ₥3 a day): rows of spice bushes behind a bamboo fence and an open drying shed. It only goes up **where spices grow wild**, and it grows the local one: pepper in a jungle, nutmeg in a mangrove swamp, cloves in a bamboo jungle, cinnamon in a savanna, tea in a cherry grove or the windswept hills, saffron in a meadow or a flower forest.
 
 **The farther from home, the better:** a plantation brings in more the farther it is from your **Headquarters** (from the middle of the world if you have none), up to **double at 5,000 blocks** or in another dimension. Tier 2's shed dries half the pick, tier 3 dries all of it and ages some tea black. Now and then a cutting comes in too, to plant in a Hortus at home. Ship it all back by convoy, harbor or train.
 
@@ -207,20 +207,20 @@ With [Fossil Fool](../fossil-fool/README.md), the fuel depot's cauldrons are Fos
 
 ### Sellswords and Fuck Illagers: the guildhouse
 
-With [Sellswords](../sellswords/README.md) installed, the Town Hall sells a **Guildhouse** (₥2,000, top row next to the barracks): a half-timbered hall with a long table, a hearth and orange banners. Its **target block is a Mercenary Station** where hiring costs **20% less**, **35%** at tier 2 and **50%** at tier 3, and mercenaries hired there idle around the guildhouse, protecting it and the colony's villagers within 50 blocks. With [Fuck Illagers](../fuck-illagers/README.md) too, its **fletching table is a Bounty Station**: hire your squad on one side of the hall and pick their next target on the other. A guildmaster runs the place (₥4 a day). Without Sellswords there's no guildhouse for sale.
+With [Sellswords](../sellswords/README.md) installed, the Town Hall sells a **Guildhouse** (₥2,000, under *Town and culture*): a half-timbered hall with a long table, a hearth and orange banners. Its **target block is a Mercenary Station** where hiring costs **20% less**, **35%** at tier 2 and **50%** at tier 3, and mercenaries hired there idle around the guildhouse, protecting it and the colony's villagers within 50 blocks. With [Fuck Illagers](../fuck-illagers/README.md) too, its **fletching table is a Bounty Station**: hire your squad on one side of the hall and pick their next target on the other. A guildmaster runs the place (₥4 a day). Without Sellswords there's no guildhouse for sale.
 
 ### Proost: the distillery and the tavern
 
 With [Proost](../proost/README.md) installed, the Town Hall sells two more buildings:
 
-- **Distillery** (₥1,500, top row next to the train station; 2 / 3 / 4 distillers at ₥3 a day): a brick still-house with a smoking chimney. Every morning it takes **wheat, sugar cane and apples** from your storehouses, **8 a bottle**, and bottles **3 per distiller** (more at higher tiers): apples into **brandy** first, then cane into **rum**, wheat into **genever** while there are **sweet berries** in store (one a bottle), the rest of the wheat into **whisky**. It gets first pick, before the workshop bakes bread. At tier 3 its aging cellar ages **one bottle in four**. Its stills (cauldrons over campfires), Mash Tuns and Oak Casks are real Proost ones: use them yourself. Each tier adds a still and more tuns and casks.
-- **Tavern** (₥1,800, bottom row of the Town Hall; 1 / 2 / 3 barkeeps at ₥4 a day): a two-storey half-timbered inn with a bar, tables and a hearth. Every night it **pours 8 / 16 / 32 of the colony's sealed bottles** from the storehouses, the dearest first, and earns **150% of what the Market would pay** for them, plus ₥8 / ₥15 / ₥25 besides. It pours before the storehouses auto-sell. **Right-click a barkeep** to buy a bottle off the shelf: guests pay **double the Market price** and a quarter of that goes to you; you drink at cost. Tier 3 has **guest rooms** upstairs (sleep there to set your spawn).
+- **Distillery** (₥1,500, under *Trade and transport*; 2 / 3 / 4 distillers at ₥3 a day): a brick still-house with a smoking chimney. Every morning it takes **wheat, sugar cane and apples** from your storehouses, **8 a bottle**, and bottles **3 per distiller** (more at higher tiers): apples into **brandy** first, then cane into **rum**, wheat into **genever** while there are **sweet berries** in store (one a bottle), the rest of the wheat into **whisky**. It gets first pick, before the workshop bakes bread. At tier 3 its aging cellar ages **one bottle in four**. Its stills (cauldrons over campfires), Mash Tuns and Oak Casks are real Proost ones: use them yourself. Each tier adds a still and more tuns and casks.
+- **Tavern** (₥1,800, under *Trade and transport*; 1 / 2 / 3 barkeeps at ₥4 a day): a two-storey half-timbered inn with a bar, tables and a hearth. Every night it **pours 8 / 16 / 32 of the colony's sealed bottles** from the storehouses, the dearest first, and earns **150% of what the Market would pay** for them, plus ₥8 / ₥15 / ₥25 besides. It pours before the storehouses auto-sell. **Right-click a barkeep** to buy a bottle off the shelf: guests pay **double the Market price** and a quarter of that goes to you; you drink at cost. Tier 3 has **guest rooms** upstairs (sleep there to set your spawn).
 
 Put a farm and a distillery next to a tavern and the grain goes out as genever money. Without Proost there are no distilleries or taverns for sale.
 
 ### De Compagnie: the Company House
 
-With [De Compagnie](../compagnie/README.md) installed, the Town Hall sells a **Company House** (₥2,200, bottom row next to the tavern; 1 / 1 / 2 clerks at ₥4 a day): a tall, narrow brick canal house with a hoist beam over the door and an office lined with bookshelves. The **cartography table at the back is a Company Desk**: right-click it to run your company. While you own one, your company runs **one more job at once**, keeps **one more agent per tier** and pays **10% less wages per tier**. Tier 2 adds a map room on the mezzanine, tier 3 a gilded trophy. Without De Compagnie there are no Company Houses for sale.
+With [De Compagnie](../compagnie/README.md) installed, the Town Hall sells a **Company House** (₥2,200, under *Trade and transport*; 1 / 1 / 2 clerks at ₥4 a day): a tall, narrow brick canal house with a hoist beam over the door and an office lined with bookshelves. The **cartography table at the back is a Company Desk**: right-click it to run your company. While you own one, your company runs **one more job at once**, keeps **one more agent per tier** and pays **10% less wages per tier**. Tier 2 adds a map room on the mezzanine, tier 3 a gilded trophy. Without De Compagnie there are no Company Houses for sale.
 
 ### Burlap Sack: bring your own workers
 

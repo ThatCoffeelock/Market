@@ -26,19 +26,71 @@ import net.minecraft.world.item.component.ItemLore;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Town Hall counter: a 6-row chest screen built on the server. The main page is the shop and
- * the list of buildings; clicking a building opens its page (upgrade, replace workers, storage...).
+ * The Town Hall counter: a 6-row chest screen built on the server, with two tabs along the top. "Buy blueprints" is
+ * the shop, a sub-tab per kind of building. "Your buildings" lists what the colony has; clicking one opens its page
+ * (upgrade, replace workers, storage...).
+ * <pre>
+ *  [BUY] [YOURS]  .  .  [COLONY]  .  .  [NETWORK]  .
+ *  shop: the category tabs          yours: buildings
+ *  shop: the blueprints in it       (36 a page)
+ *  ...
+ *  [PREV]  .  .  .  [BALANCE]  .  [NEXT]  .  [CLOSE]
+ * </pre>
  */
 final class TownHallMenu extends ChestMenu {
 	private static final int SIZE = 54;
-	private static final int PER_PAGE = 9;
-	private static final BuildingType[] SHOP = {BuildingType.RESIDENCE, BuildingType.FARM, BuildingType.LUMBER_CAMP,
-		BuildingType.MINE, BuildingType.FISHERY, BuildingType.TOBACCO_FARM, BuildingType.WORKSHOP, BuildingType.STOREHOUSE};
-	/** The town street: shops, the bank, the museum, the chapel, the library, the ranch, the apiary and the fuel depot. */
-	private static final BuildingType[] STREET = {BuildingType.TRADING_POST, BuildingType.BANK, BuildingType.MUSEUM, BuildingType.CHAPEL,
-		BuildingType.LIBRARY, BuildingType.RANCH, BuildingType.APIARY, BuildingType.FUEL_DEPOT};
-	private static final BuildingType[] FORTIFICATIONS = {BuildingType.WALL, BuildingType.WALL_STAIRS, BuildingType.WALL_TOWER,
-		BuildingType.GATEHOUSE, BuildingType.WATCHTOWER};
+	/** Your buildings: rows 2 to 5. */
+	private static final int PER_PAGE = 36;
+	private static final int TAB_SHOP = 0;
+	private static final int TAB_BUILDINGS = 1;
+
+	/** The shop's sub-tabs. Every building type is in exactly one (the smoke test checks). */
+	enum Category {
+		WORK("Homes and harvests", Items.WHEAT, "Beds for your workers, and everything that gathers:",
+			"farms, mines, fisheries, plantations, the workshop", "and the storehouse.",
+			BuildingType.RESIDENCE, BuildingType.FARM, BuildingType.LUMBER_CAMP, BuildingType.MINE, BuildingType.FISHERY, BuildingType.RANCH,
+			BuildingType.APIARY, BuildingType.TOBACCO_FARM, BuildingType.SPICE_PLANTATION, BuildingType.WORKSHOP, BuildingType.STOREHOUSE),
+		TRADE("Trade and transport", Items.EMERALD, "Ships, trains, shops and the bank, and the",
+			"distillery and tavern that turn grain into money.", "",
+			BuildingType.HARBOR_OFFICE, BuildingType.TRAIN_STATION, BuildingType.TRADING_POST, BuildingType.BANK, BuildingType.DISTILLERY,
+			BuildingType.TAVERN, BuildingType.FUEL_DEPOT, BuildingType.COMPANY_HOUSE),
+		TOWN("Town and culture", Items.PAINTING, "The museum for your relics, the chapel, the", "library and the guildhouse.", "",
+			BuildingType.MUSEUM, BuildingType.CHAPEL, BuildingType.LIBRARY, BuildingType.GUILDHOUSE),
+		DEFENCE("Defence and law", Items.SHIELD, "Iron guards, archers, walls you can walk on", "(no building slot), and somewhere to put",
+			"the illagers you catch.",
+			BuildingType.BARRACKS, BuildingType.WATCHTOWER, BuildingType.WALL, BuildingType.WALL_STAIRS, BuildingType.WALL_TOWER,
+			BuildingType.GATEHOUSE, BuildingType.CELLBLOCK, BuildingType.SCAFFOLD),
+		GOVERNMENT("Government", Items.BELL, "A charter for a new colony, Headquarters", "to run them all as one, and a Governor's Desk.", "",
+			BuildingType.TOWN_HALL, BuildingType.HEADQUARTERS);
+
+		final String title;
+		final Item icon;
+		final String[] blurb;
+		final BuildingType[] types;
+
+		Category(String title, Item icon, String line1, String line2, String line3, BuildingType... types) {
+			this.title = title;
+			this.icon = icon;
+			this.blurb = line3.isEmpty() ? new String[] {line1, line2} : new String[] {line1, line2, line3};
+			this.types = types;
+		}
+
+		/** Every building type is for sale under exactly one category. */
+		static boolean coversEverything() {
+			for (BuildingType type : BuildingType.values()) {
+				int found = 0;
+				for (Category c : values()) {
+					for (BuildingType t : c.types) {
+						found += t == type ? 1 : 0;
+					}
+				}
+				if (found != 1) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
 
 	@FunctionalInterface
 	private interface Action {
@@ -50,6 +102,9 @@ final class TownHallMenu extends ChestMenu {
 	private final SimpleContainer box;
 	private final Map<Integer, Action> actions = new HashMap<>();
 	private @Nullable Colony.Building selected;
+	/** Which tab: {@link #TAB_SHOP} or {@link #TAB_BUILDINGS}. */
+	private int tab;
+	private Category category = Category.WORK;
 	private int page;
 	private boolean confirmDemolish;
 	/** Opened from the Governor's Table at the HQ: it stays open wherever you are. */
@@ -89,6 +144,8 @@ final class TownHallMenu extends ChestMenu {
 		this.viewer = viewer;
 		this.colony = colony;
 		this.box = box;
+		// a brand new colony has nothing to manage yet: start in the shop
+		this.tab = colony.buildings.size() <= 1 ? TAB_SHOP : TAB_BUILDINGS;
 		render();
 	}
 
@@ -162,53 +219,76 @@ final class TownHallMenu extends ChestMenu {
 			info.add(t("The guards are standing down too.", ChatFormatting.RED));
 		}
 		button(4, icon(Items.BELL, t(colony.name, ChatFormatting.GOLD, ChatFormatting.BOLD), info), null);
+		networkButton(7);
 
-		if (SpiceLink.present()) {
-			shopButton(0, BuildingType.SPICE_PLANTATION); // with Specerij it takes the "Trade and transport" sign's place
+		ItemStack shop = icon(Items.WRITABLE_BOOK, t("Buy blueprints", ChatFormatting.AQUA, ChatFormatting.BOLD),
+			List.of(t("New buildings for the colony, by kind.", ChatFormatting.GRAY), t("Buy one, then right-click the ground", ChatFormatting.GRAY),
+				t("inside the colony to build it.", ChatFormatting.GRAY)));
+		int needy = 0;
+		for (Colony.Building b : colony.buildings) {
+			needy += b.dead() > 0 ? 1 : 0;
+		}
+		List<Component> mine = new ArrayList<>();
+		mine.add(t(colony.buildings.size() + (colony.buildings.size() == 1 ? " building" : " buildings"), ChatFormatting.GRAY));
+		mine.add(t("Click one to upgrade, repair, staff or demolish it.", ChatFormatting.GRAY));
+		if (needy > 0) {
+			mine.add(t(needy + (needy == 1 ? " has" : " have") + " empty jobs (they glint).", ChatFormatting.RED));
+		}
+		ItemStack yours = icon(Items.CHEST, t("Your buildings", ChatFormatting.AQUA, ChatFormatting.BOLD), mine);
+		(tab == TAB_SHOP ? shop : yours).set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+		button(0, shop, () -> {
+			tab = TAB_SHOP;
+			render();
+		});
+		button(1, yours, () -> {
+			tab = TAB_BUILDINGS;
+			render();
+		});
+
+		if (tab == TAB_SHOP) {
+			renderShop();
 		} else {
-			button(0, icon(Items.COMPASS, t("Trade and transport", ChatFormatting.AQUA, ChatFormatting.BOLD),
-				List.of(t("A harbor with a Loading Dock for ships,", ChatFormatting.GRAY), t("a station for Cargo Trains.", ChatFormatting.GRAY))), null);
+			renderBuildings();
 		}
-		shopButton(1, BuildingType.HARBOR_OFFICE);
-		shopButton(2, BuildingType.TRAIN_STATION);
-		shopButton(3, BuildingType.DISTILLERY);
-		shopButton(5, BuildingType.GUILDHOUSE);
-		shopButton(6, BuildingType.BARRACKS);
-		shacklesButton(7);
-		shopButton(8, BuildingType.TOWN_HALL);
+	}
 
-		button(9, icon(Items.WRITABLE_BOOK, t("Blueprints for sale", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("Buy one, then right-click the ground", ChatFormatting.GRAY), t("inside the colony to build it.", ChatFormatting.GRAY))), null);
-		for (int i = 0; i < SHOP.length; i++) {
-			shopButton(10 + i, SHOP[i]);
+	/** The shop: the category tabs on row 2, that category's blueprints below. */
+	private void renderShop() {
+		Category[] all = Category.values();
+		for (int i = 0; i < all.length; i++) {
+			Category c = all[i];
+			List<Component> lore = new ArrayList<>();
+			for (String line : c.blurb) {
+				lore.add(t(line, ChatFormatting.GRAY));
+			}
+			ItemStack stack = icon(c.icon, t(c.title, c == category ? ChatFormatting.GOLD : ChatFormatting.YELLOW, ChatFormatting.BOLD), lore);
+			if (c == category) {
+				stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+			}
+			button(11 + i, stack, () -> {
+				category = c;
+				render();
+			});
 		}
-		button(18, icon(Items.SHIELD, t("Fortifications", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("Curtain walls you can walk on, stairs up,", ChatFormatting.GRAY), t("towers for the corners, gates.", ChatFormatting.GRAY),
-				t("They don't use building slots, and snap", ChatFormatting.GRAY), t("together end to end.", ChatFormatting.GRAY),
-				Component.empty(), t("Your buildings are listed below: click one", ChatFormatting.DARK_GRAY),
-				t("to upgrade, repair, staff or demolish it.", ChatFormatting.DARK_GRAY))), null);
-		for (int i = 0; i < FORTIFICATIONS.length; i++) {
-			shopButton(19 + i, FORTIFICATIONS[i]);
+		// the blueprints: rows 3 to 5, the middle seven columns
+		int n = 0;
+		for (BuildingType type : category.types) {
+			shopButton(shopSlot(n++), type);
 		}
+		if (category == Category.DEFENCE) {
+			shacklesButton(shopSlot(n++));
+		}
+		if (category == Category.GOVERNMENT) {
+			deskButton(shopSlot(n++));
+		}
+	}
 
-		button(24, icon(Items.IRON_BARS, t("Law and order", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("Lock up the illagers you catch.", ChatFormatting.GRAY), t("Beat one down, shackle them, put the", ChatFormatting.GRAY),
-				t("shackles in a cell's holding block.", ChatFormatting.GRAY), t("Then ransom them, or make a show of it.", ChatFormatting.GRAY))), null);
-		shopButton(25, BuildingType.CELLBLOCK);
-		shopButton(26, BuildingType.SCAFFOLD);
+	private static int shopSlot(int n) {
+		return 19 + (n / 7) * 9 + n % 7;
+	}
 
-		button(27, icon(Items.EMERALD, t("The town street", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("Shops and public buildings.", ChatFormatting.GRAY), t("The trading post, bank and museum", ChatFormatting.GRAY),
-				t("earn marks every day.", ChatFormatting.GRAY), t("The tavern is down by the door.", ChatFormatting.GRAY), Component.empty(),
-				t("Your buildings are listed below.", ChatFormatting.DARK_GRAY))), null);
-		for (int i = 0; i < STREET.length; i++) {
-			shopButton(28 + i, STREET[i]);
-		}
-		shopButton(46, BuildingType.COMPANY_HOUSE);
-		shopButton(47, BuildingType.TAVERN);
-		shopButton(48, BuildingType.HEADQUARTERS);
-		networkButton(50);
-		deskButton(52);
+	/** Your buildings: rows 2 to 5, a page at a time. */
+	private void renderBuildings() {
 		List<Colony.Building> list = colony.buildings;
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		page = Math.min(page, pages - 1);
@@ -219,6 +299,7 @@ final class TownHallMenu extends ChestMenu {
 			}
 			Colony.Building b = list.get(index);
 			List<Component> lore = new ArrayList<>();
+			lore.add(t("Tier " + b.tier, ChatFormatting.GRAY));
 			if (!b.villagers.isEmpty()) {
 				lore.add(t("Workers: " + b.alive() + " / " + b.villagers.size(), b.dead() > 0 ? ChatFormatting.RED : ChatFormatting.GRAY));
 			}
@@ -235,11 +316,12 @@ final class TownHallMenu extends ChestMenu {
 				lore.add(t("Prisoners: " + b.prisoners.size() + " / " + BuildingType.cells(b.tier), ChatFormatting.GRAY));
 			}
 			lore.add(t("at " + b.origin.getX() + ", " + b.origin.getY() + ", " + b.origin.getZ(), ChatFormatting.DARK_GRAY));
+			lore.add(t("Click to manage it.", ChatFormatting.YELLOW));
 			ItemStack icon = icon(b.type.icon, t(b.title(), ChatFormatting.WHITE, ChatFormatting.BOLD), lore);
 			if (b.dead() > 0) {
 				icon.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 			}
-			button(36 + i, icon, () -> {
+			button(9 + i, icon, () -> {
 				selected = b;
 				confirmDemolish = false;
 				render();
@@ -252,7 +334,7 @@ final class TownHallMenu extends ChestMenu {
 			});
 		}
 		if (page < pages - 1) {
-			button(51, icon(Items.ARROW, t("Next page", ChatFormatting.YELLOW), List.of()), () -> {
+			button(51, icon(Items.ARROW, t("Next page", ChatFormatting.YELLOW), List.of(t("Page " + (page + 2) + " of " + pages, ChatFormatting.GRAY))), () -> {
 				page++;
 				render();
 			});
@@ -572,8 +654,9 @@ final class TownHallMenu extends ChestMenu {
 			List.of(money("Refund: ", refund), t(b.type == BuildingType.TOWN_HALL ? "This disbands the colony." : "The workers leave.", ChatFormatting.GRAY),
 				why == null ? Component.empty() : t(why, ChatFormatting.RED))), () -> demolish(b, why));
 
-		button(45, icon(Items.ARROW, t("Back", ChatFormatting.YELLOW), List.of()), () -> {
+		button(45, icon(Items.ARROW, t("Back to your buildings", ChatFormatting.YELLOW), List.of()), () -> {
 			selected = null;
+			tab = TAB_BUILDINGS;
 			render();
 		});
 	}

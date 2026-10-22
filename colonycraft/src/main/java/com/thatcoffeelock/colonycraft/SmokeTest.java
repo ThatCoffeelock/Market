@@ -97,6 +97,7 @@ final class SmokeTest {
 			}
 		}
 		check(BuildingType.badStates == 0, "every block state in every design parses (" + BuildingType.badStates + " bad)");
+		check(TownHallMenu.Category.coversEverything(), "every building is for sale under exactly one Town Hall shop tab");
 		ColonycraftMod.LOG.info("[smoke] ok: every design fits its footprint and leaves its crew headroom");
 
 		for (int x = -60; x < 60; x += 20) {

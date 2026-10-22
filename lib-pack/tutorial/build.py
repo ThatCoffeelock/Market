@@ -51,7 +51,7 @@ MODS = [
  dict(name="Colonycraft", colour="#b5523b", tag="Found colonies, buy prefab buildings with Marks and let villagers gather for you.",
   recipes=[], getit="No recipe: buy a <b>Colony Charter</b> for ₥2,500 with <code>/colonycraft charter</code>.",
   steps=["Rename the charter in an anvil to name your colony, then right-click the ground. A <b>Town Hall</b> is built and claims the land around it.",
-         "Right-click the Town Hall's <b>lectern</b> to shop for blueprints: Residence (beds), Farm, Fishery, Lumber Camp, Mine, Workshop, Storehouse, Harbor Office, Train Station.",
+         "Right-click the Town Hall's <b>lectern</b>. The <b>Buy blueprints</b> tab sells buildings by kind (start with a Residence for beds and a Farm); <b>Your buildings</b> is where you upgrade, staff and repair them.",
          "Right-click inside your colony with a blueprint to see the outline, then click the same spot again to build it.",
          "Every morning you pay wages (₥3 a worker) and the workers deliver to your Storehouses. Can't pay? Everyone strikes.",
          "Add defences: curtain walls, wall stairs, wall towers for the corners, gatehouses, watchtowers with archers and a barracks with iron golems.",
@@ -334,7 +334,7 @@ MODS = [
          "Put the fresh spice in a <b>Drying Rack</b>. A day later it's dried and worth about four times as much. Green tea left in two more days turns black."],
   tips=["No bone meal. Ripe pepper is a sweet berry bush: it pricks.",
         "Market, dried: pepper ₥3, cloves ₥3.50, cinnamon ₥4, nutmeg ₥6, green / black tea ₥1.50 / ₥3, saffron ₥15.",
-        "With Colonycraft: a <b>Spice Plantation</b> (top left of the Town Hall) grows the local spice. Double the yield at 5,000 blocks from your Headquarters.",
+        "With Colonycraft: a <b>Spice Plantation</b> (Town Hall shop, <i>Homes and harvests</i>) grows the local spice. Double the yield at 5,000 blocks from your Headquarters.",
         "With Skills: picking trains <b>Farming</b>, and Green Thumb adds to the pick."],
   cmds="/specerij · /specerij here"),
 ]

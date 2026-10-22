@@ -59,7 +59,7 @@ Craft a **Barrel + String** (any shape), or rename any barrel, chest or trapped 
 
 ## Colonycraft: spice plantations in faraway colonies
 
-With [Colonycraft](../colonycraft/README.md), the Town Hall sells a **Spice Plantation** (₥1,500; 2 / 3 / 4 planters at ₥3 a day). With Specerij installed it takes the top-left slot of the Town Hall menu.
+With [Colonycraft](../colonycraft/README.md), the Town Hall sells a **Spice Plantation** (₥1,500; 2 / 3 / 4 planters at ₥3 a day). It's in the Town Hall shop under *Homes and harvests*.
 
 - It only goes up **where a spice grows wild**, and it grows that spice.
 - **The farther from home, the better.** It brings in more the farther it is from your **Headquarters** (from the middle of the world if you have none): double at **5,000 blocks**, or in another dimension.
