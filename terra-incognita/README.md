@@ -29,7 +29,7 @@ Everyone aboard something within 12 blocks of whoever holds the chart comes alon
 
 ## What's over there
 
-- **Islands, not continents.** Terra Incognita is the Overworld's own terrain with the sea raised by 21 blocks: the lowlands are drowned, the hills are islands, and the mountains are sea stacks and peaks over 150 blocks high. Shallow turquoise straits run between them.
+- **Islands, not continents.** Terra Incognita is the Overworld's own terrain with the sea raised by 13 blocks: the lowlands are drowned, the hills are islands, and the mountains are sea stacks and peaks over 150 blocks high. Shallow turquoise straits run between them.
 - **Lands that don't belong together:** jungle, bamboo jungle, sparse jungle, savanna and its plateaus, desert, three kinds of badlands, flower forest, meadow, cherry groves, dark forest, mangrove coasts, beaches, and stony and jagged peaks. Lush caves and dripstone caves are underneath.
 - **Everything the Overworld has, and more of it.** The biomes are vanilla ones, so every structure that spawns in the Overworld spawns here too: villages (savanna and desert ones are the locals), jungle temples, desert temples, pillager outposts, woodland mansions in the dark forests, mineshafts in the badlands, shipwrecks, ocean ruins, buried treasure, trial chambers, and whatever your **structure mods** add for those biomes.
 - **Illagers. Lots of them.** Every 20 seconds, each player has a fair chance of being found by a band of 2 to 5: pillagers and vindicators, now and then an evoker, rarely a ravager with a rider. They turn up out of sight and come looking, day and night, until there are 12 around you.
@@ -60,7 +60,7 @@ Everyone aboard something within 12 blocks of whoever holds the chart comes alon
 | `maxIllagersNearby`, `maxBandSize` | `12`, `5` | No new bands past this many around you; band size from 2 to this |
 | `chestBounty`, `illagerBounty` | `1.0`, `1.0` | Multiply the extra plunder (0 turns it off) |
 
-The sea level is set when the mod is built (`terra_sea_level` in `gradle.properties`, 84 by default).
+The sea level is set when the mod is built (`terra_sea_level` in `gradle.properties`, 76 by default).
 
 ## Coming next
 

@@ -58,7 +58,7 @@ final class SmokeTest {
 		check(terra != null, "the dimension terra_incognita:terra loaded");
 		check(Terra.isTerra(terra) && !Terra.isTerra(server.overworld()) && Terra.across(server.overworld()) == terra
 			&& Terra.across(terra) == server.overworld(), "a chart takes you there from home, and home from there");
-		check(terra.getSeaLevel() == 84, "the sea is raised: sea level " + terra.getSeaLevel() + " (the Overworld's is " + server.overworld().getSeaLevel() + ")");
+		check(terra.getSeaLevel() == 76, "the sea is raised: sea level " + terra.getSeaLevel() + " (the Overworld's is " + server.overworld().getSeaLevel() + ")");
 		check(Charts.isChart(Charts.chart()) && !Charts.isChart(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.PAPER)),
 			"the Sea Chart is recognised, plain paper isn't");
 		map(terra);

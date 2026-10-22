@@ -33,6 +33,7 @@ final class Crossing {
 					}
 					int bx = x + dx * 16;
 					int bz = z + dz * 16;
+					level.getChunk(bx >> 4, bz >> 4); // heights read as the bottom of the world until the chunk is there
 					int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, bx, bz);
 					if (!level.getBlockState(new BlockPos(bx, y - 1, bz)).getFluidState().isEmpty()) {
 						return new BlockPos(bx, y, bz);
@@ -40,6 +41,7 @@ final class Crossing {
 				}
 			}
 		}
+		level.getChunk(x >> 4, z >> 4);
 		return new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
 	}
 
