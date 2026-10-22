@@ -159,6 +159,8 @@ final class SmokeTest {
 
 		ServerLevel home = server.overworld();
 		Cmd.run(home, "forceload add 0 0");
+		// a player keeps their own chunks loaded; an armor stand needs help
+		Cmd.run(terra, "forceload add " + sea.getX() + " " + sea.getZ());
 		Cmd.run(home, "summon minecraft:armor_stand 0.5 120 0.5 {" + Cmd.uuidNbt(TRAVELLER) + ",NoGravity:1b}");
 		Cmd.run(home, "execute in " + Terra.DIMENSION + " run tp " + TRAVELLER + " " + Cmd.pos(sea.getX() + 0.5, sea.getY() + 0.2, sea.getZ() + 0.5));
 		TerraMod.later(5, () -> step(server, () -> {
