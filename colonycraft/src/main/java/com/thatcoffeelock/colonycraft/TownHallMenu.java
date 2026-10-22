@@ -163,8 +163,12 @@ final class TownHallMenu extends ChestMenu {
 		}
 		button(4, icon(Items.BELL, t(colony.name, ChatFormatting.GOLD, ChatFormatting.BOLD), info), null);
 
-		button(0, icon(Items.COMPASS, t("Trade and transport", ChatFormatting.AQUA, ChatFormatting.BOLD),
-			List.of(t("A harbor with a Loading Dock for ships,", ChatFormatting.GRAY), t("a station for Cargo Trains.", ChatFormatting.GRAY))), null);
+		if (SpiceLink.present()) {
+			shopButton(0, BuildingType.SPICE_PLANTATION); // with Specerij it takes the "Trade and transport" sign's place
+		} else {
+			button(0, icon(Items.COMPASS, t("Trade and transport", ChatFormatting.AQUA, ChatFormatting.BOLD),
+				List.of(t("A harbor with a Loading Dock for ships,", ChatFormatting.GRAY), t("a station for Cargo Trains.", ChatFormatting.GRAY))), null);
+		}
 		shopButton(1, BuildingType.HARBOR_OFFICE);
 		shopButton(2, BuildingType.TRAIN_STATION);
 		shopButton(3, BuildingType.DISTILLERY);
@@ -393,6 +397,8 @@ final class TownHallMenu extends ChestMenu {
 			case BARRACKS -> "Iron golem guards that patrol the colony's land.";
 			case FISHERY -> "Cod, salmon, the odd tropical fish and pufferfish, ink sacs, kelp, now and then a nautilus shell.";
 			case TOBACCO_FARM -> "Tobacco leaves for your cigars. The curing barn cures and ages some from tier 2.";
+			case SPICE_PLANTATION -> "The spice of its climate (jungle pepper, savanna cinnamon...). Only where spices grow, and the farther from"
+				+ " your Headquarters, the more it brings in (up to double at " + Math.round(SpiceLink.FAR) + " blocks). Dries some from tier 2.";
 			case HARBOR_OFFICE -> "A pier with a Loading Dock for ships, and better prices on everything you auto-sell.";
 			case TRAIN_STATION -> "Track through a platform, with a Pickup and a Drop-off Station for Cargo Trains. More tracks per tier.";
 			case WATCHTOWER -> "Archers on top shoot monsters up to 24 blocks away.";
@@ -664,6 +670,7 @@ final class TownHallMenu extends ChestMenu {
 			case RESIDENCE -> "Beds for " + b.type.housing(next) + " workers (rebuilt with two more beds upstairs), and the tenants pay "
 				+ Bank.format(Bank.cents(Street.income(b.type, next))) + " rent a day.";
 			case TOBACCO_FARM -> b.type.workers(next) + " planters, and the barn " + (next == 2 ? "cures some leaves." : "ages some tobacco too.");
+			case SPICE_PLANTATION -> b.type.workers(next) + " planters, and the shed " + (next == 2 ? "dries half the pick." : "dries all of it (and ages some tea black).");
 			case WATCHTOWER -> b.type.workers(next) + " archers, rebuilt in " + stone(next);
 			case WALL, WALL_STAIRS, WALL_TOWER, GATEHOUSE -> "Rebuilt in " + stone(next);
 			case CELLBLOCK -> BuildingType.cells(next) + " cells: two more get unbricked.";

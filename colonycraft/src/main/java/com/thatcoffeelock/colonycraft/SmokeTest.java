@@ -356,6 +356,12 @@ final class SmokeTest {
 			}
 			check(bulbs > 0, "with Tulpengekte, farms dig up the odd tulip bulb (" + bulbs + " in 20 days)");
 		}
+		if (!SpiceLink.present()) {
+			check(!BuildingType.SPICE_PLANTATION.available() && SpiceLink.harvest("pepper", 3, 4, 2).isEmpty(),
+				"without Specerij, spice plantations aren't for sale and grow nothing");
+		} else {
+			check(BuildingType.SPICE_PLANTATION.available() && !SpiceLink.harvest("pepper", 3, 4, 2).isEmpty(), "with Specerij, a plantation grows spice");
+		}
 
 		Colony.Building wallTower = Colonies.construct(level, colony, BuildingType.WALL_TOWER, new BlockPos(-8, 99, 52), 0,
 			Bank.cents(BuildingType.WALL_TOWER.price), true);

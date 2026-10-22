@@ -191,6 +191,12 @@ Tobacco farms grow real Havana tobacco: leaves, the odd seed, and from tier 2 cu
 
 With [Tulpengekte](../tulpengekte/README.md), farmers dig up the odd tulip bulb: up to one common bulb per farmer a day, and at tier 3 a fine one now and then. Plant them, or sell them to a Bloemist. The broken varieties you'll have to breed yourself.
 
+### Specerij: spice plantations in faraway colonies
+
+With [Specerij](../specerij/README.md) installed, the Town Hall sells a **Spice Plantation** (₥1,500, top left of the Town Hall, where the "Trade and transport" sign was; 2 / 3 / 4 planters at ₥3 a day): rows of spice bushes behind a bamboo fence and an open drying shed. It only goes up **where spices grow wild**, and it grows the local one: pepper in a jungle, nutmeg in a mangrove swamp, cloves in a bamboo jungle, cinnamon in a savanna, tea in a cherry grove or the windswept hills, saffron in a meadow or a flower forest.
+
+**The farther from home, the better:** a plantation brings in more the farther it is from your **Headquarters** (from the middle of the world if you have none), up to **double at 5,000 blocks** or in another dimension. Tier 2's shed dries half the pick, tier 3 dries all of it and ages some tea black. Now and then a cutting comes in too, to plant in a Hortus at home. Ship it all back by convoy, harbor or train.
+
 ### Riches: the bank's vault and the museum
 
 With [Riches](../riches/README.md), the bank's vault money piles up in gold around the Vault Ledger in the middle of the vault, and the vault door is a Riches Vault Door that swings shut by itself (and opens for anyone: it's a public vault). The museum's cases and pedestals are Riches display cases: relics on show there count towards the Royal Society's collections, and each one adds ₥10 a day to the museum's takings. Without Riches the bank still banks (no gold pile), and there's no museum for sale.

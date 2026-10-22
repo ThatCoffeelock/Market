@@ -291,7 +291,11 @@ public final class Colonies {
 		String dim = dim(level);
 		Colony target = null;
 		if (!type.available()) {
-			return "The " + type.displayName + " needs the Havana mod for its tobacco.";
+			return "The " + type.displayName + " needs the " + type.needs() + " mod.";
+		}
+		if (type == BuildingType.SPICE_PLANTATION && SpiceLink.spiceAt(level, origin) == null) {
+			return "Nothing grows here for a Spice Plantation. Build it where spices grow wild: a jungle, a mangrove swamp, "
+				+ "a bamboo jungle, a savanna, a cherry grove, windswept hills, a meadow or a flower forest. The farther from home, the better.";
 		}
 		Colony.Building hq = type == BuildingType.HEADQUARTERS ? Network.hq(player.getUUID()) : null;
 		if (hq != null) {
@@ -572,6 +576,7 @@ public final class Colonies {
 			case WALL, WALL_STAIRS, WALL_TOWER, GATEHOUSE -> "Sentry";
 			case FISHERY -> "Fisher";
 			case TOBACCO_FARM -> "Planter";
+			case SPICE_PLANTATION -> "Spice Planter";
 			case HARBOR_OFFICE -> "Harbor Master";
 			case TRAIN_STATION -> "Station Master";
 			case CELLBLOCK -> "Jailer";
@@ -1198,6 +1203,7 @@ public final class Colonies {
 		// gather
 		for (Colony.Building b : c.buildings) {
 			List<ItemStack> harvest = b.type == BuildingType.TOBACCO_FARM ? Production.tobacco(b.tier, b.alive(), RANDOM)
+				: b.type == BuildingType.SPICE_PLANTATION ? plantation(b)
 				: Production.gather(b.type, b.tier, b.alive(), RANDOM);
 			double role = Network.gather(c, b.type);
 			for (ItemStack stack : harvest) {
@@ -1660,6 +1666,15 @@ public final class Colonies {
 				.append(Component.literal(what).withStyle(ChatFormatting.GRAY)));
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	/** A spice plantation's day (with Specerij): the spice of its climate, more the farther it is from Headquarters. */
+	static List<ItemStack> plantation(Colony.Building b) {
+		ServerLevel level = level(b.colony);
+		if (level == null) {
+			return List.of();
+		}
+		return SpiceLink.harvest(SpiceLink.spiceAt(level, b.origin), b.tier, b.alive(), SpiceLink.distance(b));
 	}
 
 	/** Test hook: finish every building job right away. */

@@ -2,6 +2,7 @@ package com.thatcoffeelock.specerij;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiFunction;
@@ -28,6 +29,8 @@ public final class SpiceMod implements ModInitializer {
 	public static final String ITEM_HOOK = "specerij:item";
 	/** ObjectShare key: a {@code Function<String, String>} from a biome id ("minecraft:jungle") to the spice that grows there ("pepper"), or null. */
 	public static final String BIOME_HOOK = "specerij:spice_for_biome";
+	/** ObjectShare key: a {@code Function<Map<String, Object>, List<ItemStack>>}: a Spice Plantation's day (see {@link Plantation}). */
+	public static final String PLANTATION_HOOK = "specerij:plantation";
 
 	private static final Queue<Runnable> NEXT_TICK = new ConcurrentLinkedQueue<>();
 	private static final List<Delayed> LATER = new ArrayList<>();
@@ -43,6 +46,7 @@ public final class SpiceMod implements ModInitializer {
 			Spice spice = biome == null ? null : Spice.forBiome(biome);
 			return spice == null ? null : spice.id();
 		});
+		share.put(PLANTATION_HOOK, (Function<Map<String, Object>, List<ItemStack>>) Plantation::day);
 		Prices.publish();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			SpiceStore.load(server);

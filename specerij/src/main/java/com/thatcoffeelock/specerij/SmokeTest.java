@@ -64,6 +64,7 @@ final class SmokeTest {
 		Cmd.run(level, "fillbiome 0 96 -16 15 120 15 minecraft:plains");
 		items();
 		prices();
+		plantation();
 		climate(level);
 		gardens(level);
 		drying(level);
@@ -92,6 +93,39 @@ final class SmokeTest {
 		check(((BiFunction<String, Integer, ItemStack>) item).apply("nonsense", 1).isEmpty(), "and nothing out of nonsense");
 		check("nutmeg".equals(((Function<String, String>) biome).apply("minecraft:mangrove_swamp"))
 			&& ((Function<String, String>) biome).apply("minecraft:desert") == null, "the biome hook knows where spices grow");
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void plantation() {
+		java.util.Random random = new java.util.Random(1602);
+		for (Spice s : Spice.values()) {
+			double near = 0;
+			double far = 0;
+			for (int i = 0; i < 200; i++) {
+				near += value(Plantation.day(s, 1, 2, 1, random));
+				far += value(Plantation.day(s, 1, 2, 2, random));
+			}
+			check(near / 200 > 600 && near / 200 < 1100, s.title + ": two planters at home bring in about ₥8 a day (" + Math.round(near / 200) + " cents)");
+			check(far > near * 1.7, s.title + ": twice that far from home");
+		}
+		List<ItemStack> tier3 = Plantation.day(Spice.TEA, 3, 4, 1, random);
+		check(tier3.stream().anyMatch(i -> SpiceItems.kind(i).equals(SpiceItems.AGED)) && tier3.stream().noneMatch(i -> SpiceItems.kind(i).equals(SpiceItems.FRESH)),
+			"a tier 3 tea plantation dries everything and ages some of it black");
+		Object hook = FabricLoader.getInstance().getObjectShare().get(SpiceMod.PLANTATION_HOOK);
+		check(hook instanceof Function<?, ?>, "the plantation hook is published");
+		List<ItemStack> day = ((Function<java.util.Map<String, Object>, List<ItemStack>>) hook)
+			.apply(java.util.Map.of("spice", "cloves", "tier", 2, "workers", 3, "distance", 1.5));
+		check(!day.isEmpty() && day.stream().allMatch(i -> SpiceItems.spice(i) == Spice.CLOVES), "and it grows the spice it's asked for");
+	}
+
+	private static long value(List<ItemStack> stacks) {
+		long cents = 0;
+		for (ItemStack stack : stacks) {
+			if (!SpiceItems.kind(stack).equals(SpiceItems.CUTTING)) {
+				cents += Prices.price(stack) * stack.getCount();
+			}
+		}
+		return cents;
 	}
 
 	private static void prices() {

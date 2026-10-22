@@ -408,7 +408,7 @@ final class Network {
 	static double gather(Colony c, BuildingType type) {
 		Role role = role(c);
 		boolean food = type == BuildingType.FARM || type == BuildingType.RANCH || type == BuildingType.APIARY || type == BuildingType.FISHERY
-			|| type == BuildingType.TOBACCO_FARM;
+			|| type == BuildingType.TOBACCO_FARM || type == BuildingType.SPICE_PLANTATION;
 		boolean dig = type == BuildingType.MINE || type == BuildingType.LUMBER_CAMP;
 		if (!food && !dig) {
 			return siegeFactor(c);

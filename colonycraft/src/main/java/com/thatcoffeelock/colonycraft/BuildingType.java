@@ -36,6 +36,8 @@ public enum BuildingType {
 	BARRACKS("barracks", "Barracks", Items.IRON_SWORD, 2000, 5, 6, 10, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 15, false, BuildingType::barracks),
 	FISHERY("fishery", "Fishery", Items.FISHING_ROD, 1000, 5, 6, 9, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::fishery),
 	TOBACCO_FARM("tobacco_farm", "Tobacco Farm", Items.FERN, 1200, 6, 6, 10, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false, BuildingType::tobaccoFarm),
+	SPICE_PLANTATION("spice_plantation", "Spice Plantation", Items.SWEET_BERRIES, 1500, 6, 6, 9, new int[] {2, 3, 4}, new int[] {0, 0, 0}, 3, false,
+		BuildingType::spicePlantation),
 	HARBOR_OFFICE("harbor_office", "Harbor Office", Items.OAK_BOAT, 2500, 4, 8, 16, new int[] {1, 2, 3}, new int[] {0, 0, 0}, 4, false, BuildingType::harborOffice),
 	TRAIN_STATION("train_station", "Train Station", Items.RAIL, 1500, 6, 5, 6, new int[] {1, 1, 1}, new int[] {0, 0, 0}, 3, false, BuildingType::trainStation),
 	WATCHTOWER("watchtower", "Watchtower", Items.CROSSBOW, 1800, 3, 3, 16, new int[] {1, 2, 3}, new int[] {1, 2, 3}, 10, true, BuildingType::watchtower),
@@ -150,11 +152,12 @@ public enum BuildingType {
 	 * Can it be bought here? The tobacco farm needs the Havana mod for its tobacco, the museum needs Riches for its
 	 * display cases, the fuel depot needs Fossil Fool for its tanks and refinery, and the guildhouse needs Sellswords
 	 * for its Mercenary Station (its Bounty Station comes with Fuck Illagers, if that's here too). The distillery and
-	 * the tavern need Proost for their spirits.
+	 * the tavern need Proost for their spirits, and the spice plantation needs Specerij (and a spice climate).
 	 */
 	public boolean available() {
 		return switch (this) {
 			case TOBACCO_FARM -> HavanaLink.present();
+			case SPICE_PLANTATION -> SpiceLink.present();
 			case MUSEUM -> RichesLink.present();
 			case FUEL_DEPOT -> FossilLink.present();
 			case GUILDHOUSE -> GuildLink.sellswords();
@@ -172,6 +175,7 @@ public enum BuildingType {
 			case GUILDHOUSE -> "Sellswords";
 			case DISTILLERY, TAVERN -> "Proost";
 			case COMPANY_HOUSE -> "De Compagnie";
+			case SPICE_PLANTATION -> "Specerij";
 			default -> "Havana";
 		};
 	}
@@ -197,6 +201,7 @@ public enum BuildingType {
 			case DISTILLERY -> "distiller";
 			case TAVERN -> "barkeep";
 			case COMPANY_HOUSE -> "clerk";
+			case SPICE_PLANTATION -> "planter";
 			default -> "worker";
 		};
 		return n == 1 ? noun : noun + "s";
@@ -255,6 +260,7 @@ public enum BuildingType {
 			case DISTILLERY -> new BlockPos(0, 1, -1);
 			case TAVERN -> TAVERN_BAR[0];
 			case COMPANY_HOUSE -> new BlockPos(-1, 1, 0);
+			case SPICE_PLANTATION -> new BlockPos(0, 1, -1);
 			default -> new BlockPos(0, 1, 0);
 		};
 	}
@@ -1654,6 +1660,52 @@ public enum BuildingType {
 		p.set(4, 1, 2, "minecraft:crafting_table");
 	}
 
+
+	/**
+	 * A spice plantation: rows of bushes in dark earth behind a bamboo fence, and an open-sided drying shed on jungle
+	 * wood posts under a bamboo roof, with racks of barrels, sacks of the day's pick and a lamp for the night shift.
+	 */
+	private static void spicePlantation(Plan p) {
+		p.fillMix(-6, 0, -6, 6, 0, 6, "minecraft:coarse_dirt", "minecraft:podzol", "minecraft:rooted_dirt");
+		String[] bushes = {"minecraft:sweet_berry_bush[age=3]", "minecraft:flowering_azalea", "minecraft:azalea"};
+		for (int x = -5; x <= 5; x += 2) {
+			for (int z = -5; z <= -2; z++) {
+				p.set(x, 0, z, "minecraft:podzol");
+				p.set(x, 1, z, bushes[Math.floorMod(x + z, bushes.length)]);
+			}
+		}
+		p.fill(-6, 0, -1, 6, 0, -1, "minecraft:dirt_path");
+		p.fill(0, 0, -6, 0, 0, -1, "minecraft:dirt_path");
+		for (int x = -6; x <= 6; x++) {
+			p.set(x, 1, -6, x == 0 ? "minecraft:bamboo_fence_gate[facing=south,open=false]"
+				: Math.floorMod(x, 3) == 0 ? "minecraft:stripped_jungle_log[axis=y]" : "minecraft:bamboo_fence");
+		}
+		for (int z = -5; z <= -2; z++) {
+			p.set(-6, 1, z, z == -3 ? "minecraft:stripped_jungle_log[axis=y]" : "minecraft:bamboo_fence");
+			p.set(6, 1, z, z == -3 ? "minecraft:stripped_jungle_log[axis=y]" : "minecraft:bamboo_fence");
+		}
+		p.set(-6, 2, -6, "minecraft:lantern[hanging=false]");
+		p.set(6, 2, -6, "minecraft:lantern[hanging=false]");
+		// the drying shed: open on every side, so the wind does the work
+		p.fill(-4, 0, 1, 4, 0, 5, "minecraft:bamboo_planks");
+		for (int[] c : new int[][] {{-4, 1}, {4, 1}, {-4, 5}, {4, 5}, {0, 1}, {0, 5}}) {
+			p.fill(c[0], 1, c[1], c[0], 3, c[1], "minecraft:stripped_jungle_log[axis=y]");
+		}
+		p.fill(-4, 3, 1, 4, 3, 1, "minecraft:stripped_jungle_log[axis=x]");
+		p.fill(-4, 3, 5, 4, 3, 5, "minecraft:stripped_jungle_log[axis=x]");
+		p.roofAlongX(-4, 1, 4, 5, 4, "minecraft:bamboo_stairs", "minecraft:bamboo_slab[type=bottom]", null);
+		// inside: racks of barrels, sacks (composters) of the day's pick, a sorting table, a lamp
+		for (int x : new int[] {-3, -2, 2, 3}) {
+			p.set(x, 1, 4, "minecraft:barrel[facing=up]");
+			p.set(x, 2, 4, "minecraft:barrel[facing=up]");
+		}
+		p.set(-3, 1, 2, "minecraft:composter[level=7]");
+		p.set(3, 1, 2, "minecraft:composter[level=5]");
+		p.set(-1, 1, 3, "minecraft:bamboo_slab[type=top]");
+		p.set(1, 1, 3, "minecraft:bamboo_slab[type=top]");
+		p.set(0, 1, 3, "minecraft:crafting_table");
+		p.set(0, 3, 3, "minecraft:lantern[hanging=true]");
+	}
 
 	/**
 	 * The harbor office: a two-storey brick customs house with a projecting centre bay (the door, a balcony window
