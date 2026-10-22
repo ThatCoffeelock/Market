@@ -18,14 +18,20 @@ Every mod in this repo in **one jar**, for Minecraft **26.3** (Fabric):
 | [Overenchant](../overenchant/README.md) | Higher maximum enchantment levels: every enchantment goes to X (Sharpness X instead of V). Flintlock guns can be enchanted too |
 | [Fuck Illagers](../fuck-illagers/README.md) | Bounty hunting: illager fingers for Marks, and contracts on named illager bosses in wagons, towers, camps, fortresses, dungeons and castles |
 | [Fossil Fool](../fossil-fool/README.md) | Old-timey oil: dowse for pockets, sink a 5×5 shaft with a fuel-guzzling Drill Rig, strike crude, tank it (or water, or lava), pipe it across the map (or from an offshore rig), upgrade the rig in its workshop, refine it into diesel and burn it in an Industrial Oven that smelts ores double |
-| [Riches](../riches/README.md) | Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics |
+| [Riches](../riches/README.md) | Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 48 one-of-a-kind relics |
 | [Blimey](../blimey/README.md) | A riveted iron airship that runs on Fossil Fool diesel: refits for speed, fuel economy and cargo, plus small, big and huge bombs that wreck buildings |
 | [Sellswords](../sellswords/README.md) | Hire Dutch mercenaries with crossbows and swords: they follow you, hold a spot, hunt with you, guard your walls and villagers, board your ships and airships, and climb the ranks for gold to Musketeer or Foestopper Bulwark |
 | [Proost](../proost/README.md) | Ferment wheat, sugar cane and apples into mash, distill genever, whisky, rum and brandy in a cauldron over a fire, age them in oak casks, and drink until the world spins (Dutch Courage included) |
 | [De Compagnie](../compagnie/README.md) | Run a shady VOC trading company from a Company Desk: hire agents, bankroll 36 trade, raid, explore and smuggling jobs three ways, answer telegrams from the road, lend money to dubious borrowers and send collectors after them, grow from a Charter to the VOC |
 | [De Hooghe Heeren](../hooghe-heeren/README.md) | Optional rival houses behind a tab on the Company Desk (each player chooses to take a seat): lords with treasuries, regiments and long memories who play by your rules. Gifts, pacts, alliances and tribute; spies, saboteurs, forged letters and assassins run by your agents; wars with pitched battles at noon you can ride out to and fight in; seats in the world to visit (or storm), and an Audience Bell hall to feast your guests in (or bar the doors) |
+| [Tulpengekte](../tulpengekte/README.md) | Tulip mania, balanced: plant bulbs, breed rare broken varieties (1 in 1,000 is the Semper Augustus), and sell them to a Bloemist who wants three varieties a day |
 
 It's **server-side only**, like the mods inside it. Friends join with a plain vanilla client.
+
+## New in 2.1: Tulpengekte
+
+- **[Tulpengekte](../tulpengekte/README.md)**, mod number 21: plant tulip bulbs, lift them for offsets, and hope one breaks into a Viceroy or the Semper Augustus. A **Bloemist** villager buys three varieties a day at +50%. Colonycraft farms dig up the odd bulb.
+- **Riches** has **48 relics** in 8 collections now: The Golden Age, The Frozen North, Curiosities of the End and Wonders of the Wild join the original four.
 
 ## New in 2.0: one realm
 
@@ -54,4 +60,4 @@ To build it yourself (Java 25): run `./gradlew build` in the repo root and in ea
 
 There's a printable tutorial with one page per mod in `tutorial/LIB-Pack-Tutorial.pdf` (rebuild it with `python3 tutorial/build.py`). There is also a one-page player guide with every recipe, control and command: open `field-guide.html` in a browser.
 
-CI (`.github/workflows/lib-pack.yml`) builds all twenty mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twenty mods load and the server starts.
+CI (`.github/workflows/lib-pack.yml`) builds all twenty-one mods and the pack, then installs the pack on a real Fabric server, the way a server owner would, and checks that all twenty-one mods load and the server starts.

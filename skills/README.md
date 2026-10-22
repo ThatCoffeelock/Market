@@ -82,6 +82,7 @@ Skill progress is saved in `<world>/skills.json`. Player-placed blocks are remem
 ## Works with
 
 - **Market**: Mercantile raises your sell prices and lowers your buy prices, and selling and buying gives Mercantile XP. Neither mod needs the other.
+- **Tulpengekte**: lifting tulips in flower and breaking rare varieties gives Farming XP, and **Green Thumb** sometimes adds an offset. Selling to a Bloemist gives Mercantile XP, and Mercantile's passive and Haggler raise what he pays.
 - **Flintlock**: gun damage levels Marksmanship and gets its bonuses. The Marksmanship passive also shortens reloads (stacking with Quick Charge), and Recovery can make a reload free.
 - **Ahoy**: sailing the ship levels Sailing.
 - **Cannon**: Artillery. **Fuck Illagers**: Bounty Hunting. **Colonycraft**: Governance (it works for offline colony owners too). **Havana** and **Proost**: Connoisseur. **Blimey**: Piloteering. **Sellswords**: Leadership. **De Compagnie**: Enterprise. **De Hooghe Heeren**: Statecraft. **Riches**: Treasure Hunting's relic perks. Treasure Hunting's chest bonus works without any other mod.

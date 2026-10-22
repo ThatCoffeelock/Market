@@ -173,12 +173,14 @@ final class SmokeTest {
 	private static void wants() {
 		check(Bloemist.wants(42).equals(Bloemist.wants(42)), "every Bloemist wants the same things on the same day");
 		Set<Variety> tops = new HashSet<>();
+		boolean shaped = true;
 		for (long day = 0; day < 200; day++) {
 			List<Variety> w = Bloemist.wants(day);
-			check(w.size() == 3 && w.get(0).tier == Variety.Tier.COMMON && w.get(1).tier == Variety.Tier.FINE
-				&& (w.get(2).tier == Variety.Tier.RARE || w.get(2).tier == Variety.Tier.LEGENDARY), "a day's wants: common, fine, broken or legendary");
+			shaped &= w.size() == 3 && w.get(0).tier == Variety.Tier.COMMON && w.get(1).tier == Variety.Tier.FINE
+				&& (w.get(2).tier == Variety.Tier.RARE || w.get(2).tier == Variety.Tier.LEGENDARY);
 			tops.add(w.get(2));
 		}
+		check(shaped, "every day's wants are a common, a fine, and a broken or legendary tulip");
 		check(tops.contains(Variety.SEMPER_AUGUSTUS) && tops.size() == 4, "over 200 days he asks for every broken tulip and the Semper Augustus");
 
 		TulpStore.addSold(7, "someone", Variety.GOUDA, 30);

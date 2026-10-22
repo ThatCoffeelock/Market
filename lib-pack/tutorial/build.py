@@ -3,7 +3,7 @@
 import html, os, subprocess, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "2.0.3"
+VERSION = "2.1.0"
 
 # Ingredient: (label in the slot, swatch colour, full name, dark text?)
 I = {
@@ -268,7 +268,7 @@ MODS = [
         "<b>Rig Workshop</b> (the anvil in the rig's screen): pay materials for a <b>7×7 or 9×9 shaft</b>, a faster engine, better fuel use and bigger holds.",
         "The <b>Industrial Oven</b> burns diesel and smelts a stack in seconds; <b>ores come out double</b>. Sell crude (₥40) and diesel (₥100) at the Market."],
   cmds="/fossilfool"),
- dict(name="Riches", colour="#b8860b", tag="Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 24 one-of-a-kind relics.",
+ dict(name="Riches", colour="#b8860b", tag="Show off: a walk-in vault where your Market balance piles up in gold, locked vault doors, display cases with plaques, and 48 one-of-a-kind relics.",
   recipes=[shaped("Vault Ledger", ["GIG","ILI","GIG"], dict(G="goldblock",I="ironblock",L="lodestone"), "Ldgr"),
            shaped("Vault Door", ["III","IDI","III"], dict(I="iron",D="irondoor"), "Door"),
            shaped("Display Case", ["GGG","GNG","GGG"], dict(G="glass",N="goldnugget"), "Case", 8),
@@ -277,7 +277,7 @@ MODS = [
          "Your <b>Market balance piles up around it in gold</b>: a scattering at ₥1,000, waist-deep at ₥100,000. Walk in and wade.",
          "Hang a <b>Vault Door</b>. It opens only for you and the players you <code>/riches trust</code>, and swings shut by itself.",
          "Right-click a <b>Display Case</b> or <b>Pedestal</b> with an item to put it on show under a brass plaque. Empty hand takes it back.",
-         "Hunt the <b>24 relics</b>: <code>/riches relics</code> shows who found what, and hints for the rest."],
+         "Hunt the <b>48 relics</b>: <code>/riches relics</code> shows who found what, and hints for the rest."],
   tips=["Each relic exists <b>once per server</b>. Whoever finds it first has the only one. Don't drop it in lava.",
         "Relics come from mobs a player kills (evokers, the Wither, glow squid…), mined blocks (ancient debris, deepslate…) and the first look in structure chests.",
         "Show a whole collection of 6 in your own cases and the <b>Royal Society pays ₥5,000</b>.",
@@ -311,6 +311,19 @@ MODS = [
         "Log out and your followers guard where you left them. Die and they guard your things.",
         "A Colonycraft <b>Guildhouse</b> hires 20/35/50% cheaper and has a Bounty Station too. Mercenary kills drop illager fingers. With Skills: <b>Leadership</b> (bigger squad, cheaper promotions, harder hits, thicker skin). They join De Hooghe Heeren's battles too."],
   cmds="/sellswords · /sellswords list · /sellswords rally · /sellswords charge"),
+
+ dict(name="Tulpengekte", colour="#c2185b", tag="Tulip mania, balanced: grow tulip bulbs, breed rare broken varieties, and sell them to the Bloemist.",
+  recipes=[], getit="No recipe: break a <b>tulip</b> (1 in 4 has a bulb under it), or buy common bulbs from a <b>Bloemist</b>.",
+  steps=["Right-click grass, dirt or farmland with a <b>bulb</b>. A sprout comes up. <b>No bone meal</b>: it flowers in about one Minecraft day.",
+         "Break the flower to <b>lift</b> it: the bulb comes back, plus <b>offsets</b> (a common bulb gives 0–2).",
+         "Now and then an offset <b>breaks</b>: a <b>Fine</b> tulip (1 in 20), a <b>Broken</b> one (1 in 100) or the <b>Semper Augustus</b> (1 in 1,000).",
+         "Make a <b>Bloemist</b>: hand a bulb to a villager without a job (a nitwit will do), or name-tag any villager \"Bloemist\".",
+         "Right-click him: he wants <b>three varieties</b> today and pays the Market price <b>+50%</b> for them. He also sells common bulbs."],
+  tips=["Market prices: common ₥1, fine ₥20, broken ₥75, Semper Augustus ₥300.",
+        "Broken tulips are weak: few offsets, and half revert to a common tulip. Nobody farms Viceroys by the acre.",
+        "Every Bloemist wants the same thing on the same day, and only a few per player. <code>/tulpengekte wants</code> shows today's list.",
+        "With Skills: lifting trains <b>Farming</b> (Green Thumb adds offsets), selling to the Bloemist trains <b>Mercantile</b>. Colonycraft farms dig up the odd bulb."],
+  cmds="/tulpengekte · /tulpengekte wants"),
 ]
 
 def item(k, big=False):
@@ -403,7 +416,7 @@ h3 {{ font: bold 9pt "DejaVu Sans Mono", monospace; letter-spacing: .1em; text-t
 <section class="cover">
   <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · version {VERSION}</p>
   <h1>LIB <span>Pack</span></h1>
-  <p class="lede">Twenty mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
+  <p class="lede">Twenty-one mods in one jar, with a one-page tutorial for each. Players join with a plain vanilla client: everything is built from vanilla items, blocks and chest screens.</p>
   <div class="box"><h2>For server owners</h2><ol>
     <li>Install Fabric Loader for Minecraft 26.3.</li>
     <li>Put <b>Fabric API</b> and <code>lib-pack-{VERSION}+mc26.3.jar</code> in the server's <code>mods/</code> folder.</li>

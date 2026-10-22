@@ -96,7 +96,7 @@ jobs:
           make_latest: false
           body: |
             Latest green build of Tulpengekte (grow, breed and trade tulip bulbs) for Minecraft 26.3 (Fabric, server-side).
-            Download the .jar below and put it in your server's mods/ folder together with Fabric API.
+            Download the .jar below and put it in your server's mods/ folder together with Fabric API and the Market mod.
             Built from ${{ github.sha }}.
           files: |
             tulpengekte/build/libs/tulpengekte-*.jar

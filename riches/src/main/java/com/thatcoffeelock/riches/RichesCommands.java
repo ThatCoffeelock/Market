@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -14,6 +15,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -29,7 +31,7 @@ final class RichesCommands {
 				help(ctx.getSource());
 				return 1;
 			})
-			.then(literal("relics").executes(ctx -> relics(ctx.getSource())))
+			.then(relicsCommand())
 			.then(literal("trust").then(argument("player", EntityArgument.player()).executes(ctx -> trust(ctx.getSource(),
 				EntityArgument.getPlayer(ctx, "player"), true))))
 			.then(literal("untrust").then(argument("player", EntityArgument.player()).executes(ctx -> trust(ctx.getSource(),
@@ -113,10 +115,22 @@ final class RichesCommands {
 		return 1;
 	}
 
-	private static int relics(CommandSourceStack source) {
+	/** /riches relics lists all of them; /riches relics golden (royal, deep, ...) just one collection. */
+	private static LiteralArgumentBuilder<CommandSourceStack> relicsCommand() {
+		LiteralArgumentBuilder<CommandSourceStack> relics = literal("relics").executes(ctx -> relics(ctx.getSource(), null));
+		for (Relic.Collection c : Relic.Collection.values()) {
+			relics.then(literal(c.name().toLowerCase(java.util.Locale.ROOT)).executes(ctx -> relics(ctx.getSource(), c)));
+		}
+		return relics;
+	}
+
+	private static int relics(CommandSourceStack source, @Nullable Relic.Collection only) {
 		source.sendSystemMessage(Component.literal("—— Relics: " + Relics.FOUND.size() + " of " + Relic.values().length + " found ——")
 			.withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 		for (Relic.Collection c : Relic.Collection.values()) {
+			if (only != null && c != only) {
+				continue;
+			}
 			source.sendSystemMessage(Component.literal(c.title).withStyle(c.color, ChatFormatting.BOLD));
 			for (Relic r : c.relics()) {
 				Relics.Found f = Relics.FOUND.get(r.id());
@@ -136,7 +150,7 @@ final class RichesCommands {
 			"§eVault Ledger§7: put it on your vault's floor. Your §fMarket balance§7 piles up around it in gold. Walk in and wade.",
 			"§eVault Door§7: opens for you and the players you §f/riches trust§7. Shuts by itself.",
 			"§eDisplay Case§7 / §ePedestal§7: right-click with an item to show it off under a brass plaque. Empty hand takes it back.",
-			"§eRelics§7: 24 one-of-a-kind treasures in 4 collections. §f/riches relics§7 shows what's found and where to look.",
+			"§eRelics§7: 48 one-of-a-kind treasures in 8 collections. §f/riches relics§7 shows what's found and where to look.",
 			"§7Show a whole collection in your own cases and the Royal Society pays you.",
 			"§7/riches trust <player> · /riches untrust <player> · /riches trusted"
 		};

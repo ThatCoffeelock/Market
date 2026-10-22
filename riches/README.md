@@ -5,7 +5,7 @@ A Fabric mod for Minecraft **26.3** for people who made it and want everyone to 
 - **A walk-in vault.** Put a **Vault Ledger** on the floor and your [Market](../README.md) balance piles up around it as a mound of gold, coins and ingots on top. ₥1,000 is a scattering, ₥100,000 is waist-deep, ₥1,000,000 is up to your eyebrows. Spend it and the pile shrinks. Walk in and you **wade**: slow, clinking, glorious.
 - **Vault Doors** open only for you and the players you trust, and swing shut by themselves after five seconds. Redstone won't keep them open either.
 - **Display Cases and Pedestals.** Put anything in one and it floats and slowly turns, under a brass plaque that says what it is, who put it there and when.
-- **24 relics in 4 collections**, each one of a kind on the server: the Crown of the Illager King, the Dragon's Tooth, a Mosquito in Amber… Whoever finds one first owns the only one. Show a whole collection in your own cases and the **Royal Society pays you ₥5,000**.
+- **48 relics in 8 collections**, each one of a kind on the server: the Crown of the Illager King, the Dragon's Tooth, a Mosquito in Amber… Whoever finds one first owns the only one. Show a whole collection in your own cases and the **Royal Society pays you ₥5,000**.
 
 It's **server-side only**. Friends join with a plain vanilla client. The pile, the floating items and the plaques are vanilla display entities, and the blocks are a lodestone, an iron door, glass and a quartz pillar. Needs the **Market** mod (it's in the [LIB Pack](../lib-pack/README.md)).
 
@@ -28,7 +28,7 @@ Put **Fabric API**, **`market-<version>.jar`** (1.1.0 or newer) and **`riches-<v
 2. **Hang a Vault Door.** Only you, and the players you `/riches trust`, can open it or break it. Right-click the ledger to see how much is in there.
 3. **Get rich.** The pile updates every few seconds as your balance changes.
 4. **Put things on show.** Right-click a Display Case or Pedestal with an item. Right-click with an empty hand to take it back. Other players get to look but not touch.
-5. **Hunt relics.** `/riches relics` lists all 24: who found the ones that are found, and a hint for the rest.
+5. **Hunt relics.** `/riches relics` lists all 48: who found the ones that are found, and a hint for the rest. `/riches relics golden` (or `royal`, `deep`, `under`, `ancient`, `frozen`, `end`, `wild`) shows just one collection.
 
 ### The relics
 
@@ -38,6 +38,10 @@ Put **Fabric API**, **`market-<version>.jar`** (1.1.0 or newer) and **`riches-<v
 | **Treasures of the Deep** | Eye of the Elder (elder guardians) · Captain's Spyglass (shipwreck chests) · The Sunken Doubloon (buried treasure) · Drowned Sailor's Compass (drowned) · Kraken's Ink Pot (glow squid) · Pearl of the Monument (sea lanterns) |
 | **Relics of the Underworld** | The Dragon's Tooth (Ender Dragon) · Crown of Bones (the Wither) · The Netherite Idol (ancient debris) · The Ghast's Last Tear (ghasts) · Heart of the Blaze (blazes) · The Warden's Echo (wardens) |
 | **The Ancient World** | Petrified Trilobite (deepslate) · Tyrant Lizard Tooth (dripstone blocks) · Mosquito in Amber (bee nests) · Lantern of the Deep Dark (ancient city chests) · The Emerald Idol (jungle temple chests) · The Stronghold Codex (stronghold libraries) |
+| **The Golden Age** | Charter of the Compagnie (village cartographer chests) · The First Share (pillager outpost chests) · Bar of the Silver Fleet (underwater ruin chests) · Huygens' Pendulum (shipwreck treasure) · The Master's Brush (village chests, very rarely) · Banner of the Prince (pillagers) |
+| **The Frozen North** | Claw of the Polar King (polar bears) · The Igloo Runestone (igloo basements) · The Stray's Last Arrow (strays) · Heart of the Glacier (blue ice) · Hoof of the Mountain Goat (goats) · Mammoth Hair in Ice (packed ice) |
+| **Curiosities of the End** | Crown of the End City (end city treasure) · The Shulker's Pearl (shulkers) · Eye of the Tall One (endermen) · The First Chorus Seed (chorus flowers) · Endermite in a Bottle (endermites) · The Void Shard (end stone) |
+| **Wonders of the Wild** | The Witch's Hex Bottle (witches) · The Golden Bamboo (bamboo) · Silk of the Spider Queen (cave spiders) · Key of the Trial Master (trial chamber chests) · Eye of the Storm (breezes) · The Sniffer's Lost Seed (suspicious sand) |
 
 Mobs only count when a player kills them. Chest relics turn up the first time anyone opens that structure chest. Relics can't be sold to the Market (priceless, darling), but you can trade them. Lose one in lava and it's gone for good. Admins can bring a lost relic back with `/riches admin unfind <id>`.
 
@@ -47,7 +51,7 @@ A Colonycraft **Bank** has a Vault Ledger in its vault: the pile shows what's in
 
 ## Commands
 
-`/riches` (help), `/riches relics`, `/riches trust <player>`, `/riches untrust <player>`, `/riches trusted`. Ops: `/riches give ledger|door|case|pedestal|relic <id>`, `/riches admin reload`, `/riches admin unfind <id>`.
+`/riches` (help), `/riches relics [collection]`, `/riches trust <player>`, `/riches untrust <player>`, `/riches trusted`. Ops: `/riches give ledger|door|case|pedestal|relic <id>`, `/riches admin reload`, `/riches admin unfind <id>`.
 
 ## Config (`config/riches.json`)
 
@@ -68,4 +72,4 @@ Vaults, doors, cases, finds and trust are saved in `<world>/riches.json`.
 
 - Nothing in the pile can be mined: it's all display entities. Sorry.
 - Server-side mods can't make you actually swim through gold (that animation only happens in water), so you wade instead.
-- CI builds Market and Riches, then boots a real server. It checks the 24 relics (unique names, real models and sources), the pile height against a real Market balance (and that redrawing replaces the pile, not doubles it), a vault door opening and swinging shut, six cases and pedestals with floating relics and plaques, the Royal Collection reward paid exactly once, uniqueness, spotting an unopened loot chest, and everything surviving a save and load.
+- CI builds Market and Riches, then boots a real server. It checks the 48 relics (unique names, real models and sources), the pile height against a real Market balance (and that redrawing replaces the pile, not doubles it), a vault door opening and swinging shut, six cases and pedestals with floating relics and plaques, the Royal Collection reward paid exactly once, uniqueness, spotting an unopened loot chest, and everything surviving a save and load.

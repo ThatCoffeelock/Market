@@ -232,7 +232,7 @@ final class SmokeTest {
 	// ---------------------------------------------------------------- pieces
 
 	private static void catalogue() {
-		check(Relic.values().length == 24, "24 relics");
+		check(Relic.values().length == 48, "48 relics");
 		Set<String> titles = new HashSet<>();
 		for (Relic.Collection c : Relic.Collection.values()) {
 			check(c.relics().size() == 6, c.title + " has 6 relics");

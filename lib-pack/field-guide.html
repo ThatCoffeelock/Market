@@ -129,7 +129,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
     <div style="display:grid;gap:16px;min-width:0">
       <p class="eyebrow">Minecraft 26.3 · Fabric · server-side · 2.0</p>
       <h1>LIB <span>Pack</span></h1>
-      <p class="lede">Twenty mods in one jar, and since 2.0 they play as one realm. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, run a shady trading company, outwit rival houses, level 24 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
+      <p class="lede">Twenty-one mods in one jar, and since 2.0 they play as one realm. Run an economy in <b>Marks (₥)</b>, found colonies, sail ships, haul cargo by train, stack it all in warehouses, fire cannons and muskets, kidnap villagers, smoke cigars, distill genever and drink it, breed tulips worth a canal house, run a shady trading company, outwit rival houses, level 24 skills, raid castles that were already there, push every enchantment to level X, hunt illagers for bounties, drill for oil and bomb your neighbours from a diesel airship. Players join with a <b>plain vanilla client</b>.</p>
     </div>
     <div class="install">
       <h2>Install</h2>
@@ -329,7 +329,7 @@ footer { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; g
   </section>
 
   <footer>
-    <span>LIB Pack 2.0.3 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie, De Hooghe Heeren</span>
+    <span>LIB Pack 2.1.0 · Market, Colonycraft, Ahoy, Burlap Sack, Cannon, Cargo Train, Flintlock, Havana, Warehouse, Skills, Hamlets &amp; Horrors, Overenchant, Fuck Illagers, Fossil Fool, Riches, Blimey, Sellswords, Proost, De Compagnie, De Hooghe Heeren, Tulpengekte</span>
     <span>Iron golems do not endorse the Burlap Sack.</span>
   </footer>
 </div>
@@ -495,6 +495,17 @@ const MODS = [
           "With Colonycraft: their riders take convoys, their armies besiege colonies. With Sellswords: your mercenaries join the battle",
           "Skills: Statecraft. Better odds on proposals, Envoy, Spymaster, Iron Hand"],
     cmds: ["/heeren", "/heeren join", "/heeren leave", "/heeren court", "/heeren dispatches", "/heeren answer", ["/heeren give bell", true], ["/heeren intel", true]] },
+  { name: "Tulpengekte", id: "tulpengekte", colour: "#c2185b", tag: "Tulip mania, balanced: grow bulbs, breed broken varieties, sell them to the Bloemist.",
+    recipes: [], buy: "No recipe: break a <b>tulip</b> (1 in 4 has a bulb under it), or buy common bulbs from a <b>Bloemist</b> for <span class=\"money\">₥5</span>.",
+    how: ["Plant on grass, dirt or farmland. It flowers in a day. No bone meal",
+          "Break the flower: the bulb back, plus offsets (common bulbs give 0–2)",
+          "Offsets break: Fine 1 in 20, Broken 1 in 100, Semper Augustus 1 in 1,000",
+          "Broken bulbs are weak: few offsets, half revert to common",
+          "Bloemist: hand a bulb to a jobless villager or nitwit, or name-tag one “Bloemist”",
+          "He wants 3 varieties a day at +50%, a few per player. /tulpengekte wants",
+          "Sells at the Market: common ₥1, fine ₥20, broken ₥75, Semper Augustus ₥300",
+          "With Skills: Farming and Mercantile. With Colonycraft: farms dig up the odd bulb"],
+    cmds: ["/tulpengekte", "/tulpengekte wants", ["/tulpengekte give", true]] },
   { name: "Warehouse", id: "warehouse", colour: "#c07a2c", tag: "Big sorted storage: a core plus racks, tens of thousands of items, fed by hoppers, trains and ships.",
     recipes: [
       { name: "Warehouse Core", pattern: ["IBI", "CTC", "ICI"], key: { I: "iron_ingot", B: "book", C: "chest", T: "cartography_table" }, out: ["Core", "#c07a2c"] },
